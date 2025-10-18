@@ -1,6 +1,6 @@
 services:
   broker:
-    image: redis:7.4
+    image: redis:8
     restart: unless-stopped
     volumes:
       - redisdata:/data
@@ -50,7 +50,7 @@ services:
       - paperless_internal
     labels:
       traefik.enable: "true"
-      
+
       # Define the main HTTPS router for Paperless
       traefik.http.routers.paperless-secure.entrypoints: "websecure"
       traefik.http.routers.paperless-secure.rule: "Host(`papers.blokth.com`)"

@@ -1,4 +1,4 @@
-# Auto-generated using compose2nix v0.3.2-pre.
+# Auto-generated using compose2nix v0.3.3-pre.
 { pkgs, lib, ... }:
 
 {
@@ -11,7 +11,7 @@
 
   # Containers
   virtualisation.oci-containers.containers."paperless-broker" = {
-    image = "redis:7.4";
+    image = "redis:8";
     volumes = [
       "paperless_redisdata:/data:rw"
     ];
