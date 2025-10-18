@@ -236,6 +236,14 @@ in
 
   services.openssh.enable = true;
 
+  # Allow and proxy mDNS on the host
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    openFirewall = true;   # opens UDP 5353
+    reflector = true;      # reflects between LAN and other ifaces (e.g., docker)
+  };
+
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 
     80
@@ -246,6 +254,8 @@ in
   ];
   networking.firewall.allowedUDPPorts = [ 
     53
+    5353   # mDNS
+    1900   # SSDP/UPnP (other discoveries)
   ];
   # Or disable the firewall altogether.
   networking.firewall.enable = true;
