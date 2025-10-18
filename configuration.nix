@@ -146,7 +146,44 @@ in
       script: !include scripts.yaml
       automation: !include automations.yaml
     '';
-    mode = "0444"; # Read-only (standard Nix store permissions)
+    mode = "0666"; # Read-write
+  };
+
+  environment.etc."homeassistant/scripts.yaml" = {
+    text = ''
+    light_sunrise:
+      use_blueprint:
+        path: steku/parabolic_alarm_script.yaml
+      alias: Light Sunrise
+      description: ""
+    '';
+    mode = "0666"; # Read-write
+  };
+
+  environment.etc."homeassistant/automations.yaml" = {
+    text = ''
+    - id: "1760777091385"
+      alias: Sunlight Alarm
+      description: ""
+      use_blueprint:
+        path: steku/parabolic_alarm.yaml
+        input:
+          alarm_start_time: input_datetime.wakeup
+          offset_from_start_time: -00:30:00
+          workday_sensor: binary_sensor.workday_sensor
+          person_sensor: person.andrii_olkhovych
+          alarm_script: script.light_sunrise
+          target_light: light.0x001788010e1ba8c5
+          post_action:
+          - action: light.turn_on
+            metadata: {}
+            data:
+              color_temp_kelvin: 6500
+              brightness_pct: 100
+            target:
+              area_id: bedroom
+    '';
+    mode = "0666"; # Read-write
   };
 
   services.traefik = {
@@ -242,7 +279,7 @@ in
   # Allow and proxy mDNS on the host
   services.avahi = {
     enable = true;
-    nssmdns = true;
+    nssmdns4 = true;
     openFirewall = true;   # opens UDP 5353
     reflector = true;      # reflects between LAN and other ifaces (e.g., docker)
   };
