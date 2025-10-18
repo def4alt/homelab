@@ -1,4 +1,4 @@
-# Auto-generated using compose2nix v0.3.2-pre.
+# Auto-generated using compose2nix v0.3.3-pre.
 { pkgs, lib, ... }:
 
 {
@@ -16,7 +16,6 @@
       "TZ" = "Europe/Berlin";
     };
     volumes = [
-      "/etc/homeassistant/configuration.yaml:/config/configuration.yaml:ro"
       "/var/lib/homeassistant:/config:rw"
     ];
     log-driver = "journald";
