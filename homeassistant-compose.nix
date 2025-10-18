@@ -16,7 +16,7 @@
       "TZ" = "Europe/Berlin";
     };
     volumes = [
-      "/etc/homeassistant/configuration.yaml:/config/configuration.yaml:ro"
+      "/etc/homeassistant/configuration.yaml:/config/configuration.yaml:rw"
       "/var/lib/homeassistant:/config:rw"
     ];
     log-driver = "journald";
