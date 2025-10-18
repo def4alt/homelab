@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/lib/homeassistant:/config # Mount Nix-managed host directory for HA data
-      - /etc/homeassistant/configuration.yaml:/config/configuration.yaml:rw # Mount specific Nix config file
+      - /etc/homeassistant/configuration.yaml:/config/configuration.yaml:ro # Mount specific Nix config file
     environment:
       - TZ=Europe/Berlin
     network_mode: "host"
