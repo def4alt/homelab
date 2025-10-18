@@ -144,8 +144,6 @@ in
           - 127.0.0.1
 
       script: !include scripts.yaml
-      automation: !include automations.yaml
-      scene: !include scenes.yaml
     '';
     mode = "0444"; # Read-only (standard Nix store permissions)
   };
