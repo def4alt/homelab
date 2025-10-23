@@ -368,11 +368,13 @@ in
     53
     22
     1883
+    21064
   ];
   networking.firewall.allowedUDPPorts = [ 
     53
     5353   # mDNS
     1900   # SSDP/UPnP (other discoveries)
+    21064
   ];
   # Or disable the firewall altogether.
   networking.firewall.enable = true;
