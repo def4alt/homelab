@@ -145,6 +145,7 @@ in
 
       script: !include scripts.yaml
       automation: !include automations.yaml
+      scene: !include scenes.yaml
     '';
     mode = "0666"; # Read-write
   };
@@ -182,6 +183,82 @@ in
               brightness_pct: 100
             target:
               area_id: bedroom
+    '';
+    mode = "0666"; # Read-write
+  };
+
+  environment.etc."homeassistant/scenes.yaml" = {
+    text = ''
+    - id: '1761241547056'
+      name: Wind Down
+      entities:
+        light.0x0c2a6ffffe45ba25:
+          supported_color_modes:
+          - onoff
+          color_mode:
+          friendly_name: stand lamp
+          supported_features: 0
+          state: 'off'
+        light.0x001788010e1ba8c5:
+          min_color_temp_kelvin: 2202
+          max_color_temp_kelvin: 4504
+          min_mireds: 222
+          max_mireds: 454
+          effect_list:
+          - blink
+          - breathe
+          - okay
+          - channel_change
+          - candle
+          - finish_effect
+          - stop_effect
+          - stop_hue_effect
+          supported_color_modes:
+          - color_temp
+          effect:
+          color_mode: color_temp
+          brightness: 255
+          color_temp_kelvin: 2202
+          color_temp: 454
+          hs_color:
+          - 29.79
+          - 84.553
+          rgb_color:
+          - 255
+          - 146
+          - 39
+          xy_color:
+          - 0.579
+          - 0.388
+          friendly_name: bed lamp
+          supported_features: 44
+          state: 'on'
+        light.midesklamppro_b53c_mijia_desk_lamp_sw:
+          min_color_temp_kelvin: 2500
+          max_color_temp_kelvin: 20000
+          min_mireds: 50
+          max_mireds: 400
+          supported_color_modes:
+          - color_temp
+          color_mode: color_temp
+          brightness: 255
+          color_temp_kelvin: 2500
+          color_temp: 400
+          hs_color:
+          - 28.874
+          - 72.522
+          rgb_color:
+          - 255
+          - 159
+          - 70
+          xy_color:
+          - 0.546
+          - 0.389
+          friendly_name: desk lamp
+          supported_features: 0
+          state: 'on'
+      icon: mdi:bed
+      metadata: {}
     '';
     mode = "0666"; # Read-write
   };
