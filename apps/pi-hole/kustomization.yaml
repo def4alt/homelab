@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - pvc.yaml
   - deployment.yaml
+  - service-dns.yaml
   - service-web.yaml
   - secrets/web-password.sops.yaml
   - ingress.yaml

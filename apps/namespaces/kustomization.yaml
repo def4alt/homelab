@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace-infra.yaml
   - namespace-kan.yaml
+  - namespace-metallb-system.yaml
   - namespace-pi-hole.yaml
   - namespace-paperless.yaml
   - namespace-nextcloud.yaml
