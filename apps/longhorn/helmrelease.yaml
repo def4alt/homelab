@@ -16,6 +16,7 @@ spec:
     defaultSettings:
       defaultReplicaCount: 1
       replicaSoftAntiAffinity: true
+      storageReservedPercentage: 5
     persistence:
       defaultClass: true
       defaultClassReplicaCount: 1

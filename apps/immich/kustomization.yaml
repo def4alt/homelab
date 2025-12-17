@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - pvc.yaml
   - server-deployment.yaml
-  - microservices-deployment.yaml
   - service.yaml
   - ingress.yaml
   - redis-deployment.yaml

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: redis
-          image: redis:7.4-alpine
+          image: docker.io/valkey/valkey:8
           args:
             - redis-server
             - --requirepass

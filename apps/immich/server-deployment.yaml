@@ -20,7 +20,9 @@ spec:
             - name: TZ
               value: "Europe/Berlin"
             - name: UPLOAD_LOCATION
-              value: "/usr/src/app/upload"
+              value: "/data"
+            - name: IMMICH_PORT
+              value: "2283"
             - name: DB_HOSTNAME
               value: "immich-db-rw.immich.svc.cluster.local"
             - name: DB_PORT
@@ -46,14 +48,12 @@ spec:
                 secretKeyRef:
                   name: immich-redis-auth
                   key: password
-            - name: IMMICH_WORKERS_INCLUDE
-              value: "api"
           ports:
             - name: http
               containerPort: 2283
           volumeMounts:
             - name: immich-library
-              mountPath: /usr/src/app/upload
+              mountPath: /data
       volumes:
         - name: immich-library
           persistentVolumeClaim:
