@@ -45,9 +45,9 @@
   };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.def4alt = {
+  users.users.perun = {
     isNormalUser = true;
-    extraGroups = [
+    extraGroups = [ 
       "wheel"
       "docker"
       "dialout"
@@ -58,7 +58,7 @@
       tree
     ];
     # Created using mkpasswd
-    hashedPassword = "$y$j9T$GMJoBtzp1Zk2Kge3V1g60/$NiQlRmjiyq8w8xpINbfyxlndsv5yMFGuolkb0p3.Ji1";
+    hashedPassword = "$6$CaCEWrNfJLit0lxA$ZUyRUZH9Vy6hlCseXfyRuz2KxYTtrAieGUqWRnpEnnJA3PdbJE8M.kmn6JKyMlYHRu7yNfvlM1F7oT7efwp7l.";
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFh6m4qX4U4sYAI+ngMuLACi4pqSz2pNjdPcB8aEzD6k"
     ];
