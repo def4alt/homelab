@@ -58,7 +58,7 @@
       tree
     ];
     # Created using mkpasswd
-    hashedPassword = "$y$j9T$MoIAgaicrrwyeg3lkzLBC1$kDrIV0TY2JriuDQaQbyvK8VGrMHoG1oIySatztC24sA";
+    hashedPassword = "$y$j9T$GMJoBtzp1Zk2Kge3V1g60/$NiQlRmjiyq8w8xpINbfyxlndsv5yMFGuolkb0p3.Ji1";
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFh6m4qX4U4sYAI+ngMuLACi4pqSz2pNjdPcB8aEzD6k"
     ];
