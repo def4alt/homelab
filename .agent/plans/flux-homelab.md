@@ -38,6 +38,9 @@
   - SOPS setup uses age keys; created `~/.config/sops/age/keys.txt` and stored the public key `age1843v8f2yesr9gdywuqwrlpfyvhvvnngsrkphks8cgm4rh9aaw94q24x8cz`.
   - Created the Flux decryption secret `flux-system/sops-age` from the age key file and added `spec.decryption` to infra Kustomizations.
   - Infra manifests are authored under `apps/` and wired via `clusters/home/overlays` for Traefik, Cloudflared, Tailscale (DaemonSet), Longhorn (HelmRelease in `longhorn-system`), and Restic (CronJob backing up `/var/lib/longhorn` to Backblaze B2).
+  - Traefik HelmRelease required switching the service to `ClusterIP` (k3s LoadBalancer stayed pending), and HelmRepository/HelmRelease namespaces must match (traefik in `infra`, longhorn in `longhorn-system`) per Flux HelmRelease guidance.
+  - Tailscale DaemonSet needed namespace-scoped RBAC to write state to a Secret; added ServiceAccount/Role/RoleBinding plus `TS_KUBE_SECRET` and restarted the pod. Kustomization was temporarily stuck, so the resource was deleted and recreated to pick up the new spec.
+  - Longhorn required `open-iscsi` on the Debian host; after installing `open-iscsi` and enabling `iscsid`, the HelmRelease succeeded and Restic reconciled.
 
 ### Step 4 – Deploy applications
 - Status: pending
