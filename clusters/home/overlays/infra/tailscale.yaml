@@ -13,7 +13,7 @@ spec:
   dependsOn:
     - name: cloudflared
   timeout: 10m
-  wait: true
+  wait: false
   decryption:
     provider: sops
     secretRef:
