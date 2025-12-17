@@ -16,7 +16,7 @@ spec:
     defaultSettings:
       defaultReplicaCount: 1
       replicaSoftAntiAffinity: true
-      storageReservedPercentageForDefaultDisk: 5
+      storageReservedPercentageForDefaultDisk: 20
     persistence:
       defaultClass: true
       defaultClassReplicaCount: 1
