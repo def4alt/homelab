@@ -7,3 +7,4 @@ resources:
   - infra/tailscale.yaml
   - infra/longhorn.yaml
   - infra/restic.yaml
+  - apps/pi-hole.yaml
