@@ -6,6 +6,7 @@ resources:
   - infra/cloudflared.yaml
   - infra/tailscale.yaml
   - infra/metallb.yaml
+  - infra/metallb-config.yaml
   - infra/longhorn.yaml
   - infra/restic.yaml
   - apps/pi-hole.yaml
