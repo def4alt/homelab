@@ -18,3 +18,4 @@ spec:
       replicaSoftAntiAffinity: true
     persistence:
       defaultClass: true
+      defaultClassReplicaCount: 1
