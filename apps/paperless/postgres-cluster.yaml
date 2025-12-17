@@ -12,4 +12,4 @@ spec:
       secret:
         name: paperless-db-auth
   storage:
-    size: 10Gi
+    size: 5Gi
