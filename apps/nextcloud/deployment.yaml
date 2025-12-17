@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextcloud
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      containers:
+        - name: nextcloud
+          image: nextcloud:29
+          env:
+            - name: POSTGRES_HOST
+              value: "nextcloud-db-rw.nextcloud.svc.cluster.local"
+            - name: POSTGRES_DB
+              value: "nextcloud"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-db-auth
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-db-auth
+                  key: password
+            - name: REDIS_HOST
+              value: "nextcloud-redis"
+            - name: REDIS_HOST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-redis-auth
+                  key: password
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
+              value: "cloud.def4alt.com"
+            - name: OVERWRITEHOST
+              value: "cloud.def4alt.com"
+            - name: OVERWRITEPROTOCOL
+              value: "https"
+            - name: NEXTCLOUD_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-secrets
+                  key: admin-user
+            - name: NEXTCLOUD_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-secrets
+                  key: admin-password
+          ports:
+            - name: http
+              containerPort: 80
+          volumeMounts:
+            - name: nextcloud-data
+              mountPath: /var/www/html/data
+            - name: nextcloud-config
+              mountPath: /var/www/html/config
+            - name: nextcloud-apps
+              mountPath: /var/www/html/custom_apps
+      volumes:
+        - name: nextcloud-data
+          persistentVolumeClaim:
+            claimName: nextcloud-data
+        - name: nextcloud-config
+          persistentVolumeClaim:
+            claimName: nextcloud-config
+        - name: nextcloud-apps
+          persistentVolumeClaim:
+            claimName: nextcloud-apps

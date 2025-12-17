@@ -32,7 +32,7 @@
   - **Home Assistant (home-assistant namespace)**: persistent `/config` volume on Longhorn, run on host networking so Zigbee stick/devices remain discoverable while Traefik/Tailscale still manage access, secrets for `HA_KEY`, `LONG_LIVED_TOKEN`, and webhook passwords, and connection info for optional add-ons (MQTT, DuckDNS, etc.).
 
 ### Step 3 – Implement base infrastructure
-- Status: in_progress
+- Status: completed
 - Bootstrap Flux on the k3s Debian host, then set up `sops` decryption (key choice + Flux secret in `flux-system`) before installing required custom resources, configuring Traefik ingress and Cloudflared tunnel integration, deploying Tailscale for private networking, ensuring Longhorn storage is provisioned, and deploying Restic-based backups to Backblaze B2.
 - Notes:
   - SOPS setup uses age keys; created `~/.config/sops/age/keys.txt` and stored the public key `age1843v8f2yesr9gdywuqwrlpfyvhvvnngsrkphks8cgm4rh9aaw94q24x8cz`.
@@ -41,10 +41,21 @@
   - Traefik HelmRelease required switching the service to `ClusterIP` (k3s LoadBalancer stayed pending), and HelmRepository/HelmRelease namespaces must match (traefik in `infra`, longhorn in `longhorn-system`) per Flux HelmRelease guidance.
   - Tailscale DaemonSet needed namespace-scoped RBAC to write state to a Secret; added ServiceAccount/Role/RoleBinding plus `TS_KUBE_SECRET` and restarted the pod. Kustomization was temporarily stuck, so the resource was deleted and recreated to pick up the new spec.
   - Longhorn required `open-iscsi` on the Debian host; after installing `open-iscsi` and enabling `iscsid`, the HelmRelease succeeded and Restic reconciled.
+  - Installed MetalLB via Helm and configured an L2 IP pool `192.168.88.192-192.168.88.250` to provide stable LoadBalancer IPs on the LAN.
+  - Reset SOPS secret in-cluster (`flux-system/sops-age`) and reconciled infra chain to restore decryption.
 
 ### Step 4 – Deploy applications
-- Status: pending
+- Status: in_progress
 - Create Flux-managed manifests/kustomizations for Kan, Pi-hole, Paperless-ngx, Nextcloud, and Home Assistant, wiring ingress routes through Traefik with Cloudflared DNS.
+- Notes:
+  - Pi-hole deployed with Longhorn PVCs and a LoadBalancer DNS service (`192.168.88.192`) via MetalLB; Traefik ingress remains for the web UI.
+  - Added CloudNativePG operator for Postgres and created per-app clusters (1 instance each) using bootstrap initdb secrets.
+  - Home Assistant planned via Helm chart with host networking, zigbee USB passthrough, and Postgres recorder.
+  - Paperless-ngx planned with Redis + Gotenberg/Tika helpers, 20Gi data PVC, and Postgres.
+  - Kanbn planned with Postgres and secrets (BETTER_AUTH_SECRET, POSTGRES_URL) from docs.
+  - Nextcloud planned with Postgres + Redis, 200Gi total storage split (data 188Gi, config 2Gi, apps 10Gi), and cron job.
+  - Immich planned with Postgres + Redis, 100Gi library PVC, and machine-learning service omitted per docs.
+  - Remaining apps: Kan, Paperless-ngx, Nextcloud, Home Assistant.
 
 ### Step 5 – Verification and documentation
 - Status: pending

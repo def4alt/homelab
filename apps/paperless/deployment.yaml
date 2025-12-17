@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: paperless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:latest
+          env:
+            - name: PAPERLESS_URL
+              value: "https://papers.def4alt.com"
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secrets
+                  key: secret-key
+            - name: PAPERLESS_TIME_ZONE
+              value: "Europe/Berlin"
+            - name: PAPERLESS_DBHOST
+              value: "paperless-db-rw.paperless.svc.cluster.local"
+            - name: PAPERLESS_DBNAME
+              value: "paperless"
+            - name: PAPERLESS_DBUSER
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-db-auth
+                  key: username
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-db-auth
+                  key: password
+            - name: PAPERLESS_REDIS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-redis-auth
+                  key: redis-url
+            - name: PAPERLESS_ADMIN_USER
+              value: "admin"
+            - name: PAPERLESS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secrets
+                  key: admin-password
+            - name: PAPERLESS_TIKA_ENABLED
+              value: "1"
+            - name: PAPERLESS_TIKA_ENDPOINT
+              value: "http://paperless-tika:9998"
+            - name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
+              value: "http://paperless-gotenberg:3000"
+          ports:
+            - name: http
+              containerPort: 8000
+          volumeMounts:
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/data
+              subPath: data
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/media
+              subPath: media
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/consume
+              subPath: consume
+      volumes:
+        - name: paperless-storage
+          persistentVolumeClaim:
+            claimName: paperless-storage

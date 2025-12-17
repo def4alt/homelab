@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kan-db
+  namespace: kan
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: kan_db
+      owner: kan
+      secret:
+        name: kan-db-auth
+  storage:
+    size: 5Gi
