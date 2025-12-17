@@ -56,6 +56,7 @@
   - Nextcloud planned with Postgres + Redis, 200Gi total storage split (data 188Gi, config 2Gi, apps 10Gi), and cron job.
   - Immich planned with Postgres + Redis, 100Gi library PVC, and machine-learning service omitted per docs.
   - TLS strategy updated: switch from Traefik ACME `certResolver` to cert-manager (ClusterIssuer + per-Ingress TLS secrets) so Cloudflared can validate public certs on HTTPS origins.
+  - Split cert-manager install and ClusterIssuer into separate Flux Kustomizations so CRDs are ready before applying `ClusterIssuer` resources.
   - Remaining apps: Kan, Paperless-ngx, Nextcloud, Home Assistant.
 
 ### Step 5 – Verification and documentation

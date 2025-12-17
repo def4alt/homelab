@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - infra/namespaces.yaml
   - infra/cert-manager.yaml
+  - infra/cert-manager-issuers.yaml
   - infra/traefik.yaml
   - infra/cloudflared.yaml
   - infra/tailscale.yaml
