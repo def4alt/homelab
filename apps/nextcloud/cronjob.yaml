@@ -14,11 +14,7 @@ spec:
             - name: cron
               image: nextcloud:29
               command:
-                - /entrypoint.sh
-              args:
-                - php
-                - -f
-                - /var/www/html/cron.php
+                - /cron.sh
               env:
                 - name: POSTGRES_HOST
                   value: "nextcloud-db-rw.nextcloud.svc.cluster.local"
