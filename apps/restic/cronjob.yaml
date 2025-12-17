@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: restic-backup
+  namespace: infra
+spec:
+  schedule: "30 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: restic
+              image: restic/restic:0.16.4
+              command:
+                - /bin/sh
+                - -c
+              args:
+                - |
+                  set -euo pipefail
+                  restic snapshots >/dev/null 2>&1 || restic init
+                  restic backup /backup/longhorn --tag longhorn
+                  restic forget --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 6
+              envFrom:
+                - secretRef:
+                    name: restic-credentials
+              volumeMounts:
+                - name: longhorn-data
+                  mountPath: /backup/longhorn
+                  readOnly: true
+          volumes:
+            - name: longhorn-data
+              hostPath:
+                path: /var/lib/longhorn
+                type: DirectoryOrCreate

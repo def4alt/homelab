@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace-infra.yaml
+  - namespace-kan.yaml
+  - namespace-pi-hole.yaml
+  - namespace-paperless.yaml
+  - namespace-nextcloud.yaml
+  - namespace-home-assistant.yaml
+  - namespace-longhorn-system.yaml

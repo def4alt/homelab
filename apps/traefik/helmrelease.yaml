@@ -1,0 +1,39 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: infra
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: traefik
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+        namespace: flux-system
+  values:
+    deployment:
+      replicas: 1
+    additionalArguments:
+      - "--providers.kubernetescrd"
+      - "--providers.kubernetesingress"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--certificatesresolvers.cloudflare.acme.email=homelab@def4alt.com"
+      - "--certificatesresolvers.cloudflare.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesresolvers.cloudflare.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
+    env:
+      - name: CF_DNS_API_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: cloudflare-dns
+            key: api-token
+    persistence:
+      enabled: false
+    ingressRoute:
+      dashboard:
+        enabled: true

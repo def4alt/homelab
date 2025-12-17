@@ -11,7 +11,7 @@
   - Flux documentation also highlights managing optional components (e.g., Multi-tenancy, workload identity) through configuration once bootstrap is complete, so we'll prepare a Git repo layout that separates core infrastructure (Traefik, Longhorn, networking) from application overlays.
 
 ### Step 2 – Design GitOps layout
-- Status: in_progress
+- Status: completed
 - Define repository structure for Flux components, kustomizations, and service overlays; choose namespaces, configure secret management (e.g., sealed secrets or Flux-managed secrets), and determine how each service will be provisioned.
 - Notes:
   - Plan to follow a layered layout: `clusters/home` holds cluster-specific `GitRepository` and `Kustomization` definitions that bootstrap `flux-system`, and `apps/{service}` directories contain base kustomizations (this mirrors the flux bootstrap pattern described at https://fluxcd.io/flux/installation/).
@@ -32,8 +32,12 @@
   - **Home Assistant (home-assistant namespace)**: persistent `/config` volume on Longhorn, run on host networking so Zigbee stick/devices remain discoverable while Traefik/Tailscale still manage access, secrets for `HA_KEY`, `LONG_LIVED_TOKEN`, and webhook passwords, and connection info for optional add-ons (MQTT, DuckDNS, etc.).
 
 ### Step 3 – Implement base infrastructure
-- Status: pending
-- Bootstrap Flux on the k3s Debian host, install required custom resources, configure Traefik ingress and Cloudflared tunnel integration, deploy Tailscale for private networking, ensure Longhorn storage is provisioned, and deploy Restic-based backups to Backblaze B2.
+- Status: in_progress
+- Bootstrap Flux on the k3s Debian host, then set up `sops` decryption (key choice + Flux secret in `flux-system`) before installing required custom resources, configuring Traefik ingress and Cloudflared tunnel integration, deploying Tailscale for private networking, ensuring Longhorn storage is provisioned, and deploying Restic-based backups to Backblaze B2.
+- Notes:
+  - SOPS setup uses age keys; created `~/.config/sops/age/keys.txt` and stored the public key `age1843v8f2yesr9gdywuqwrlpfyvhvvnngsrkphks8cgm4rh9aaw94q24x8cz`.
+  - Created the Flux decryption secret `flux-system/sops-age` from the age key file and added `spec.decryption` to infra Kustomizations.
+  - Infra manifests are authored under `apps/` and wired via `clusters/home/overlays` for Traefik, Cloudflared, Tailscale (DaemonSet), Longhorn (HelmRelease in `longhorn-system`), and Restic (CronJob backing up `/var/lib/longhorn` to Backblaze B2).
 
 ### Step 4 – Deploy applications
 - Status: pending
@@ -43,4 +47,4 @@
 - Status: pending
 - Validate deployments, confirm services reachable via intended domains, document setup steps, and note any follow-up actions (monitoring, backups, upgrades).
 
-**Notes:** Will update this Exec Plan with progress and decisions; no manifests created yet in accordance with the instruction to plan before coding.
+**Notes:** Will keep this Exec Plan updated with progress and decisions as infra/apps are deployed.
