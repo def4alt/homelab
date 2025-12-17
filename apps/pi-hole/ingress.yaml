@@ -5,8 +5,7 @@ metadata:
   namespace: pi-hole
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.tls.certresolver: cloudflare
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
     - host: pihole.def4alt.com
@@ -20,5 +19,6 @@ spec:
                 port:
                   number: 80
   tls:
-    - hosts:
+    - secretName: pihole-tls
+      hosts:
         - pihole.def4alt.com

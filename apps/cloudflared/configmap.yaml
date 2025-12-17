@@ -8,22 +8,12 @@ data:
     ingress:
       - hostname: boards.def4alt.com
         service: https://traefik.infra.svc.cluster.local:443
-        originRequest:
-          noTLSVerify: true
       - hostname: home.def4alt.com
         service: https://traefik.infra.svc.cluster.local:443
-        originRequest:
-          noTLSVerify: true
       - hostname: cloud.def4alt.com
         service: https://traefik.infra.svc.cluster.local:443
-        originRequest:
-          noTLSVerify: true
       - hostname: papers.def4alt.com
         service: https://traefik.infra.svc.cluster.local:443
-        originRequest:
-          noTLSVerify: true
       - hostname: photos.def4alt.com
         service: https://traefik.infra.svc.cluster.local:443
-        originRequest:
-          noTLSVerify: true
       - service: http_status:404

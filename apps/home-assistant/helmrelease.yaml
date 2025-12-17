@@ -44,15 +44,15 @@ spec:
       className: traefik
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
-        traefik.ingress.kubernetes.io/router.tls: "true"
-        traefik.ingress.kubernetes.io/router.tls.certresolver: cloudflare
+        cert-manager.io/cluster-issuer: letsencrypt-prod
       hosts:
         - host: home.def4alt.com
           paths:
             - path: /
               pathType: Prefix
       tls:
-        - hosts:
+        - secretName: home-assistant-tls
+          hosts:
             - home.def4alt.com
     configuration:
       enabled: true

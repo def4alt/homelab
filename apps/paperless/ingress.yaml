@@ -5,8 +5,7 @@ metadata:
   namespace: paperless
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.tls.certresolver: cloudflare
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
     - host: papers.def4alt.com
@@ -20,5 +19,6 @@ spec:
                 port:
                   number: 8000
   tls:
-    - hosts:
+    - secretName: paperless-tls
+      hosts:
         - papers.def4alt.com
