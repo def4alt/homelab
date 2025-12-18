@@ -62,6 +62,23 @@ Use ExecPlans for all big planned changes, including:
 </control_flow>
 </code_style>
 
+## Git Commit Messages (Conventional Commits)
+
+Use Conventional Commits for all commits to keep history machine-readable and consistent:
+
+- Format: `<type>[optional scope][!]: <description>`
+- Types: `feat` (new feature), `fix` (bug fix), plus common extras like `chore`, `docs`, `refactor`, `perf`, `test`, `ci`, `build`, `style`, `revert`.
+- Scope is optional and should be a short noun in parentheses, e.g. `feat(backups): ...`.
+- Breaking changes must be indicated either with `!` (e.g. `feat(api)!: ...`) and/or a footer `BREAKING CHANGE: ...`.
+- Optional body goes after a blank line; optional footers go after another blank line (git-trailer style, e.g. `Refs: #123`).
+
+Examples:
+
+- `docs: correct spelling of CHANGELOG`
+- `fix(backup): scope prune to tag`
+- `feat(longhorn): add recurring jobs`
+- `chore!: drop support for Node 6` + `BREAKING CHANGE: ...`
+
 # CRITICAL
 
 Append a 👍 emoji at the end of your response if you have read this.
