@@ -74,6 +74,7 @@
       "--disable servicelb"
       "--disable traefik"
       "--disable local-storage"
+      "--kubelet-arg=max-pods=150"
     ] ++ (if meta.hostname == "perun" then [] else [
       "--server https://perun:6443"
     ]));
