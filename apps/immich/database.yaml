@@ -10,3 +10,5 @@ spec:
     name: immich-db
   extensions:
     - name: vector
+    - name: cube
+    - name: earthdistance
