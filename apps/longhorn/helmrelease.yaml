@@ -20,3 +20,7 @@ spec:
     persistence:
       defaultClass: true
       defaultClassReplicaCount: 1
+    defaultBackupStore:
+      backupTarget: s3://def4alt-homelab@eu-central-003/longhorn/
+      backupTargetCredentialSecret: longhorn-backup-target
+      pollInterval: 300

@@ -5,5 +5,7 @@ resources:
   - service.yaml
   - ingress.yaml
   - postgres-cluster.yaml
+  - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/kan-secrets.sops.yaml
+  - secrets/cnpg-barman-s3.sops.yaml

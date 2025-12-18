@@ -5,6 +5,7 @@ metadata:
   namespace: infra
 spec:
   schedule: "30 2 * * *"
+  suspend: true
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3

@@ -3,6 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: pihole-etc
   namespace: pi-hole
+  labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
 spec:
   accessModes:
     - ReadWriteOnce
@@ -16,6 +19,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: pihole-dnsmasq
   namespace: pi-hole
+  labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
 spec:
   accessModes:
     - ReadWriteOnce

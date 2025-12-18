@@ -3,6 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-data
   namespace: nextcloud
+  labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
 spec:
   accessModes:
     - ReadWriteOnce
@@ -16,6 +19,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-config
   namespace: nextcloud
+  labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
 spec:
   accessModes:
     - ReadWriteOnce
@@ -29,6 +35,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: nextcloud-apps
   namespace: nextcloud
+  labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
 spec:
   accessModes:
     - ReadWriteOnce

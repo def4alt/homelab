@@ -4,5 +4,7 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - postgres-cluster.yaml
+  - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/home-assistant-secrets.sops.yaml
+  - secrets/cnpg-barman-s3.sops.yaml
