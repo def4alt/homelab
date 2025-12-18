@@ -23,6 +23,7 @@ spec:
               args:
                 - |
                   set -euo pipefail
+                  ulimit -n 1048576 || true
                   restic snapshots >/dev/null 2>&1 || restic init
                   restic backup /backup/longhorn --tag longhorn
                   restic forget --prune --keep-daily 7 --keep-weekly 4 --keep-monthly 6
