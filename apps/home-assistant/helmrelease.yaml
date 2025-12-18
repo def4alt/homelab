@@ -68,7 +68,7 @@ spec:
             - 10.42.0.0/16
 
         recorder:
-          db_url: !secret postgres_url
+          db_url: !env_var POSTGRES_URL
           purge_keep_days: 30
 
         frontend:
