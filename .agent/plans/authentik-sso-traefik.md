@@ -19,10 +19,10 @@ User-visible behavior at the end:
 
 ## Progress
 
-- [ ] (2025-12-18) Add an `authentik` namespace and Flux wiring for the Authentik HelmRelease.
-- [ ] (2025-12-18) Provision Postgres for Authentik via CloudNativePG and store secrets with SOPS.
-- [ ] (2025-12-18) Deploy Authentik and confirm the web UI is reachable on an internal hostname.
-- [ ] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app.
+- [x] (2025-12-18) Add an `authentik` namespace and Flux wiring for the Authentik HelmRelease.
+- [x] (2025-12-18) Provision Postgres for Authentik via CloudNativePG and store secrets with SOPS.
+- [ ] (2025-12-18) Deploy Authentik and confirm the web UI is reachable on an internal hostname (completed: manifests; remaining: Flux reconcile + browser check).
+- [ ] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource; remaining: Authentik outpost/provider + app wiring).
 - [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads.
 - [ ] (2025-12-18) Remove Cloudflare Access applications/policies and confirm public access is still protected.
 - [ ] (2025-12-18) Document the “add a new protected app” workflow and the break-glass procedure.
@@ -31,6 +31,8 @@ User-visible behavior at the end:
 
 - Observation: this repo’s `cloudflared` is in token mode, so tunnel routing is managed in Cloudflare Zero Trust.
   Evidence: `apps/cloudflared/deployment.yaml` runs `cloudflared tunnel run --token ...`.
+- Observation: the upstream Authentik chart always references a config Secret named after the Helm release; we disable chart-managed secret creation and provide a SOPS-encrypted Secret named `authentik` instead.
+  Evidence: Authentik server/worker templates use `envFrom.secretRef.name: {{ template "authentik.fullname" . }}` unconditionally.
 
 ## Decision Log
 
@@ -213,4 +215,3 @@ Capture these as you implement:
 - CloudNativePG for Postgres persistence.
 - Traefik Middleware `ForwardAuth` resources and app Ingress wiring.
 - Cloudflare Tunnel remains for public transport, but Cloudflare Access is removed.
-

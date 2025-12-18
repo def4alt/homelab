@@ -3,4 +3,7 @@ kind: Kustomization
 resources:
   - helmrepository.yaml
   - helmrelease.yaml
-  - middleware-authentik-forward-auth.yaml
+  - postgres-cluster.yaml
+  - secrets/authentik-config.sops.yaml
+  - secrets/postgres-auth.sops.yaml
+
