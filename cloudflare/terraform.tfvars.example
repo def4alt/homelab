@@ -1,0 +1,15 @@
+# Copy to terraform.tfvars and fill in real values.
+
+# Optional: instead of exporting CLOUDFLARE_API_TOKEN
+# cloudflare_api_token = "cf_api_token_here"
+
+account_id     = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+zone_id        = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+tunnel_id      = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+base_domain    = "def4alt.com"
+allowed_emails = ["you@example.com"]
+
+# Optional
+session_duration     = "8h"
+manage_tunnel_config = false
+manage_dns           = false

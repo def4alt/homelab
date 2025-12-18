@@ -1,0 +1,30 @@
+resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
+  count = var.manage_tunnel_config ? 1 : 0
+
+  account_id = var.account_id
+  tunnel_id  = var.tunnel_id
+
+  config {
+    warp_routing {
+      enabled = false
+    }
+
+    dynamic "ingress_rule" {
+      for_each = local.hostnames_sorted
+      content {
+        hostname = ingress_rule.value
+        service  = var.tunnel_origin_url
+
+        origin_request {
+          http_host_header   = ingress_rule.value
+          origin_server_name = ingress_rule.value
+          no_tls_verify      = false
+        }
+      }
+    }
+
+    ingress_rule {
+      service = "http_status:404"
+    }
+  }
+}
