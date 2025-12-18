@@ -57,6 +57,7 @@
   - Immich planned with Postgres + Redis, 100Gi library PVC, and machine-learning service omitted per docs.
   - TLS strategy updated: switch from Traefik ACME `certResolver` to cert-manager (ClusterIssuer + per-Ingress TLS secrets) so Cloudflared can validate public certs on HTTPS origins.
   - Split cert-manager install and ClusterIssuer into separate Flux Kustomizations so CRDs are ready before applying `ClusterIssuer` resources.
+  - Cloudflared tunnel is running in token mode; token mode uses Cloudflare-hosted ingress config (remote) and will not honor local `config.yaml` mounted in-cluster. Repo config was simplified accordingly; tunnel routing/SNI/TLS settings must be managed in Cloudflare Zero Trust.
   - Remaining apps: Kan, Paperless-ngx, Nextcloud, Home Assistant.
 
 ### Step 5 – Verification and documentation

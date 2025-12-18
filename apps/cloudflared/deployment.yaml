@@ -18,8 +18,6 @@ spec:
           image: cloudflare/cloudflared:2024.6.0
           args:
             - tunnel
-            - --config
-            - /etc/cloudflared/config/config.yaml
             - --no-autoupdate
             - --metrics
             - 0.0.0.0:2000
@@ -35,10 +33,6 @@ spec:
           ports:
             - name: metrics
               containerPort: 2000
-          volumeMounts:
-            - name: cloudflared-config
-              mountPath: /etc/cloudflared/config
-              readOnly: true
           livenessProbe:
             httpGet:
               path: /ready
@@ -57,7 +51,3 @@ spec:
               memory: 64Mi
             limits:
               memory: 256Mi
-      volumes:
-        - name: cloudflared-config
-          configMap:
-            name: cloudflared-config
