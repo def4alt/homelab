@@ -33,6 +33,8 @@ User-visible behavior at the end:
   Evidence: `apps/cloudflared/deployment.yaml` runs `cloudflared tunnel run --token ...`.
 - Observation: the upstream Authentik chart always references a config Secret named after the Helm release; we disable chart-managed secret creation and provide a SOPS-encrypted Secret named `authentik` instead.
   Evidence: Authentik server/worker templates use `envFrom.secretRef.name: {{ template "authentik.fullname" . }}` unconditionally.
+- Observation: the Authentik automated-install bootstrap blueprint creates the default admin user as `akadmin` (not the value of `AUTHENTIK_BOOTSTRAP_USERNAME`), so logging in as `admin` will fail even if `AUTHENTIK_BOOTSTRAP_USERNAME=admin` is set.
+  Evidence: `/blueprints/system/bootstrap.yaml` sets `context.username: akadmin`, and the server logs showed `invalid_identifier` for `admin` during login attempts.
 
 ## Decision Log
 
