@@ -16,5 +16,4 @@ resources:
   - apps/home-assistant.yaml
   - apps/paperless.yaml
   - apps/kan.yaml
-  - apps/nextcloud.yaml
   - apps/immich.yaml

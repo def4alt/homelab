@@ -8,7 +8,6 @@ resources:
   - namespace-metallb-system.yaml
   - namespace-pi-hole.yaml
   - namespace-paperless.yaml
-  - namespace-nextcloud.yaml
   - namespace-home-assistant.yaml
   - namespace-longhorn-system.yaml
   - namespace-immich.yaml
