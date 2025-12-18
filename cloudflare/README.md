@@ -1,17 +1,15 @@
-# Cloudflare Zero Trust (Tunnel + Access) as Code
+# Cloudflare Zero Trust (Tunnel) as Code
 
 This folder is a small Terraform project to manage:
 
-- Cloudflare Access (OAuth gate) for homelab hostnames.
 - (Optional) Cloudflare Tunnel hostname routing to the in-cluster Traefik service.
 
-It is intentionally opt-in for tunnel routing so you can start by managing only Access policies without risking an accidental overwrite of your existing tunnel configuration.
+It is intentionally opt-in for tunnel routing so you can keep managing tunnel routes in the Cloudflare UI until you are ready to have Terraform own them.
 
 ## Prereqs
 
 - Terraform installed locally.
 - A Cloudflare API token provided via `CLOUDFLARE_API_TOKEN` (recommended) or `cloudflare_api_token` in `terraform.tfvars`, with permissions sufficient for:
-  - Zero Trust Access apps/policies
   - Tunnel configuration (only if you enable tunnel config management)
   - DNS (only if you enable DNS management)
 - You know your Cloudflare `account_id`, `zone_id`, and tunnel UUID (`tunnel_id`).
@@ -29,7 +27,6 @@ Create a `terraform.tfvars` (not committed) with at least:
     zone_id         = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     tunnel_id       = "cccccccc-cccc-cccc-cccc-cccccccccccc"
     base_domain     = "def4alt.com"
-    allowed_emails  = ["you@example.com"]
 
 You can start from `cloudflare/terraform.tfvars.example`.
 
@@ -40,8 +37,6 @@ Then:
 
 ## What this manages
 
-By default, this creates one Cloudflare Access application and policy set per hostname listed in `locals.tf`.
-
 Optional flags:
 
 - `manage_tunnel_config = true` will manage tunnel ingress rules for those hostnames, forwarding to Traefik at `https://traefik.infra.svc.cluster.local:443` and setting both Host header and TLS SNI to the requested hostname.
@@ -49,5 +44,4 @@ Optional flags:
 
 ## Operational notes
 
-- Identity provider (Google/GitHub/etc.) configuration typically lives in Cloudflare Zero Trust settings and is not managed here. This project assumes you already have at least one IdP configured.
-- Break-glass: you can disable Access enforcement by `terraform destroy` for Access resources (or toggling a variable and applying), without changing anything in Kubernetes.
+- Break-glass: set `manage_tunnel_config = false` and/or `manage_dns = false` and apply, or manage those settings in the Cloudflare UI while you recover.

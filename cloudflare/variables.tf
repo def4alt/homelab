@@ -25,17 +25,6 @@ variable "base_domain" {
   type        = string
 }
 
-variable "allowed_emails" {
-  description = "Email allowlist for Cloudflare Access policies."
-  type        = list(string)
-}
-
-variable "session_duration" {
-  description = "Access session duration, e.g. 8h, 24h."
-  type        = string
-  default     = "8h"
-}
-
 variable "manage_tunnel_config" {
   description = "If true, manage cloudflare_tunnel_config ingress rules for hostnames in locals.tf."
   type        = bool
