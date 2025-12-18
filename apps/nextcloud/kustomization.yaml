@@ -8,7 +8,6 @@ resources:
   - redis-deployment.yaml
   - redis-service.yaml
   - postgres-cluster.yaml
-  - cronjob.yaml
   - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/redis-auth.sops.yaml
