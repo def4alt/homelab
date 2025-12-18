@@ -1,21 +1,17 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: traefik
+  name: traefik-crds
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./apps/traefik
+  path: ./apps/traefik-crds
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
     - name: namespaces
-    - name: traefik-crds
   timeout: 10m
   wait: true
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age
+
