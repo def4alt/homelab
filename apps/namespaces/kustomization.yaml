@@ -13,3 +13,4 @@ resources:
   - namespace-longhorn-system.yaml
   - namespace-immich.yaml
   - namespace-docmost.yaml
+  - namespace-glance.yaml

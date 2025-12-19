@@ -20,3 +20,4 @@ resources:
   - apps/kan.yaml
   - apps/immich.yaml
   - apps/docmost.yaml
+  - apps/glance.yaml
