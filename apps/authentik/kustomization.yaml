@@ -6,5 +6,6 @@ resources:
   - postgres-cluster.yaml
   - outpost-proxy.yaml
   - blueprints-configmap.yaml
+  - certificates.yaml
   - secrets/authentik-config.sops.yaml
   - secrets/postgres-auth.sops.yaml
