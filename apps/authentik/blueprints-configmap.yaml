@@ -40,6 +40,8 @@ data:
           intercept_header_auth: false
           basic_auth_enabled: false
           cookie_domain: ".def4alt.com"
+          authentication_flow: null
+          authorization_flow: null
 
       - model: authentik_core.application
         id: app-traefik-forward-auth
@@ -62,3 +64,20 @@ data:
           order: 0
           negate: false
           failure_result: false
+
+      - model: authentik_outposts.outpost
+        id: outpost-traefik-forward-auth
+        identifiers:
+          name: Traefik Forward Auth Outpost
+        attrs:
+          name: Traefik Forward Auth Outpost
+          type: proxy
+          providers:
+            - !KeyOf provider-traefik-forward-auth
+          _config:
+            authentik_host: https://auth.def4alt.com
+            authentik_host_insecure: false
+            authentik_host_browser: https://auth.def4alt.com
+            kubernetes_replicas: 1
+            kubernetes_namespace: authentik
+            kubernetes_service_type: ClusterIP
