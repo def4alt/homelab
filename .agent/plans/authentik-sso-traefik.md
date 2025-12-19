@@ -22,8 +22,8 @@ User-visible behavior at the end:
 - [x] (2025-12-18) Add an `authentik` namespace and Flux wiring for the Authentik HelmRelease.
 - [x] (2025-12-18) Provision Postgres for Authentik via CloudNativePG and store secrets with SOPS.
 - [ ] (2025-12-18) Deploy Authentik and confirm the web UI is reachable on an internal hostname (completed: manifests; remaining: Flux reconcile + browser check).
-- [ ] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource; remaining: Authentik outpost/provider + app wiring).
-- [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads.
+- [x] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource, GitOps blueprint for provider/app/policy; remaining: outpost hookup + app middleware annotations).
+- [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads (in progress: pilot `boards.def4alt.com` Ingress now references the forward-auth middleware).
 - [ ] (2025-12-18) Remove Cloudflare Access applications/policies and confirm public access is still protected.
 - [ ] (2025-12-18) Document the “add a new protected app” workflow and the break-glass procedure.
 
@@ -35,6 +35,8 @@ User-visible behavior at the end:
   Evidence: Authentik server/worker templates use `envFrom.secretRef.name: {{ template "authentik.fullname" . }}` unconditionally.
 - Observation: the Authentik automated-install bootstrap blueprint creates the default admin user as `akadmin` (not the value of `AUTHENTIK_BOOTSTRAP_USERNAME`), so logging in as `admin` will fail even if `AUTHENTIK_BOOTSTRAP_USERNAME=admin` is set.
   Evidence: `/blueprints/system/bootstrap.yaml` sets `context.username: akadmin`, and the server logs showed `invalid_identifier` for `admin` during login attempts.
+- Observation: Authentik proxy providers require `internal_host` and `external_host` to be non-null; authentication/authorization flows can be left null (they default to the instance defaults).
+  Evidence: `ProxyProvider._meta.get_field(...).null` from `ak shell` showed `internal_host=False`, `external_host=False`, `authentication_flow=True`, `authorization_flow=True`.
 
 ## Decision Log
 

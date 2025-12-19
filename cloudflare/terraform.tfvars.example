@@ -1,13 +1,13 @@
-# Copy to terraform.tfvars and fill in real values.
+# Copy to terraform.tfvars and fill in real values, or set TF_VAR_* environment
+# variables instead of writing secrets to disk.
 
-# Optional: instead of exporting CLOUDFLARE_API_TOKEN
-# cloudflare_api_token = "cf_api_token_here"
-
-account_id     = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-zone_id        = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-tunnel_id      = "cccccccc-cccc-cccc-cccc-cccccccccccc"
-base_domain    = "def4alt.com"
+account_id           = "<cloudflare-account-id>"
+zone_id              = "<zone-id-for-base-domain>"
+tunnel_id            = "<cloudflare-tunnel-uuid>"
+base_domain          = "def4alt.com"
+cloudflare_api_token = "<token-with-dns-and-tunnel-perms>"
 
 # Optional
-manage_tunnel_config = false
-manage_dns           = false
+manage_tunnel_config = true
+manage_dns           = true
+tunnel_origin_url    = "https://traefik.infra.svc.cluster.local:443"

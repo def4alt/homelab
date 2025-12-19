@@ -13,6 +13,9 @@ spec:
         name: authentik
         namespace: authentik
   values:
+    blueprints:
+      configMaps:
+        - authentik-blueprints
     authentik:
       enabled: false
     postgresql:
@@ -30,4 +33,3 @@ spec:
           - secretName: authentik-tls
             hosts:
               - auth.def4alt.com
-
