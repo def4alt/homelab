@@ -4,6 +4,7 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - postgres-cluster.yaml
+  - outpost-proxy.yaml
   - blueprints-configmap.yaml
   - secrets/authentik-config.sops.yaml
   - secrets/postgres-auth.sops.yaml
