@@ -12,3 +12,4 @@ resources:
   - namespace-home-assistant.yaml
   - namespace-longhorn-system.yaml
   - namespace-immich.yaml
+  - namespace-docmost.yaml

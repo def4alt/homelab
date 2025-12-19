@@ -2,6 +2,7 @@ locals {
   hostnames = toset([
     "auth.${var.base_domain}",
     "boards.${var.base_domain}",
+    "docs.${var.base_domain}",
     "papers.${var.base_domain}",
     "photos.${var.base_domain}",
     "pihole.${var.base_domain}",

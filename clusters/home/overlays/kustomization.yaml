@@ -19,3 +19,4 @@ resources:
   - apps/paperless.yaml
   - apps/kan.yaml
   - apps/immich.yaml
+  - apps/docmost.yaml
