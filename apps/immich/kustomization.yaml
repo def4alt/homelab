@@ -1,5 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: immich
 resources:
   - pvc.yaml
   - server-deployment.yaml
@@ -12,4 +13,4 @@ resources:
   - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/redis-auth.sops.yaml
-  - secrets/cnpg-barman-s3.sops.yaml
+  - ../secrets/cnpg-barman-s3.sops.yaml
