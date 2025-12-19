@@ -23,6 +23,7 @@ User-visible behavior at the end:
 - [x] (2025-12-18) Provision Postgres for Authentik via CloudNativePG and store secrets with SOPS.
 - [ ] (2025-12-18) Deploy Authentik and confirm the web UI is reachable on an internal hostname (completed: manifests; remaining: Flux reconcile + browser check).
 - [x] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource, GitOps blueprint for provider/app/policy; remaining: outpost hookup + app middleware annotations).
+- [x] (2025-12-19) Authentik proxy outpost reconfigured to use cluster Postgres credentials (env from `authentik` Secret), rolled out, and forward-auth is now responding; remaining: create TLS secret `authentik/authentik-outpost-tls` for the outpost Ingress.
 - [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads (in progress: pilot `boards.def4alt.com` Ingress now references the forward-auth middleware).
 - [ ] (2025-12-18) Remove Cloudflare Access applications/policies and confirm public access is still protected.
 - [ ] (2025-12-18) Document the “add a new protected app” workflow and the break-glass procedure.
@@ -37,6 +38,8 @@ User-visible behavior at the end:
   Evidence: `/blueprints/system/bootstrap.yaml` sets `context.username: akadmin`, and the server logs showed `invalid_identifier` for `admin` during login attempts.
 - Observation: Authentik proxy providers require `internal_host` and `external_host` to be non-null; authentication/authorization flows can be left null (they default to the instance defaults).
   Evidence: `ProxyProvider._meta.get_field(...).null` from `ak shell` showed `internal_host=False`, `external_host=False`, `authentication_flow=True`, `authorization_flow=True`.
+- Observation: The Authentik proxy outpost defaults to using localhost Postgres; without overriding env vars it fails to start and Traefik forward-auth calls are refused.
+  Evidence: outpost pod logs showed `127.0.0.1:5432 connection refused` and Traefik middleware errors; setting `AUTHENTIK_POSTGRESQL__*` from the `authentik` Secret fixed it.
 
 ## Decision Log
 

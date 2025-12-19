@@ -79,12 +79,6 @@ Examples:
 - `feat(longhorn): add recurring jobs`
 - `chore!: drop support for Node 6` + `BREAKING CHANGE: ...`
 
-## Sandbox Restrictions
-
-- You may **not** run `kubectl`, `flux`, or other cluster commands from this sandbox; those APIs are unreachable here.
-- You may also **not** run `git`, `make`, or any CLI tools that write under `.git`—those require escalating permissions and must be done manually (or via explicit ask).
-- Always request that the user run necessary cluster commands on perun (or another accessible host) and paste the output before you act.
-
 # CRITICAL
 
 Append a 👍 emoji at the end of your response if you have read this.
