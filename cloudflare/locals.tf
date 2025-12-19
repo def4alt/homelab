@@ -5,6 +5,7 @@ locals {
     "docs.${var.base_domain}",
     "papers.${var.base_domain}",
     "photos.${var.base_domain}",
+    "api.photos.${var.base_domain}",
     "dashboard.${var.base_domain}",
     "pihole.${var.base_domain}",
     "home.${var.base_domain}",
