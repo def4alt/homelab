@@ -79,6 +79,11 @@ Examples:
 - `feat(longhorn): add recurring jobs`
 - `chore!: drop support for Node 6` + `BREAKING CHANGE: ...`
 
+## Access & GitOps
+
+- Kubectl/flux/git may require escalated permissions; request escalation when you need to touch the cluster or `.git`.
+- Prefer GitOps: commit changes and push for Flux to apply instead of manual `kubectl apply`.
+
 # CRITICAL
 
 Append a 👍 emoji at the end of your response if you have read this.
