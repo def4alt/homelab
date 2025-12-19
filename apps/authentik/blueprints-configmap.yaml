@@ -33,9 +33,9 @@ data:
           name: Traefik Forward Auth
         attrs:
           name: Traefik Forward Auth
-          mode: forward_domain
+          mode: forward_single
           internal_host: https://traefik.infra.svc.cluster.local
-          external_host: .def4alt.com
+          external_host: https://boards.def4alt.com
           skip_path_regex: ""
           intercept_header_auth: false
           basic_auth_enabled: false
