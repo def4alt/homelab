@@ -32,13 +32,13 @@ spec:
               mountPath: /app/assets
           readinessProbe:
             httpGet:
-              path: /healthchecks
+              path: /
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /healthchecks
+              path: /
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 20
