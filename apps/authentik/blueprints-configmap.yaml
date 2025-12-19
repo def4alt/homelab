@@ -5,7 +5,7 @@ metadata:
   namespace: authentik
 data:
   traefik-forward-auth.yaml: |
-    version: 1
+    version: 2
     metadata:
       name: Traefik forward-auth baseline
       labels:
