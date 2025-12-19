@@ -4,7 +4,7 @@ metadata:
   name: glance-config
   namespace: glance
 data:
-  config.yaml: |
+  glance.yml: |
     pages:
       - name: Startpage
         width: slim

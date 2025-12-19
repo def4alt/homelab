@@ -22,14 +22,14 @@ spec:
               name: http
           env:
             - name: GLANCE_CONFIG_FILE
-              value: /glance/config/config.yaml
+              value: /app/config/glance.yml
             - name: GLANCE_DATA_DIR
-              value: /glance/data
+              value: /app/assets
           volumeMounts:
             - name: config
-              mountPath: /glance/config
+              mountPath: /app/config
             - name: data
-              mountPath: /glance/data
+              mountPath: /app/assets
           readinessProbe:
             httpGet:
               path: /healthchecks
