@@ -5,7 +5,7 @@ metadata:
   namespace: authentik
 data:
   traefik-forward-auth.yaml: |
-    version: 2
+    version: 3
     metadata:
       name: Traefik forward-auth baseline
       labels:
@@ -33,9 +33,9 @@ data:
           name: Traefik Forward Auth
         attrs:
           name: Traefik Forward Auth
-          mode: forward_single
+          mode: forward_domain
           internal_host: https://traefik.infra.svc.cluster.local
-          external_host: boards.def4alt.com
+          external_host: auth.def4alt.com
           skip_path_regex: ""
           intercept_header_auth: false
           basic_auth_enabled: false
