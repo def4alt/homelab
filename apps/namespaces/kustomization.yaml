@@ -15,4 +15,3 @@ resources:
   - namespace-immich.yaml
   - namespace-docmost.yaml
   - namespace-glance.yaml
-  - namespace-pocketbase.yaml
