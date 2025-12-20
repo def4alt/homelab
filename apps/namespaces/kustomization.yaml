@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace-cert-manager.yaml
+  - namespace-ai.yaml
   - namespace-cnpg-system.yaml
   - namespace-authentik.yaml
   - namespace-infra.yaml

@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paperless-rag-sync
+  namespace: ai
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: paperless-rag-sync
+              image: python:3.12-slim
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  pip install --no-cache-dir requests
+                  python /scripts/sync_paperless.py
+              env:
+                - name: PAPERLESS_URL
+                  value: http://paperless.paperless.svc.cluster.local:8000
+                - name: PAPERLESS_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-rag-secrets
+                      key: paperless-token
+                - name: OUTPUT_DIR
+                  value: /data/paperless
+                - name: OPEN_WEBUI_BASE_URL
+                  value: http://open-webui.ai.svc.cluster.local
+                - name: OPEN_WEBUI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-rag-secrets
+                      key: open-webui-api-key
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: rag-cache
+                  mountPath: /data
+          volumes:
+            - name: scripts
+              configMap:
+                name: paperless-rag-script
+                defaultMode: 0555
+            - name: rag-cache
+              persistentVolumeClaim:
+                claimName: paperless-rag-cache

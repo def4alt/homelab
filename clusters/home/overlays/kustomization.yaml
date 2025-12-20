@@ -21,3 +21,6 @@ resources:
   - apps/immich.yaml
   - apps/docmost.yaml
   - apps/glance.yaml
+  - apps/ollama.yaml
+  - apps/open-webui.yaml
+  - apps/paperless-rag.yaml
