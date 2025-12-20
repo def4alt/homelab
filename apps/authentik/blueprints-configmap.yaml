@@ -34,7 +34,6 @@ data:
         attrs:
           name: Traefik Forward Auth
           mode: forward_domain
-          internal_host: https://traefik.infra.svc.cluster.local
           external_host: https://auth.def4alt.com
           skip_path_regex: ""
           intercept_header_auth: false
@@ -74,7 +73,7 @@ data:
           type: proxy
           providers:
             - !KeyOf provider-traefik-forward-auth
-          _config:
+          config:
             authentik_host: https://auth.def4alt.com
             authentik_host_insecure: false
             authentik_host_browser: https://auth.def4alt.com
