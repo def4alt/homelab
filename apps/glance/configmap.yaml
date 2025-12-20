@@ -7,7 +7,7 @@ data:
   glance.yml: |
     pages:
       - name: Startpage
-        width: slim
+        width: full
         hide-desktop-navigation: true
         center-vertically: true
         columns:
