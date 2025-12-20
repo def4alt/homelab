@@ -50,3 +50,5 @@ data:
                 links:
                   - title: Toggle Ollama
                     url: https://ollama-toggle.def4alt.com/toggle
+                  - title: Open WebUI
+                    url: https://llm.def4alt.com/
