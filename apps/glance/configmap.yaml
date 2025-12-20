@@ -60,3 +60,11 @@ data:
                 servers:
                   - type: local
                     name: Services
+          - size: full
+            widgets:
+              - type: hacker-news
+                limit: 15
+                collapse-after: 5
+              - type: lobsters
+                limit: 15
+                collapse-after: 5
