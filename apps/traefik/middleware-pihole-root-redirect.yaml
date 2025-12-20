@@ -1,0 +1,10 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: pihole-root-redirect
+  namespace: infra
+spec:
+  redirectRegex:
+    regex: ^https?://pihole\.def4alt\.com/?$
+    replacement: https://pihole.def4alt.com/admin/
+    permanent: true

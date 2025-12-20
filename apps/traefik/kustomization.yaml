@@ -4,3 +4,4 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - middleware-authentik-forward-auth.yaml
+  - middleware-pihole-root-redirect.yaml
