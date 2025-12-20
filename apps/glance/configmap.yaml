@@ -44,3 +44,9 @@ data:
                     url: https://pihole.def4alt.com/
                   - title: Home Assistant
                     url: https://home.def4alt.com/
+
+              - type: links
+                title: Controls
+                links:
+                  - title: Toggle Ollama
+                    url: https://ollama-toggle.def4alt.com/toggle

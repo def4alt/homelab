@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ollama-toggle
+  namespace: ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama-toggle
+  template:
+    metadata:
+      labels:
+        app: ollama-toggle
+    spec:
+      serviceAccountName: ollama-toggle
+      containers:
+        - name: ollama-toggle
+          image: python:3.12-slim
+          command:
+            - python
+            - /app/server.py
+          env:
+            - name: TARGET_NAMESPACE
+              value: ai
+            - name: TARGET_DEPLOYMENT
+              value: ollama
+            - name: LISTEN_PORT
+              value: "8080"
+          ports:
+            - name: http
+              containerPort: 8080
+          volumeMounts:
+            - name: config
+              mountPath: /app
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: ollama-toggle
+            defaultMode: 0555
