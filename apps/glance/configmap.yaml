@@ -52,3 +52,11 @@ data:
                     url: https://ollama-toggle.def4alt.com/toggle
                   - title: Open WebUI
                     url: https://llm.def4alt.com/
+
+          - size: full
+            widgets:
+              - type: server-stats
+                title: Server Stats
+                servers:
+                  - type: local
+                    name: Services
