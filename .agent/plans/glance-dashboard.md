@@ -71,4 +71,4 @@ Deliver an always-on Glance dashboard that aggregates upstream status telemetry 
 
 - 2026-01-03: ExecPlan created; awaiting stakeholder feedback on connectors and domain name.
   - 2026-01-04: Glance app manifests, Startpage config, Longhorn PVC, and Traefik ingress for `dashboard.def4alt.com` added; Flux overlay wiring launched.
-  - 2026-01-05: Added Immich API ingress so mobile clients can bypass forward-auth, plus Cloudflare DNS for `api.photos.def4alt.com`.
+- 2026-01-05: Added Immich API ingress so mobile clients can bypass forward-auth, plus Cloudflare DNS for `api-photos.def4alt.com`.

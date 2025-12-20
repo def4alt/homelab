@@ -8,7 +8,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-    - host: api.photos.def4alt.com
+    - host: api-photos.def4alt.com
       http:
         paths:
           - path: /
@@ -20,5 +20,5 @@ spec:
                   number: 2283
   tls:
     - hosts:
-        - api.photos.def4alt.com
+        - api-photos.def4alt.com
       secretName: immich-api-tls
