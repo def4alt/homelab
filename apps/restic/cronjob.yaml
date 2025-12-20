@@ -17,7 +17,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: restic
-              image: restic/restic:0.16.4
+              image: restic/restic:latest
               command:
                 - /bin/sh
                 - -c

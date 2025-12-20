@@ -4,7 +4,7 @@
 
 <architecture_overview>
 - k3s
-- debian
+- nixos
 - fluxcd
 </architecture_overview>
 
