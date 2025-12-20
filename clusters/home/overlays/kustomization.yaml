@@ -25,3 +25,4 @@ resources:
   - apps/open-webui.yaml
   - apps/paperless-rag.yaml
   - apps/ollama-toggle.yaml
+  - apps/pocketbase.yaml
