@@ -45,7 +45,7 @@ data:
                   - title: Home Assistant
                     url: https://home.def4alt.com/
 
-              - type: links
+              - type: bookmarks
                 title: Controls
                 links:
                   - title: Toggle Ollama
