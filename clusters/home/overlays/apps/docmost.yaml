@@ -13,6 +13,7 @@ spec:
   dependsOn:
     - name: cnpg
     - name: cert-manager
+    - name: authentik
     - name: longhorn
     - name: traefik
   timeout: 10m
