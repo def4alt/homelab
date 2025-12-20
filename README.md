@@ -1,89 +1,77 @@
-# New Server Setup
+# Homelab
 
-Add the following Nix options when setting up a new server:
+## Installation
 
-```nix
-networking.networkmanager.enable = true;
-networking.networkmanager.dns = "systemd-resolved";
-services.resolved.enable = true;
-networking.nameservers = [ "1.1.1.1" "8.8.8.8" ];
+### NixOS baseline
+
+This repo represents the full stack for a single NixOS host. The flake in `nixos/flake.nix` defines one node called `perun`, and the rest of the repo assumes that host name. To reproduce the same setup on bare metal, boot the target machine with the standard NixOS installer and run:
+
+```sh
+nix run github:nix-community/nixos-anywhere -- --flake '.#perun' \
+  --target-host nixos@<installer-ip> --build-on-remote
 ```
 
-## Installing on a machine with no operating system
+Before running the command you can tweak `nixos/configuration.nix`, `hardware-configuration.nix`, or any module under `nixos/`. The flake also pulls in `disko` so the disk layout you install will match the source-controlled partitioning.
 
-If your machine doesn't currently have an operating system installed, you can
-still run `nixos-anywhere` remotely to automate the install. To do this, you
-would first need to boot the target machine from the standard NixOS installer.
-You can either boot from a USB or use `netboot`.
+### Cloudflare tunnels
 
-The
-[NixOS installation guide](https://nixos.org/manual/nixos/stable/index.html#sec-booting-from-usb)
-has detailed instructions on how to boot the installer.
+`cloudflare/` is a small Terraform project that can own the Cloudflare Tunnel and optional DNS records forwarding to Traefik. Toggle the `manage_tunnel_config` and `manage_dns` flags in `terraform.tfvars` to choose how much Terraform should manage, fill in `account_id`, `zone_id`, `tunnel_id`, and optionally `base_domain`, then run `terraform init && terraform apply` from `cloudflare/`.
 
-When you run `nixos-anywhere`, it will determine whether a NixOS installer is
-present by checking whether the `/etc/os-release` file contains the identifier
-`VARIANT_ID=installer`. This identifier is available on releases NixOS 23.05 or
-later.
+## Kubernetes stack
 
-If an installer is detected, `nixos-anywhere` will not attempt to `kexec` into
-its own image. This is particularly useful for targets that don't have enough
-RAM for `kexec` or don't support `kexec`.
+### k3s + Flux
 
-NixOS starts an SSH server on the installer by default, but you need to set a
-password in order to access it. To set a password for the `nixos` user, run the
-following command in a terminal on the NixOS machine:
+k3s runs on the NixOS host, and FluxCD reconciles everything under `clusters/home`. The `apps/` directory is the canonical source of Traefik, Cert-Manager, infra helpers, and the applications themselves; Flux is bootstrapped in `clusters/home/flux-system` and pulls overlays from `clusters/home/overlays`.
 
-```
-passwd
+All infra overlays set `spec.decryption.provider: sops`, so Flux decrypts the secrets stored under `apps/*/secrets/*.sops.yaml` using a dedicated Age key. The cluster must contain the namespace-scoped secret `flux-system/sops-age` that holds the private key to decrypt those secrets.
+
+Create the key pair (if you do not already have one) with:
+
+```sh
+mkdir -p ~/.config/sops/age
+age-keygen -o ~/.config/sops/age/keys.txt
 ```
 
-If you don't know the IP address of the installer on your network, you can find
-it by running the following command:
+Add the public key (seen in `.sops.yaml` as `age1843v8f2y…94q24x8cz`) to the list Flux should trust, encrypt secrets with `sops --age <your-key-id> ...`, then give Flux the private half:
 
-```
-$ ip addr
-1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-       valid_lft forever preferred_lft forever
-    inet6 ::1/128 scope host
-       valid_lft forever preferred_lft forever
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
-    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
-    altname enp0s3
-    altname ens3
-    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic noprefixroute eth0
-       valid_lft 86385sec preferred_lft 75585sec
-    inet6 fec0::5054:ff:fe12:3456/64 scope site dynamic mngtmpaddr noprefixroute
-       valid_lft 86385sec preferred_lft 14385sec
-    inet6 fe80::5054:ff:fe12:3456/64 scope link
-       valid_lft forever preferred_lft forever
+```sh
+kubectl -n flux-system create secret generic sops-age \
+  --from-file=age.key=~/.config/sops/age/keys.txt \
+  --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-This will display the IP addresses assigned to your network interface(s),
-including the IP address of the installer. In the example output below, the
-installer's IP addresses are `10.0.2.15`, `fec0::5054:ff:fe12:3456`, and
-`fe80::5054:ff:fe12:3456%eth0`:
+Once that secret exists, Flux can reconcile the overlays under `clusters/home/overlays` without further manual steps.
 
-To test if you can connect and your password works, you can use the following
-SSH command (replace the IP address with your own):
+## Secrets to set
 
-```
-ssh -v nixos@fec0::5054:ff:fe12:3456
-```
+Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate these files with values encrypted by the same Age key before Flux can bring up the associated services:
 
-You can then use the IP address to run `nixos-anywhere` like this:
+- `apps/restic/secrets/restic-credentials.sops.yaml` – restic credentials for remote/Backblaze B2 uploads.
+- `apps/paperless-rag/secrets/paperless-rag-secrets.sops.yaml` – tokens used by the RAG sync job.
+- `apps/cloudflared/secrets/tunnel-token.sops.yaml` – Cloudflare Tunnel token for `cloudflared`.
+- `apps/home-assistant/secrets/postgres-auth.sops.yaml` – Home Assistant Postgres user/password.
+- `apps/home-assistant/secrets/home-assistant-secrets.sops.yaml` – Home Assistant-wide secrets (API tokens, webhook secrets, etc.).
+- `apps/cert-manager-issuers/secrets/cloudflare-dns.sops.yaml` – Cloudflare API token for DNS-01 challenges.
+- `apps/tailscale/secrets/auth.sops.yaml` – Tailscale pre-auth key for the daemonset.
+- `apps/pi-hole/secrets/web-password.sops.yaml` – Pi-hole admin password.
+- `apps/kan/secrets/postgres-auth.sops.yaml` – Kan Postgres credentials.
+- `apps/kan/secrets/kan-secrets.sops.yaml` – Kan admin credentials and tokens.
+- `apps/longhorn/secrets/backup-target-credentials.sops.yaml` – S3-compatible credentials for Longhorn backups.
+- `apps/paperless/secrets/postgres-auth.sops.yaml` – Paperless Postgres user/password.
+- `apps/paperless/secrets/redis-auth.sops.yaml` – Paperless Redis authentication.
+- `apps/paperless/secrets/paperless-secrets.sops.yaml` – Paperless application secrets.
+- `apps/secrets/cnpg-barman-s3.sops.yaml` – shared CNPG/backup S3 credentials.
+- `apps/immich/secrets/postgres-auth.sops.yaml` – Immich Postgres credentials.
+- `apps/immich/secrets/redis-auth.sops.yaml` – Immich Redis credentials.
+- `apps/authentik/secrets/postgres-auth.sops.yaml` – Authentik Postgres credentials.
+- `apps/authentik/secrets/authentik-config.sops.yaml` – Authentik config (emails, webhooks, etc.).
 
-```
-nix run github:nix-community/nixos-anywhere -- --flake '.#perun' --target-host nixos@fec0::5054:ff:fe12:3456 --build-on-remote
-```
+Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files so Flux can decrypt them when the `sops-age` secret matches the key pair you used.
 
-This example assumes a flake in the current directory containing a configuration
-named `perun`.
+## Services
 
-## Configuring MikroTik router DNS
+- **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
+- **Applications**: Authentik SSO, Home Assistant, Kan, Paperless (plus Paperless-RAG), DocMost, Glance dashboard, Immich, Pi-hole, Open WebUI, Ollama + Ollama Toggle.
+- **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the CNPG Barman S3 key.
 
-Point your MikroTik router at the homelab for DNS resolution:
-
-- Open `IP → DHCP Client` and uncheck the **Use Peer DNS** option so upstream values are ignored.
-- Open `IP → DNS` and set the server list to the homelab's IP address.
+Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.
