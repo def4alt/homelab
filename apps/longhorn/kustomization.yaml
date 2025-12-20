@@ -4,4 +4,3 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - secrets/backup-target-credentials.sops.yaml
-  - recurringjobs.yaml
