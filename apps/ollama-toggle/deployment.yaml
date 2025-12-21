@@ -4,7 +4,7 @@ metadata:
   name: ollama-toggle
   namespace: ai
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: ollama-toggle
