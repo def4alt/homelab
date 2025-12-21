@@ -34,7 +34,7 @@ data:
         attrs:
           name: Traefik Forward Auth
           mode: forward_domain
-          external_host: https://auth.def4alt.com
+          external_host: https://outpost.def4alt.com
           skip_path_regex: ""
           intercept_header_auth: false
           basic_auth_enabled: false

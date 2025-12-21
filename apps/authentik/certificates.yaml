@@ -19,9 +19,9 @@ metadata:
   namespace: authentik
 spec:
   secretName: authentik-outpost-tls
-  commonName: auth.def4alt.com
+  commonName: outpost.def4alt.com
   dnsNames:
-    - auth.def4alt.com
+    - outpost.def4alt.com
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

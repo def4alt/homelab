@@ -5,14 +5,15 @@ metadata:
   namespace: authentik
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.priority: "1000"
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   tls:
-    - secretName: authentik-tls
+    - secretName: authentik-outpost-tls
       hosts:
-        - auth.def4alt.com
+        - outpost.def4alt.com
   rules:
-    - host: auth.def4alt.com
+    - host: outpost.def4alt.com
       http:
         paths:
           - path: /outpost.goauthentik.io
