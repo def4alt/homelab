@@ -7,12 +7,17 @@ data:
   glance.yml: |
     pages:
       - name: Startpage
-        width: wide
+        width: slim
         hide-desktop-navigation: true
         center-vertically: true
         columns:
           - size: full
             widgets:
+              - type: server-stats
+                title: Server Stats
+                servers:
+                  - type: local
+                    name: Services
               - type: search
                 search-engine: kagi
                 new-tab: true
@@ -44,24 +49,14 @@ data:
                     url: https://pihole.def4alt.com/
                   - title: Home Assistant
                     url: https://home.def4alt.com/
+                  - title: Open WebUI
+                    url: https://llm.def4alt.com/
 
               - type: bookmarks
                 title: Controls
                 links:
                   - title: Toggle Ollama
                     url: https://ollama-toggle.def4alt.com/toggle
-                  - title: Open WebUI
-                    url: https://llm.def4alt.com/
-
-          - size: full
-            widgets:
-              - type: server-stats
-                title: Server Stats
-                servers:
-                  - type: local
-                    name: Services
-          - size: full
-            widgets:
               - type: hacker-news
                 limit: 15
                 collapse-after: 5
