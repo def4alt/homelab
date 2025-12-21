@@ -15,7 +15,7 @@ spec:
     - host: outpost.def4alt.com
       http:
         paths:
-          - path: /outpost.goauthentik.io
+          - path: /
             pathType: Prefix
             backend:
               service:

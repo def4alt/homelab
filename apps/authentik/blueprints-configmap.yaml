@@ -38,7 +38,7 @@ data:
           skip_path_regex: ""
           intercept_header_auth: false
           basic_auth_enabled: false
-          cookie_domain: "def4alt.com"
+          cookie_domain: ".def4alt.com"
           authentication_flow: !Find [authentik_flows.Flow, [slug, default-authentication-flow]]
           authorization_flow: !Find [authentik_flows.Flow, [slug, default-provider-authorization-implicit-consent]]
           invalidation_flow: !Find [authentik_flows.Flow, [slug, default-provider-invalidation-flow]]
