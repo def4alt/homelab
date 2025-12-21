@@ -53,13 +53,12 @@ data:
                     url: https://llm.def4alt.com/
 
               - type: bookmarks
-                title: Controls
-                links:
-                  - title: Toggle Ollama
-                    url: https://ollama-toggle.def4alt.com/toggle
-              - type: hacker-news
-                limit: 15
-                collapse-after: 5
-              - type: lobsters
-                limit: 15
-                collapse-after: 5
+                groups:
+                  - title: Controls
+                  - links:
+                    - title: Toggle Ollama
+                      url: https://ollama-toggle.def4alt.com/toggle
+              - type: group
+                widgets:
+                  - type: hacker-news
+                  - type: lobsters
