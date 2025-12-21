@@ -18,18 +18,6 @@ data:
                 servers:
                   - type: local
                     name: Services
-              - type: search
-                search-engine: kagi
-                new-tab: true
-                placeholder: Search the homelab or the wider web
-                autofocus: true
-                bangs:
-                  - title: YouTube
-                    shortcut: "!yt"
-                    url: https://www.youtube.com/results?search_query={QUERY}
-                  - title: Wikipedia
-                    shortcut: "!wiki"
-                    url: https://en.wikipedia.org/wiki/Special:Search?search={QUERY}
 
               - type: monitor
                 cache: 1m
