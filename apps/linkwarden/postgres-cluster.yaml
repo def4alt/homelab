@@ -1,0 +1,34 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: linkwarden-db
+  namespace: linkwarden
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: linkwarden
+      owner: linkwarden
+      secret:
+        name: linkwarden-db-auth
+  storage:
+    size: 5Gi
+  backup:
+    retentionPolicy: 14d
+    barmanObjectStore:
+      destinationPath: s3://def4alt-homelab/cnpg/linkwarden/linkwarden-db
+      endpointURL: https://s3.eu-central-003.backblazeb2.com
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-barman-s3
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-barman-s3
+          key: ACCESS_SECRET_KEY
+        region:
+          name: cnpg-barman-s3
+          key: REGION
+      data:
+        compression: gzip
+      wal:
+        compression: gzip
