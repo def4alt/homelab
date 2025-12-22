@@ -30,13 +30,13 @@ spec:
                   name: linkwarden-secrets
                   key: database-url
             - name: STORAGE_DIR
-              value: /data
+              value: /var/lib/linkwarden
           ports:
             - name: http
               containerPort: 3000
           volumeMounts:
             - name: data
-              mountPath: /data
+              mountPath: /var/lib/linkwarden
       volumes:
         - name: data
           persistentVolumeClaim:
