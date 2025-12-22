@@ -40,12 +40,6 @@ data:
                   - title: Open WebUI
                     url: https://llm.def4alt.com/
 
-              - type: bookmarks
-                groups:
-                  - title: Controls
-                  - links:
-                    - title: Toggle Ollama
-                      url: https://ollama-toggle.def4alt.com/toggle
               - type: group
                 widgets:
                   - type: hacker-news
