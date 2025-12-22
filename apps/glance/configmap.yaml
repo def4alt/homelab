@@ -28,7 +28,7 @@ data:
                   - title: DocMost
                     url: https://docs.def4alt.com/
                   - title: Kanboard
-                    url: https://boards.def4alt.com/
+                    url: https://kan.def4alt.com/
                   - title: Paperless
                     url: https://papers.def4alt.com/
                   - title: Immich Photos
@@ -37,6 +37,8 @@ data:
                     url: https://pihole.def4alt.com/
                   - title: Home Assistant
                     url: https://home.def4alt.com/
+                  - title: Linkwarden
+                    url: https://later.def4alt.com/
                   - title: Open WebUI
                     url: https://llm.def4alt.com/
 

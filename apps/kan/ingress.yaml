@@ -9,7 +9,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-    - host: boards.def4alt.com
+    - host: kan.def4alt.com
       http:
         paths:
           - path: /
@@ -22,4 +22,4 @@ spec:
   tls:
     - secretName: kan-tls
       hosts:
-        - boards.def4alt.com
+        - kan.def4alt.com

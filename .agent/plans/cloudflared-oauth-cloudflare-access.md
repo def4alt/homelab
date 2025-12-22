@@ -6,13 +6,13 @@ This repository contains ExecPlan requirements at `.agent/PLANS.md`. This docume
 
 ## Purpose / Big Picture
 
-The goal is to put single-sign-on (SSO) in front of every homelab service that is exposed to the Internet through the existing Cloudflare Tunnel (`cloudflared`). After this change, visiting any protected hostname (for example `https://boards.def4alt.com`) first shows a Cloudflare Access login screen, then redirects back to the service after the user signs in with an OAuth provider (for example Google or GitHub). Unauthenticated users should not be able to reach the origin service at all.
+The goal is to put single-sign-on (SSO) in front of every homelab service that is exposed to the Internet through the existing Cloudflare Tunnel (`cloudflared`). After this change, visiting any protected hostname (for example `https://kan.def4alt.com`) first shows a Cloudflare Access login screen, then redirects back to the service after the user signs in with an OAuth provider (for example Google or GitHub). Unauthenticated users should not be able to reach the origin service at all.
 
 The key user-visible behavior is: “public DNS resolves, but the service is not reachable without logging in”.
 
 ## Progress
 
-- [x] (2025-12-18) Inventory candidate hostnames from Kubernetes Ingress resources (`boards`, `papers`, `photos`, `pihole`, `home`).
+- [x] (2025-12-18) Inventory candidate hostnames from Kubernetes Ingress resources (`kan`, `papers`, `photos`, `pihole`, `home`).
 - [x] (2025-12-18) Add Terraform under `cloudflare/` to manage Cloudflare Access apps/policies for those hostnames, and validate the configuration locally.
 - [ ] (2025-12-18) Apply for one pilot hostname (in Cloudflare) and validate browser + CLI.
 - [ ] (2025-12-18) Enable tunnel route management (optional) and validate correct Host header + TLS SNI to Traefik.
@@ -63,7 +63,7 @@ Relevant pieces for this plan:
 
 - Hostnames currently present in this repo (as of now) include:
 
-  - `boards.def4alt.com` (`apps/kan/ingress.yaml`)
+  - `kan.def4alt.com` (`apps/kan/ingress.yaml`)
   - `papers.def4alt.com` (`apps/paperless/ingress.yaml`)
   - `photos.def4alt.com` (`apps/immich/ingress.yaml`)
   - `pihole.def4alt.com` (`apps/pi-hole/ingress.yaml`)
@@ -104,7 +104,7 @@ Do the following:
 
 ### Milestone 2: Configure a single pilot hostname end-to-end
 
-At the end of this milestone, one chosen hostname (for example `boards.def4alt.com`) is protected by OAuth and demonstrably works for both browser access and CLI/API access.
+At the end of this milestone, one chosen hostname (for example `kan.def4alt.com`) is protected by OAuth and demonstrably works for both browser access and CLI/API access.
 
 In Cloudflare Zero Trust:
 
@@ -115,8 +115,8 @@ In Cloudflare Zero Trust:
 
    - Service type: HTTPS
    - URL: `https://traefik.infra.svc.cluster.local:443`
-   - HTTP Host Header: the public hostname (for example `boards.def4alt.com`)
-   - TLS Origin Server Name (SNI): the same public hostname (for example `boards.def4alt.com`)
+   - HTTP Host Header: the public hostname (for example `kan.def4alt.com`)
+   - TLS Origin Server Name (SNI): the same public hostname (for example `kan.def4alt.com`)
 
    The intent is: Cloudflare connects to Traefik, but presents the hostname the user requested so Traefik routes to the correct Ingress and the certificate matches.
 
@@ -141,13 +141,13 @@ In Cloudflare Zero Trust:
 
      Expected shape:
 
-       curl -I https://boards.def4alt.com
+       curl -I https://kan.def4alt.com
        HTTP/2 302
        location: https://<your-team>.cloudflareaccess.com/...
 
    - If using service tokens, validate API access:
 
-       curl -I https://boards.def4alt.com \
+       curl -I https://kan.def4alt.com \
          -H "CF-Access-Client-Id: <id>" \
          -H "CF-Access-Client-Secret: <secret>"
 

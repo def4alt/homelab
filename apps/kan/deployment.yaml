@@ -18,7 +18,7 @@ spec:
           image: ghcr.io/kanbn/kan:latest
           env:
             - name: NEXT_PUBLIC_BASE_URL
-              value: "https://boards.def4alt.com"
+              value: "https://kan.def4alt.com"
             - name: BETTER_AUTH_SECRET
               valueFrom:
                 secretKeyRef:

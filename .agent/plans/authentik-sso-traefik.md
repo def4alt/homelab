@@ -6,7 +6,7 @@ This repository contains ExecPlan requirements at `.agent/PLANS.md`. This docume
 
 ## Purpose / Big Picture
 
-The goal is to make a single login experience (single-sign-on, “SSO”) apply everywhere you access the homelab: from the LAN, from Tailscale, and via public hostnames served through Cloudflare Tunnel (`cloudflared`). After this change, protected hostnames (for example `https://boards.def4alt.com`) always redirect to an Authentik login page unless the user has an active session, regardless of whether the request comes from public Internet, your home network, or Tailscale.
+The goal is to make a single login experience (single-sign-on, “SSO”) apply everywhere you access the homelab: from the LAN, from Tailscale, and via public hostnames served through Cloudflare Tunnel (`cloudflared`). After this change, protected hostnames (for example `https://kan.def4alt.com`) always redirect to an Authentik login page unless the user has an active session, regardless of whether the request comes from public Internet, your home network, or Tailscale.
 
 This plan intentionally removes Cloudflare Access as the authentication layer. Cloudflare Tunnel remains as the transport for public hostnames; authentication happens at the Kubernetes ingress layer (Traefik) using Authentik.
 
@@ -24,7 +24,7 @@ User-visible behavior at the end:
 - [ ] (2025-12-18) Deploy Authentik and confirm the web UI is reachable on an internal hostname (completed: manifests; remaining: Flux reconcile + browser check).
 - [x] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource, GitOps blueprint for provider/app/policy; remaining: outpost hookup + app middleware annotations).
 - [x] (2025-12-19) Authentik proxy outpost reconfigured to use cluster Postgres credentials (env from `authentik` Secret), rolled out, and forward-auth is now responding; remaining: create TLS secret `authentik/authentik-outpost-tls` for the outpost Ingress.
-- [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads (in progress: pilot `boards.def4alt.com` Ingress now references the forward-auth middleware).
+- [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads (in progress: pilot `kan.def4alt.com` Ingress now references the forward-auth middleware).
 - [ ] (2025-12-18) Remove Cloudflare Access applications/policies and confirm public access is still protected.
 - [ ] (2025-12-18) Document the “add a new protected app” workflow and the break-glass procedure.
 
@@ -72,7 +72,7 @@ Key concept definitions:
 - “OIDC” (OpenID Connect): an identity layer on top of OAuth 2.0 that issues ID tokens used for login. Many apps support it as “Login with SSO”.
 - “Forward-auth”: a reverse-proxy pattern where Traefik asks an auth service “is this request allowed?” and only forwards to the app if the auth service approves.
 - “Outpost”: Authentik’s component that integrates with reverse proxies. We use it to implement forward-auth for Traefik.
-- “Split DNS”: internal DNS resolves the same public name (e.g. `boards.def4alt.com`) to an internal IP so LAN/Tailscale traffic goes directly to Traefik, while public DNS still points to Cloudflare.
+- “Split DNS”: internal DNS resolves the same public name (e.g. `kan.def4alt.com`) to an internal IP so LAN/Tailscale traffic goes directly to Traefik, while public DNS still points to Cloudflare.
 
 ## Plan of Work
 
@@ -122,7 +122,7 @@ Implementation outline:
 
 Acceptance:
 
-- `curl -I https://boards.<base_domain>` returns a 302 redirect to Authentik (not to Cloudflare Access).
+- `curl -I https://kan.<base_domain>` returns a 302 redirect to Authentik (not to Cloudflare Access).
 - After login, you are redirected back and the app works.
 
 ### Milestone 3: Roll out across apps + handle app-specific protocols
@@ -131,7 +131,7 @@ At the end of this milestone, all relevant apps are protected the same way for L
 
 1. Add the forward-auth middleware to each app hostname:
 
-   - `boards.<base_domain>` (Kan)
+-   - `kan.<base_domain>` (Kan)
    - `papers.<base_domain>` (Paperless)
    - `photos.<base_domain>` (Immich)
    - `pihole.<base_domain>` (Pi-hole UI)
