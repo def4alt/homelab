@@ -1,7 +1,6 @@
 locals {
   hostnames = toset([
     "auth.${var.base_domain}",
-    "outpost.${var.base_domain}",
     "kan.${var.base_domain}",
     "docs.${var.base_domain}",
     "papers.${var.base_domain}",

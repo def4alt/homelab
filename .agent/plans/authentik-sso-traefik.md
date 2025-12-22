@@ -10,6 +10,8 @@ The goal is to make a single login experience (single-sign-on, “SSO”) apply 
 
 This plan intentionally removes Cloudflare Access as the authentication layer. Cloudflare Tunnel remains as the transport for public hostnames; authentication happens at the Kubernetes ingress layer (Traefik) using Authentik.
 
+> **Status**: `outpost.def4alt.com` is retired; Traefik forward-auth now talks directly to Authentik’s embedded outpost (`ak-outpost-authentik-embedded-outpost`), so no extra DNS or TLS resources are needed for a standalone outpost host.
+
 User-visible behavior at the end:
 
 1. Browsing to any protected app hostname shows the Authentik login page first.
@@ -22,8 +24,9 @@ User-visible behavior at the end:
 - [x] (2025-12-18) Add an `authentik` namespace and Flux wiring for the Authentik HelmRelease.
 - [x] (2025-12-18) Provision Postgres for Authentik via CloudNativePG and store secrets with SOPS.
 - [ ] (2025-12-18) Deploy Authentik and confirm the web UI is reachable on an internal hostname (completed: manifests; remaining: Flux reconcile + browser check).
-- [x] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource, GitOps blueprint for provider/app/policy; remaining: outpost hookup + app middleware annotations).
-- [x] (2025-12-19) Authentik proxy outpost reconfigured to use cluster Postgres credentials (env from `authentik` Secret), rolled out, and forward-auth is now responding; remaining: create TLS secret `authentik/authentik-outpost-tls` for the outpost Ingress.
+- [x] (2025-12-18) Integrate Traefik with Authentik via forward-auth middleware and protect one pilot app (completed: middleware resource, GitOps blueprint for provider/app/policy; remaining: app middleware annotations).
+- [x] (2025-12-19) Authentik proxy outpost reconfigured to use cluster Postgres credentials (env from `authentik` Secret), rolled out, and forward-auth is now responding; embedded outpost uses Authentik’s primary TLS cert, so no separate `outpost` hostname is required.
+- [x] (2025-12-22) Retire the dedicated `outpost.def4alt.com` DNS/certificate and document that the embedded outpost service is the only endpoint Traefik needs for forward-auth.
 - [ ] (2025-12-18) Roll out protection to all exposed app hostnames and validate websockets/uploads (in progress: pilot `kan.def4alt.com` Ingress now references the forward-auth middleware).
 - [ ] (2025-12-18) Remove Cloudflare Access applications/policies and confirm public access is still protected.
 - [ ] (2025-12-18) Document the “add a new protected app” workflow and the break-glass procedure.
