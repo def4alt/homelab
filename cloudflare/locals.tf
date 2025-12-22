@@ -12,6 +12,7 @@ locals {
     "home.${var.base_domain}",
     "llm.${var.base_domain}",
     "ollama-toggle.${var.base_domain}",
+    "later.${var.base_domain}",
   ])
 
   hostnames_sorted    = sort(tolist(local.hostnames))
