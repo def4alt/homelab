@@ -6,7 +6,7 @@ metadata:
 spec:
   retentionPolicy: 14d
   configuration:
-    destinationPath: s3://def4alt-homelab/cnpg/immich/immich-db
+    destinationPath: s3://def4alt-homelab/cnpg/immich/immich-db-plugin
     endpointURL: https://s3.eu-central-003.backblazeb2.com
     s3Credentials:
       accessKeyId:
