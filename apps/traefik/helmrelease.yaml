@@ -20,6 +20,9 @@ spec:
     additionalArguments:
       - "--providers.kubernetescrd"
       - "--providers.kubernetesingress"
+      - "--entrypoints.websecure.transport.respondingtimeouts.readtimeout=600s"
+      - "--entrypoints.websecure.transport.respondingtimeouts.writetimeout=600s"
+      - "--entrypoints.websecure.transport.respondingtimeouts.idletimeout=600s"
     persistence:
       enabled: false
     ingressRoute:
