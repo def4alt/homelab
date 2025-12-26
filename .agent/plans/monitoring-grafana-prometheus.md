@@ -13,6 +13,7 @@ After this change, the homelab has a working Prometheus time-series database and
 - [x] (2025-02-14 21:00Z) Define a new monitoring stack under `apps/monitoring` using the kube-prometheus-stack Helm chart and wire it into Flux.
 - [x] (2025-02-14 21:00Z) Configure ingress, persistence, and k3s-safe defaults for Prometheus and Grafana.
 - [x] (2025-02-14 21:20Z) Add Grafana dashboard provisioning for CNPG backup metrics via ConfigMap and sidecar settings.
+- [x] (2025-02-14 22:30Z) Add SOPS-managed Grafana admin secret and wire Grafana to use it.
 - [ ] (pending) Validate resources with kustomize and document the manual checks to confirm UIs are reachable.
 
 ## Surprises & Discoveries
@@ -86,3 +87,4 @@ The Helm chart dependency is `kube-prometheus-stack` from the `prometheus-commun
 Change note: Initial plan created to add Grafana and Prometheus via kube-prometheus-stack with Traefik ingress and Longhorn persistence.
 Change note: Marked planning and configuration milestones complete after adding monitoring manifests and Flux wiring.
 Change note: Added Grafana dashboard provisioning for CNPG backup metrics using a labeled ConfigMap.
+Change note: Added SOPS-managed Grafana admin secret and configured Grafana to use it.

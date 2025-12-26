@@ -4,3 +4,4 @@ resources:
   - helmrepository.yaml
   - helmrelease.yaml
   - grafana-dashboard-cnpg-backups.yaml
+  - secrets/grafana-admin.sops.yaml
