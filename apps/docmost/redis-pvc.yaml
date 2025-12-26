@@ -4,8 +4,6 @@ metadata:
   name: docmost-redis-data
   namespace: docmost
   labels:
-    recurring-job.longhorn.io/source: enabled
-    recurring-job-group.longhorn.io/default: enabled
 spec:
   accessModes:
     - ReadWriteOnce
