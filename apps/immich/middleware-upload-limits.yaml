@@ -1,0 +1,8 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: immich-upload-limits
+  namespace: immich
+spec:
+  buffering:
+    maxRequestBodyBytes: 52428800000

@@ -6,6 +6,7 @@ resources:
   - server-deployment.yaml
   - service.yaml
   - ingress.yaml
+  - middleware-upload-limits.yaml
   - api-ingress.yaml
   - redis-deployment.yaml
   - redis-service.yaml
