@@ -10,6 +10,7 @@ resources:
   - redis-deployment.yaml
   - redis-service.yaml
   - postgres-cluster.yaml
+  - barman-objectstore.yaml
   - database.yaml
   - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml

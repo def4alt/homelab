@@ -1,0 +1,24 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: cnpg-barman-s3
+  namespace: home-assistant
+spec:
+  retentionPolicy: 14d
+  configuration:
+    destinationPath: s3://def4alt-homelab/cnpg/home-assistant/home-assistant-db
+    endpointURL: https://s3.eu-central-003.backblazeb2.com
+    s3Credentials:
+      accessKeyId:
+        name: cnpg-barman-s3
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: cnpg-barman-s3
+        key: ACCESS_SECRET_KEY
+      region:
+        name: cnpg-barman-s3
+        key: REGION
+    data:
+      compression: gzip
+    wal:
+      compression: gzip

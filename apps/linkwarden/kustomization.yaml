@@ -7,6 +7,7 @@ resources:
   - ingress.yaml
   - pvc.yaml
   - postgres-cluster.yaml
+  - barman-objectstore.yaml
   - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/linkwarden-secrets.sops.yaml

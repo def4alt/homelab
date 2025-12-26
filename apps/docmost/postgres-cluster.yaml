@@ -9,25 +9,11 @@ spec:
     initdb:
       database: docmost
       owner: docmost
-  backup:
-    retentionPolicy: 14d
-    barmanObjectStore:
-      destinationPath: s3://def4alt-homelab/cnpg/docmost/docmost-db
-      endpointURL: https://s3.eu-central-003.backblazeb2.com
-      s3Credentials:
-        accessKeyId:
-          name: cnpg-barman-s3
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: cnpg-barman-s3
-          key: ACCESS_SECRET_KEY
-        region:
-          name: cnpg-barman-s3
-          key: REGION
-      data:
-        compression: gzip
-      wal:
-        compression: gzip
   storage:
     storageClass: longhorn
     size: 20Gi
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: cnpg-barman-s3
