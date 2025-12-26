@@ -4,8 +4,8 @@ resource "cloudflare_record" "cname" {
   zone_id = var.zone_id
   name    = trimsuffix(each.key, ".${var.base_domain}")
   type    = "CNAME"
-  content = local.tunnel_cname_target
+  content = lookup(local.cname_overrides, each.key, local.tunnel_cname_target)
   allow_overwrite = true
   ttl     = 1
-  proxied = true
+  proxied = contains(local.unproxied_hostnames, each.key) ? false : true
 }
