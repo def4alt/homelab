@@ -12,7 +12,7 @@ spec:
       secret:
         name: home-assistant-db-auth
   storage:
-    size: 20Gi
+    size: 25Gi
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
