@@ -81,7 +81,7 @@ data:
           },
           "targets": [
             {
-              "expr": "max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp)",
+              "expr": "max(barman_cloud_cloudnative_pg_io_last_available_backup_timestamp) * 1000",
               "instant": true,
               "refId": "A"
             }
@@ -142,7 +142,7 @@ data:
           },
           "targets": [
             {
-              "expr": "max(barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp)",
+              "expr": "max(barman_cloud_cloudnative_pg_io_last_failed_backup_timestamp) * 1000",
               "instant": true,
               "refId": "A"
             }
@@ -203,7 +203,7 @@ data:
           },
           "targets": [
             {
-              "expr": "max(barman_cloud_cloudnative_pg_io_first_recoverability_point)",
+              "expr": "max(barman_cloud_cloudnative_pg_io_first_recoverability_point) * 1000",
               "instant": true,
               "refId": "A"
             }
