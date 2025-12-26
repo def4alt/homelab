@@ -14,6 +14,7 @@ resources:
   - infra/longhorn-config.yaml
   - infra/cnpg.yaml
   - infra/authentik.yaml
+  - infra/monitoring.yaml
   - infra/restic.yaml
   - apps/pi-hole.yaml
   - apps/home-assistant.yaml

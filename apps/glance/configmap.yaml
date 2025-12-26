@@ -33,8 +33,14 @@ data:
                     url: https://papers.def4alt.com/
                   - title: Immich Photos
                     url: https://photos.def4alt.com/
+                  - title: Grafana
+                    url: https://grafana.def4alt.com/
+                    icon: si:grafana
                   - title: Pi-hole
                     url: https://pihole.def4alt.com/
+                  - title: Prometheus
+                    url: https://prometheus.def4alt.com/
+                    icon: si:prometheus
                   - title: Home Assistant
                     url: https://home.def4alt.com/
                   - title: Linkwarden
