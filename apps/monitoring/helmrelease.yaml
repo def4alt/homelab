@@ -55,8 +55,12 @@ spec:
         retention: 7d
         podMonitorSelector: {}
         podMonitorSelectorNilUsesHelmValues: false
+        podMonitorNamespaceSelector: {}
+        podMonitorNamespaceSelectorNilUsesHelmValues: false
         serviceMonitorSelector: {}
         serviceMonitorSelectorNilUsesHelmValues: false
+        serviceMonitorNamespaceSelector: {}
+        serviceMonitorNamespaceSelectorNilUsesHelmValues: false
         storageSpec:
           volumeClaimTemplate:
             spec:
