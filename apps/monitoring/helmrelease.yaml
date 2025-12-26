@@ -53,6 +53,10 @@ spec:
               - prometheus.def4alt.com
       prometheusSpec:
         retention: 7d
+        podMonitorSelector: {}
+        podMonitorSelectorNilUsesHelmValues: false
+        serviceMonitorSelector: {}
+        serviceMonitorSelectorNilUsesHelmValues: false
         storageSpec:
           volumeClaimTemplate:
             spec:

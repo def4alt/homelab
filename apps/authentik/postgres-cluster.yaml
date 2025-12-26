@@ -13,4 +13,5 @@ spec:
         name: authentik-db-auth
   storage:
     size: 5Gi
-
+  monitoring:
+    enablePodMonitor: true
