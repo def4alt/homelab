@@ -29,7 +29,14 @@ data:
       "channels": {
         "telegram": {
           "enabled": true,
-          "dmPolicy": "pairing",
+          "botToken": "${TELEGRAM_BOT_TOKEN}",
+          "dmPolicy": "allowlist",
+          "allowFrom": ["tg:${TELEGRAM_ALLOWED_ID}"],
+          "groups": {
+            "*": {
+              "requireMention": true
+            }
+          },
           "groupPolicy": "allowlist",
           "groupAllowFrom": ["tg:${TELEGRAM_ALLOWED_ID}"]
         }
