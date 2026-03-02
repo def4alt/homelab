@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: openclaw-config
+  namespace: ai
+data:
+  openclaw.json: |
+    {
+      "agent": {
+        "model": "venice/minimax-m25"
+      },
+      "channels": {
+        "telegram": {
+          "enabled": true,
+          "dmPolicy": "pairing"
+        }
+      }
+    }

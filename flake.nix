@@ -19,6 +19,7 @@
             age
             kubernetes-helm
             sops
+            opentofu
           ];
         };
       });
