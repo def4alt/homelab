@@ -7,7 +7,10 @@ data:
   openclaw.json: |
     {
       "gateway": {
-        "mode": "local"
+        "mode": "local",
+        "controlUi": {
+          "allowedOrigins": ["https://openclaw.def4alt.com"]
+        }
       },
       "agents": {
         "defaults": {
