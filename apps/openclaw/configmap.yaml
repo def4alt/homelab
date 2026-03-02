@@ -9,6 +9,9 @@ data:
       "agent": {
         "model": "venice/minimax-m25"
       },
+      "memorySearch": {
+        "extraPaths": ["notes", "ideas"]
+      },
       "channels": {
         "telegram": {
           "enabled": true,
