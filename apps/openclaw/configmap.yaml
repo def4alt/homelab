@@ -25,7 +25,9 @@ data:
       "channels": {
         "telegram": {
           "enabled": true,
-          "dmPolicy": "pairing"
+          "dmPolicy": "pairing",
+          "groupPolicy": "allowlist",
+          "groupAllowFrom": ["tg:${TELEGRAM_ALLOWED_ID}"]
         }
       }
     }
