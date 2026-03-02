@@ -6,6 +6,9 @@ metadata:
 data:
   openclaw.json: |
     {
+      "gateway": {
+        "mode": "local"
+      },
       "agents": {
         "defaults": {
           "model": {
