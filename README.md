@@ -47,7 +47,6 @@ Once that secret exists, Flux can reconcile the overlays under `clusters/home/ov
 Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate these files with values encrypted by the same Age key before Flux can bring up the associated services:
 
 - `apps/restic/secrets/restic-credentials.sops.yaml` – restic credentials for remote/Backblaze B2 uploads.
-- `apps/paperless-rag/secrets/paperless-rag-secrets.sops.yaml` – tokens used by the RAG sync job.
 - `apps/cloudflared/secrets/tunnel-token.sops.yaml` – Cloudflare Tunnel token for `cloudflared`.
 - `apps/home-assistant/secrets/postgres-auth.sops.yaml` – Home Assistant Postgres user/password.
 - `apps/home-assistant/secrets/home-assistant-secrets.sops.yaml` – Home Assistant-wide secrets (API tokens, webhook secrets, etc.).
@@ -71,7 +70,7 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 ## Services
 
 - **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
-- **Applications**: Authentik SSO, Home Assistant, Kan, Paperless (plus Paperless-RAG), DocMost, Glance dashboard, Immich, Pi-hole, Open WebUI, Ollama + Ollama Toggle.
+- **Applications**: Authentik SSO, Home Assistant, Kan, Paperless, DocMost, Glance dashboard, Immich, Pi-hole, OpenClaw.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the CNPG Barman S3 key.
 
 Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.

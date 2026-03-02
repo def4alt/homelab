@@ -11,7 +11,6 @@ locals {
     "prometheus.${var.base_domain}",
     "pihole.${var.base_domain}",
     "home.${var.base_domain}",
-    "llm.${var.base_domain}",
     "openclaw.${var.base_domain}",
     "later.${var.base_domain}",
   ])
