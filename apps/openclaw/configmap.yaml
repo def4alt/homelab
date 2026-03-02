@@ -6,11 +6,15 @@ metadata:
 data:
   openclaw.json: |
     {
-      "agent": {
-        "model": "venice/minimax-m25"
-      },
-      "memorySearch": {
-        "extraPaths": ["notes", "ideas"]
+      "agents": {
+        "defaults": {
+          "model": {
+            "primary": "venice/minimax-m25"
+          },
+          "memorySearch": {
+            "extraPaths": ["notes", "ideas"]
+          }
+        }
       },
       "channels": {
         "telegram": {
