@@ -37,6 +37,8 @@ spec:
               mkdir -p /data/workspace/notes/archive
               mkdir -p /data/workspace/ideas
 
+              cp /config/openclaw.json /data/openclaw.json
+
               if [ ! -f /data/workspace/LIFE.md ]; then
                 printf '%s\n' \
                   '# Life Profile' \
@@ -83,6 +85,9 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /data
+            - name: config
+              mountPath: /config
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       containers:
@@ -143,10 +148,6 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /home/node/.openclaw
-            - name: config
-              mountPath: /home/node/.openclaw/openclaw.json
-              subPath: openclaw.json
-              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
