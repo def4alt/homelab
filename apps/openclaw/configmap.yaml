@@ -8,6 +8,10 @@ data:
     {
       "gateway": {
         "mode": "local",
+        "auth": {
+          "token": "${OPENCLAW_GATEWAY_TOKEN}"
+        },
+        "trustedProxies": ["10.42.0.0/16", "10.43.0.0/16"],
         "controlUi": {
           "allowedOrigins": ["https://openclaw.def4alt.com"]
         }
