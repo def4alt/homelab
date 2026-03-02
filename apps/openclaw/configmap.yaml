@@ -26,6 +26,14 @@ data:
           }
         }
       },
+      "tools": {
+        "web": {
+          "search": {
+            "provider": "brave",
+            "apiKey": "${BRAVE_API_KEY}"
+          }
+        }
+      },
       "channels": {
         "telegram": {
           "enabled": true,
