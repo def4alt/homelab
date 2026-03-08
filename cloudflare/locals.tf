@@ -13,6 +13,7 @@ locals {
     "home.${var.base_domain}",
     "openclaw.${var.base_domain}",
     "later.${var.base_domain}",
+    "executor.${var.base_domain}",
   ])
 
   cname_overrides = {
