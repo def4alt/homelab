@@ -23,6 +23,16 @@ spec:
           image: ghcr.io/def4alt/executor:latest
           imagePullPolicy: Always
           env:
+            - name: EXECUTOR_KUBERNETES_ENABLED
+              value: "true"
+            - name: EXECUTOR_KUBERNETES_NAMESPACE
+              value: executor
+            - name: EXECUTOR_CONTROL_PLANE_URL
+              value: http://executor:8080
+            - name: EXECUTOR_EXECUTOR_IMAGE
+              value: curlimages/curl:8.12.1
+            - name: EXECUTOR_EXECUTOR_IMAGE_PULL_POLICY
+              value: IfNotPresent
             - name: EXECUTOR_DB_HOST
               value: executor-db-rw
             - name: EXECUTOR_DB_PORT
