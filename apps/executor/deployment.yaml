@@ -21,7 +21,7 @@ spec:
       containers:
         - name: executor
           image: ghcr.io/def4alt/executor:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: EXECUTOR_DB_HOST
               value: executor-db-rw
