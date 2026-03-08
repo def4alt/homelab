@@ -5,6 +5,7 @@ resources:
   - postgres-cluster.yaml
   - barman-objectstore.yaml
   - scheduled-backup.yaml
+  - resourcequota.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
