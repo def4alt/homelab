@@ -24,7 +24,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: EXECUTOR_DB_HOST
-              value: postgres-rw
+              value: executor-db-rw
             - name: EXECUTOR_DB_PORT
               value: "5432"
             - name: EXECUTOR_DB_NAME

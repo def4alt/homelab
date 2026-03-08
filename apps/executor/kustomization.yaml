@@ -2,8 +2,13 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: executor
 resources:
+  - postgres-cluster.yaml
+  - barman-objectstore.yaml
+  - scheduled-backup.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
   - rbac.yaml
+  - secrets/postgres-auth.sops.yaml
   - secrets/executor-secrets.sops.yaml
+  - ../secrets/cnpg-barman-s3.sops.yaml

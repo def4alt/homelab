@@ -1,27 +1,15 @@
 # Executor
 
-## Database bootstrap
+## Database
 
-The app expects an existing PostgreSQL database and user:
+`executor` uses a dedicated CloudNativePG cluster in this namespace, following the same pattern as the other database-backed apps in the homelab.
 
+- cluster: `executor-db`
 - database: `executor`
-- user: `executor`
-- password: stored in `secrets/executor-secrets.sops.yaml`
+- owner: `executor`
+- writable service: `executor-db-rw`
 
-Create them before letting Flux deploy the app.
+Credential sources:
 
-Example SQL:
-
-```sql
-CREATE USER executor WITH PASSWORD '<set-to-decrypted-secret-password>';
-CREATE DATABASE executor OWNER executor;
-GRANT ALL PRIVILEGES ON DATABASE executor TO executor;
-```
-
-The deployment builds its JDBC URL from these non-secret defaults:
-
-- host: `postgres-rw`
-- port: `5432`
-- database: `executor`
-
-If your writable Postgres service has a different DNS name, update `deployment.yaml`.
+- `secrets/postgres-auth.sops.yaml` bootstraps the CNPG database owner
+- `secrets/executor-secrets.sops.yaml` provides the same username/password to the Spring app
