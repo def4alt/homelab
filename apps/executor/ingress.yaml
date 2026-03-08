@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: executor
+  namespace: executor
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+    - host: executor.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: executor
+                port:
+                  number: 8080
+  tls:
+    - secretName: executor-tls
+      hosts:
+        - executor.def4alt.com

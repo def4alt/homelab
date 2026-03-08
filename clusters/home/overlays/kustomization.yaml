@@ -22,4 +22,5 @@ resources:
   - apps/docmost.yaml
   - apps/glance.yaml
   - apps/openclaw.yaml
+  - apps/executor.yaml
   - apps/linkwarden.yaml

@@ -1,0 +1,22 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: executor
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps/executor
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cert-manager
+    - name: traefik
+    - name: authentik
+  timeout: 10m
+  wait: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
