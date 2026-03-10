@@ -30,9 +30,14 @@ spec:
             - name: EXECUTOR_CONTROL_PLANE_URL
               value: http://executor:8080
             - name: EXECUTOR_EXECUTOR_IMAGE
-              value: curlimages/curl:8.12.1
+              value: ghcr.io/def4alt/executor:latest
             - name: EXECUTOR_EXECUTOR_IMAGE_PULL_POLICY
-              value: IfNotPresent
+              value: Always
+            - name: EXECUTOR_INTERNAL_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: executor-secrets
+                  key: executor-token
             - name: EXECUTOR_DB_HOST
               value: executor-db-rw
             - name: EXECUTOR_DB_PORT
