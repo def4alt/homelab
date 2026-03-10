@@ -30,9 +30,9 @@ spec:
             - name: EXECUTOR_CONTROL_PLANE_URL
               value: http://executor:8080
             - name: EXECUTOR_EXECUTOR_IMAGE
-              value: ghcr.io/def4alt/executor:latest
+              value: busybox:latest
             - name: EXECUTOR_EXECUTOR_IMAGE_PULL_POLICY
-              value: Always
+              value: IfNotPresent
             - name: EXECUTOR_INTERNAL_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
