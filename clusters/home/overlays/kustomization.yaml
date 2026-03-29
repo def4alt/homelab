@@ -20,6 +20,6 @@ resources:
   - apps/immich.yaml
   - apps/docmost.yaml
   - apps/glance.yaml
-  - apps/openclaw.yaml
+  - apps/nanobot.yaml
   - apps/executor.yaml
   - apps/linkwarden.yaml

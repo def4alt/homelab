@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nanobot
+  namespace: ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nanobot
+  template:
+    metadata:
+      labels:
+        app: nanobot
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nanobot
+          image: ghcr.io/hkuds/nanobot:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /data/home/.nanobot/workspace
+
+              python - <<'PY'
+              import json
+              import os
+              from pathlib import Path
+
+              allowed_id = os.environ.get("TELEGRAM_ALLOWED_ID", "").strip()
+              allow_from = [allowed_id] if allowed_id else []
+
+              config = {
+                  "providers": {
+                      "custom": {
+                          "apiKey": os.environ.get("VENICE_API_KEY", ""),
+                          "apiBase": os.environ.get("NANOBOT_PROVIDER_API_BASE", "https://api.venice.ai/api/v1"),
+                      }
+                  },
+                  "agents": {
+                      "defaults": {
+                          "provider": "custom",
+                          "model": os.environ.get("NANOBOT_MODEL", "venice/minimax-m25"),
+                          "workspace": "/data/home/.nanobot/workspace",
+                      }
+                  },
+                  "tools": {
+                      "web": {
+                          "search": {
+                              "provider": "brave",
+                              "apiKey": os.environ.get("BRAVE_API_KEY", ""),
+                          }
+                      }
+                  },
+                  "channels": {
+                      "telegram": {
+                          "enabled": True,
+                          "token": os.environ.get("TELEGRAM_BOT_TOKEN", ""),
+                          "allowFrom": allow_from,
+                          "groupPolicy": "mention",
+                      }
+                  },
+              }
+
+              Path("/data/home/.nanobot/config.json").write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+              PY
+
+              exec nanobot gateway
+          env:
+            - name: HOME
+              value: /data/home
+            - name: VENICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: venice-api-key
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: telegram-bot-token
+            - name: TELEGRAM_ALLOWED_ID
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: telegram-allowed-id
+            - name: BRAVE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: brave-api-key
+            - name: NANOBOT_PROVIDER_API_BASE
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: provider-api-base
+            - name: NANOBOT_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: model
+          ports:
+            - name: http
+              containerPort: 18790
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            tcpSocket:
+              port: 18790
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 18790
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data/home/.nanobot
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: nanobot-data
+        - name: tmp
+          emptyDir: {}

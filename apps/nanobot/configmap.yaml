@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nanobot-config
+  namespace: ai
+data:
+  provider-api-base: https://api.venice.ai/api/v1
+  model: venice/minimax-m25
