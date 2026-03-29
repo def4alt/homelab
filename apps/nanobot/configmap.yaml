@@ -4,5 +4,4 @@ metadata:
   name: nanobot-config
   namespace: ai
 data:
-  provider-api-base: https://api.venice.ai/api/v1
-  model: venice/minimax-m25
+  model: nvidia/nemotron-3-nano-30b-a3b:free
