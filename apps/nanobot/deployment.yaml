@@ -138,7 +138,14 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - pgrep -f "nanobot gateway" >/dev/null
+                - |
+                  python - <<'PY'
+                  import pathlib
+                  import sys
+
+                  cmdline = pathlib.Path('/proc/1/cmdline').read_bytes().replace(b'\x00', b' ')
+                  sys.exit(0 if (b'nanobot' in cmdline and b'gateway' in cmdline) else 1)
+                  PY
             periodSeconds: 10
             timeoutSeconds: 2
             failureThreshold: 3
@@ -147,7 +154,14 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - pgrep -f "nanobot gateway" >/dev/null
+                - |
+                  python - <<'PY'
+                  import pathlib
+                  import sys
+
+                  cmdline = pathlib.Path('/proc/1/cmdline').read_bytes().replace(b'\x00', b' ')
+                  sys.exit(0 if (b'nanobot' in cmdline and b'gateway' in cmdline) else 1)
+                  PY
             periodSeconds: 30
             timeoutSeconds: 2
             failureThreshold: 3
