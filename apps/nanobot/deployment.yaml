@@ -125,16 +125,32 @@ spec:
             capabilities:
               drop:
                 - ALL
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - test -f /data/home/.nanobot/config.json && test -x /data/home/.nanobot/venv/bin/nanobot
+            periodSeconds: 5
+            failureThreshold: 120
           readinessProbe:
-            tcpSocket:
-              port: 18790
-            initialDelaySeconds: 20
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pgrep -f "nanobot gateway" >/dev/null
             periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
           livenessProbe:
-            tcpSocket:
-              port: 18790
-            initialDelaySeconds: 30
-            periodSeconds: 15
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - pgrep -f "nanobot gateway" >/dev/null
+            periodSeconds: 30
+            timeoutSeconds: 2
+            failureThreshold: 3
           resources:
             requests:
               cpu: 100m
