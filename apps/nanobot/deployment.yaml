@@ -23,7 +23,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: nanobot
-          image: ghcr.io/hkuds/nanobot:latest
+          image: python:3.12-slim
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
@@ -31,6 +31,13 @@ spec:
             - |
               set -eu
               mkdir -p /data/home/.nanobot/workspace
+              mkdir -p /data/home/.nanobot/venv
+
+              if [ ! -x /data/home/.nanobot/venv/bin/nanobot ]; then
+                python -m venv /data/home/.nanobot/venv
+              fi
+
+              /data/home/.nanobot/venv/bin/pip install --no-cache-dir -U nanobot-ai
 
               python - <<'PY'
               import json
@@ -75,7 +82,7 @@ spec:
               Path("/data/home/.nanobot/config.json").write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
               PY
 
-              exec nanobot gateway
+              exec /data/home/.nanobot/venv/bin/nanobot gateway
           env:
             - name: HOME
               value: /data/home
