@@ -75,6 +75,12 @@
       "--disable traefik"
       "--disable local-storage"
       "--kubelet-arg=max-pods=150"
+      "--etcd-arg=quota-backend-bytes=4294967296"
+      "--etcd-arg=auto-compaction-mode=periodic"
+      "--etcd-arg=auto-compaction-retention=24h"
+      "--etcd-snapshot-schedule-cron=0 */6 * * *"
+      "--etcd-snapshot-retention=28"
+      "--etcd-snapshot-compress"
     ] ++ (if meta.hostname == "perun" then [] else [
       "--server https://perun:6443"
     ]));
