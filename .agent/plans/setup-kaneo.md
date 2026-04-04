@@ -11,11 +11,13 @@ After this change, Kaneo is deployed through Flux in its own namespace and is re
 - [x] (2026-04-04) Create the Kaneo app manifests, namespace, and Flux overlay wiring.
 - [x] (2026-04-04) Add the Kaneo hostname to Cloudflare, Glance, and the repo README references.
 - [x] (2026-04-04) Validate the manifests locally with kustomize and record any follow-up fixes.
+- [x] (2026-04-04) Adjust Kaneo web startup probes after discovering the nginx container needs more startup time in-cluster.
 
 ## Surprises & Discoveries
 
 - Kaneo’s upstream docs and chart confirm the app expects `DATABASE_URL`, `AUTH_SECRET`/`BETTER_AUTH_SECRET`, `KANEO_API_URL`, `KANEO_CLIENT_URL`, and `CORS_ORIGINS`.
 - The upstream deployment pattern is a combined API + Web pod, but the app can be deployed with separate containers in one Deployment and a single Service exposing both ports.
+- The web image is an nginx container that listens on port 5173, but kubelet probes need enough startup grace or the pod never becomes Ready and Traefik returns 503.
 
 ## Decision Log
 

@@ -78,14 +78,24 @@ spec:
           ports:
             - name: web
               containerPort: 5173
+          startupProbe:
+            httpGet:
+              path: /
+              port: web
+            periodSeconds: 5
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /
               port: web
+            initialDelaySeconds: 5
+            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /
               port: web
+            initialDelaySeconds: 30
+            periodSeconds: 10
           resources:
             requests:
               cpu: 25m
