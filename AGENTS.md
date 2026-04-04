@@ -84,6 +84,19 @@ Examples:
 - Kubectl/flux/git may require escalated permissions; request escalation when you need to touch the cluster or `.git`.
 - Prefer GitOps: commit changes and push for Flux to apply instead of manual `kubectl apply`.
 
+## Executor Deployment Pattern
+
+<executor_deployment>
+- For the `executor` service, deploy only the application components in this repo: namespace, Flux `Kustomization`, app `Kustomization`, `Deployment`, `Service`, `Ingress`, `RBAC`, and secrets.
+- Do **not** provision a dedicated PostgreSQL cluster for `executor` in `homelab` if the homelab already has a shared/existing PostgreSQL setup available.
+- Follow the same pattern already used by existing apps: inject a single application secret containing a database connection URL rather than managing database bootstrap resources here.
+- Prefer a secret key named `database-url` for the app-facing JDBC/connection string unless the target app explicitly requires different env var names.
+- For `executor`, the Kubernetes `Deployment` should read `SPRING_DATASOURCE_URL` from that secret and should not define separate username/password env vars when a single JDBC URL is sufficient.
+- Keep the control plane lightweight for homelab use: conservative CPU/memory requests and limits, no oversized warm capacity by default, and no resource reservations that compete heavily with existing services.
+- Keep this deployment GitOps-first: changes belong under `apps/<name>` and `clusters/home/overlays/apps/<name>.yaml`, then Flux reconciles them.
+- When asked to add `executor`, create/update the files under `apps/executor-system` and `clusters/home/overlays/apps/executor-system.yaml`, and wire the namespace through `apps/namespaces` if needed.
+</executor_deployment>
+
 # CRITICAL
 
 Append a 👍 emoji at the end of your response if you have read this.

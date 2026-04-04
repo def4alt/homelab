@@ -1,8 +1,6 @@
 locals {
   hostnames = toset([
     "auth.${var.base_domain}",
-    "kan.${var.base_domain}",
-    "docs.${var.base_domain}",
     "papers.${var.base_domain}",
     "photos.${var.base_domain}",
     "api-photos.${var.base_domain}",
@@ -11,7 +9,6 @@ locals {
     "prometheus.${var.base_domain}",
     "pihole.${var.base_domain}",
     "home.${var.base_domain}",
-    "later.${var.base_domain}",
     "executor.${var.base_domain}",
   ])
 

@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: th-charts
-  namespace: docmost
-spec:
-  interval: 1h
-  url: https://thelande.github.io/charts/

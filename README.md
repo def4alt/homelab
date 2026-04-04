@@ -53,8 +53,6 @@ Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate t
 - `apps/cert-manager-issuers/secrets/cloudflare-dns.sops.yaml` – Cloudflare API token for DNS-01 challenges.
 - `apps/tailscale/secrets/auth.sops.yaml` – Tailscale pre-auth key for the daemonset.
 - `apps/pi-hole/secrets/web-password.sops.yaml` – Pi-hole admin password.
-- `apps/kan/secrets/postgres-auth.sops.yaml` – Kan Postgres credentials.
-- `apps/kan/secrets/kan-secrets.sops.yaml` – Kan admin credentials and tokens.
 - `apps/longhorn/secrets/backup-target-credentials.sops.yaml` – S3-compatible credentials for Longhorn backups.
 - `apps/paperless/secrets/postgres-auth.sops.yaml` – Paperless Postgres user/password.
 - `apps/paperless/secrets/redis-auth.sops.yaml` – Paperless Redis authentication.
@@ -70,7 +68,7 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 ## Services
 
 - **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
-- **Applications**: Authentik SSO, Home Assistant, Kan, Paperless, DocMost, Glance dashboard, Immich, Pi-hole, nanobot.
+- **Applications**: Authentik SSO, Home Assistant, Paperless, Glance dashboard, Immich, Pi-hole, nanobot.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the CNPG Barman S3 key.
 
 Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.
