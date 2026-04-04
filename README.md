@@ -57,6 +57,7 @@ Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate t
 - `apps/paperless/secrets/postgres-auth.sops.yaml` – Paperless Postgres user/password.
 - `apps/paperless/secrets/redis-auth.sops.yaml` – Paperless Redis authentication.
 - `apps/paperless/secrets/paperless-secrets.sops.yaml` – Paperless application secrets.
+- `apps/kaneo/secrets/kaneo-secrets.sops.yaml` – Kaneo database credentials, auth secret, and database URL.
 - `apps/secrets/cnpg-barman-s3.sops.yaml` – shared CNPG/backup S3 credentials.
 - `apps/immich/secrets/postgres-auth.sops.yaml` – Immich Postgres credentials.
 - `apps/immich/secrets/redis-auth.sops.yaml` – Immich Redis credentials.
@@ -68,7 +69,7 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 ## Services
 
 - **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
-- **Applications**: Authentik SSO, Home Assistant, Paperless, Glance dashboard, Immich, Pi-hole, nanobot.
+- **Applications**: Authentik SSO, Home Assistant, Paperless, Kaneo project management, Glance dashboard, Immich, Pi-hole, nanobot.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the CNPG Barman S3 key.
 
 Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.

@@ -1,0 +1,24 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kaneo
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps/kaneo
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: cnpg
+    - name: longhorn
+    - name: cert-manager
+    - name: authentik
+    - name: traefik
+  timeout: 10m
+  wait: true
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age

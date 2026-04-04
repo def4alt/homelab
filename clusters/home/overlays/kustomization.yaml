@@ -20,3 +20,4 @@ resources:
   - apps/glance.yaml
   - apps/nanobot.yaml
   - apps/executor.yaml
+  - apps/kaneo.yaml

@@ -10,6 +10,7 @@ locals {
     "pihole.${var.base_domain}",
     "home.${var.base_domain}",
     "executor.${var.base_domain}",
+    "projects.${var.base_domain}",
   ])
 
   cname_overrides = {

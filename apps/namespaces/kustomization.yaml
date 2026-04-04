@@ -14,3 +14,4 @@ resources:
   - namespace-longhorn-system.yaml
   - namespace-immich.yaml
   - namespace-glance.yaml
+  - namespace-kaneo.yaml
