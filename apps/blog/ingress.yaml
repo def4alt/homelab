@@ -8,7 +8,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-    - host: blog.def4alt.com
+    - host: def4alt.com
       http:
         paths:
           - path: /
@@ -21,4 +21,4 @@ spec:
   tls:
     - secretName: blog-tls
       hosts:
-        - blog.def4alt.com
+        - def4alt.com

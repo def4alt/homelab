@@ -4,7 +4,7 @@ This ExecPlan is a living document. The sections `Progress`, `Surprises & Discov
 
 ## Purpose / Big Picture
 
-After this change, the blog can run as a container in the homelab and be managed entirely through FluxCD. A browser should be able to reach the site at `https://blog.def4alt.com`, the app should answer a simple health check for Kubernetes probes, and the homelab repository should contain the namespace, app manifests, Flux wiring, DNS entry, and dashboard link needed to keep the service discoverable and reproducible.
+After this change, the blog can run as a container in the homelab and be managed entirely through FluxCD. A browser should be able to reach the site at `https://def4alt.com`, the app should answer a simple health check for Kubernetes probes, and the homelab repository should contain the namespace, app manifests, Flux wiring, DNS entry, and dashboard link needed to keep the service discoverable and reproducible.
 
 The blog application itself lives in the sibling repository `/Users/def4alt/source/def4alt.com`. That repository already renders Markdown posts on the server and serves assets from `content/`, `templates/`, and `static/`. This change will package those files into an image, then add the Kubernetes and Flux resources in this repository so the homelab can deploy it like the other services.
 
@@ -14,9 +14,9 @@ The blog application itself lives in the sibling repository `/Users/def4alt/sour
 - [x] (2026-04-09 10:25Z) Add a production container image for the blog app, including a local HTMX asset and a `/healthz` endpoint for probes.
 - [x] (2026-04-09 10:25Z) Add the `blog` namespace and the `apps/blog` Kubernetes manifests in the homelab repository.
 - [x] (2026-04-09 10:25Z) Wire the new app into the Flux overlay tree under `clusters/home/overlays`.
-- [x] (2026-04-09 10:25Z) Add the blog hostname to Cloudflare DNS management and the Glance dashboard links.
-- [x] (2026-04-09 10:25Z) Validate the app build and the Kubernetes manifests locally; validate the runtime by starting the compiled binary and curling `/healthz`.
-- [x] (2026-04-09 10:35Z) Commit the changes in small, reviewable Git commits.
+- [x] (2026-04-09 10:45Z) Add the apex blog hostname to Cloudflare DNS management and the Glance dashboard links.
+- [x] (2026-04-09 10:45Z) Validate the app build and the Kubernetes manifests locally; validate the runtime by starting the compiled binary and curling `/healthz`.
+- [x] (2026-04-09 10:55Z) Commit the changes in small, reviewable Git commits.
 
 ## Surprises & Discoveries
 
@@ -32,8 +32,8 @@ The blog application itself lives in the sibling repository `/Users/def4alt/sour
 
 ## Decision Log
 
-- Decision: Use `blog.def4alt.com` as the public hostname for the new service.
-  Rationale: The homelab already uses descriptive subdomains for services like `grafana.def4alt.com` and `projects.def4alt.com`, and `blog.def4alt.com` keeps the site name explicit.
+- Decision: Use the root hostname `def4alt.com` as the public hostname for the new service.
+  Rationale: The user wants the blog at the apex domain instead of a subdomain, and Cloudflare can flatten the apex CNAME while the rest of the stack continues to use subdomains.
   Date/Author: 2026-04-09 / Codex
 
 - Decision: Keep the first version simple and do not add a database or extra secrets.
@@ -54,7 +54,7 @@ The blog application itself lives in the sibling repository `/Users/def4alt/sour
 
 ## Outcomes & Retrospective
 
-Complete. The blog now has a container packaging story and the homelab repo has the Kubernetes and Flux wiring needed to deploy it as `blog.def4alt.com`. The app responds to `/healthz`, serves HTMX locally from `static/htmx.min.js`, and can be built and run directly from the sibling repository. The homelab manifests are in place and `kustomize build` succeeds for both `apps/blog` and `clusters/home/overlays`.
+Complete. The blog now has a container packaging story and the homelab repo has the Kubernetes and Flux wiring needed to deploy it as `def4alt.com`. The app responds to `/healthz`, serves HTMX locally from `static/htmx.min.js`, and can be built and run directly from the sibling repository. The homelab manifests are in place and `kustomize build` succeeds for both `apps/blog` and `clusters/home/overlays`.
 
 The only local limitation was the Docker daemon. That meant the image itself was not built in this environment, but the Dockerfile is aligned with the runtime layout that was already verified by the direct binary run. A follow-up could add image automation or release tagging once there is a preferred build pipeline.
 
