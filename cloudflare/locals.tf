@@ -11,6 +11,7 @@ locals {
     "home.${var.base_domain}",
     "executor.${var.base_domain}",
     "projects.${var.base_domain}",
+    "blog.${var.base_domain}",
   ])
 
   cname_overrides = {

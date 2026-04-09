@@ -21,3 +21,4 @@ resources:
   - apps/nanobot.yaml
   - apps/executor.yaml
   - apps/kaneo.yaml
+  - apps/blog.yaml
