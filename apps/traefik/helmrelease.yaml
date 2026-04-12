@@ -14,12 +14,26 @@ spec:
         namespace: infra
   values:
     deployment:
-      replicas: 1
+      replicas: 2
     updateStrategy:
       type: RollingUpdate
       rollingUpdate:
-        maxUnavailable: 1
-        maxSurge: 0
+        maxUnavailable: 0
+        maxSurge: 1
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: traefik
+            topologyKey: kubernetes.io/hostname
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
     service:
       type: ClusterIP
     ports:

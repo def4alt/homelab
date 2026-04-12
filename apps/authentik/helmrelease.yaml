@@ -21,7 +21,24 @@ spec:
     postgresql:
       enabled: false
     server:
-      replicas: 1
+      replicas: 2
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: authentik
+                  app.kubernetes.io/component: server
+              topologyKey: kubernetes.io/hostname
+      persistence:
+        size: 20Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          cpu: 2000m
+          memory: 2Gi
       ingress:
         enabled: true
         annotations:
@@ -33,3 +50,20 @@ spec:
           - secretName: authentik-tls
             hosts:
               - auth.def4alt.com
+    worker:
+      replicas: 2
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/instance: authentik
+                  app.kubernetes.io/component: worker
+              topologyKey: kubernetes.io/hostname
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
