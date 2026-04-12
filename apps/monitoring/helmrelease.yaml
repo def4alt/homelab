@@ -13,6 +13,10 @@ spec:
         name: prometheus-community
         namespace: infra
   values:
+    alertmanager:
+      alertmanagerSpec:
+        useExistingSecret: true
+        configSecret: monitoring-alertmanager
     grafana:
       admin:
         existingSecret: monitoring-grafana
@@ -41,6 +45,9 @@ spec:
         serviceMonitorSelectorNilUsesHelmValues: false
         serviceMonitorNamespaceSelector: {}
         serviceMonitorNamespaceSelectorNilUsesHelmValues: false
+        ruleSelector: {}
+        ruleSelectorNilUsesHelmValues: false
+        ruleNamespaceSelector: {}
         storageSpec:
           volumeClaimTemplate:
             spec:
