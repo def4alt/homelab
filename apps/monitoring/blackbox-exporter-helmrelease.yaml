@@ -21,6 +21,25 @@ spec:
       limits:
         cpu: 200m
         memory: 128Mi
+    config:
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 5s
+          http:
+            valid_http_versions:
+              - HTTP/1.1
+              - HTTP/2.0
+            follow_redirects: true
+            preferred_ip_protocol: ip4
+        dns_udp:
+          prober: dns
+          timeout: 5s
+          dns:
+            transport_protocol: udp
+            preferred_ip_protocol: ip4
+            query_name: auth.def4alt.com
+            query_type: A
     serviceMonitor:
       selfMonitor:
         enabled: true
@@ -60,5 +79,8 @@ spec:
         - name: paperless
           url: https://papers.def4alt.com/
           hostname: papers.def4alt.com
+        - name: pihole-dns
+          url: 192.168.88.192:53
+          module: dns_udp
     prometheusRule:
       enabled: false

@@ -13,6 +13,7 @@ The monitoring stack remains decoupled from ingress/auth where possible so that 
 - [x] (2026-04-12) Inspect current monitoring topology, Flux wiring, and kube-prometheus-stack capabilities.
 - [x] (2026-04-12) Create a secret-backed Alertmanager configuration that routes warning/critical alerts to Telegram.
 - [x] (2026-04-12) Add a Prometheus blackbox exporter release for probing external endpoints.
+- [x] (2026-04-12) Add DNS blackbox module and a Pi-hole DNS target to verify resolver health.
 - [x] (2026-04-12) Add PrometheusRule for probe failures so endpoint outages alert cleanly.
 - [x] (2026-04-12) Validate manifests with kustomize-compatible rendering and prepare for Flux reconcile.
 
