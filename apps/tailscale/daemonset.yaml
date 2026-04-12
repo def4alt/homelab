@@ -49,7 +49,7 @@ spec:
               command:
                 - sh
                 - -ec
-                - tailscale status --json | grep -Eq '"BackendState": *"Running"'
+                - "tailscale status --json | grep -Eq '\"BackendState\": *\"Running\"'"
             failureThreshold: 30
             periodSeconds: 10
             timeoutSeconds: 5
@@ -58,7 +58,7 @@ spec:
               command:
                 - sh
                 - -ec
-                - tailscale status --json | grep -Eq '"BackendState": *"Running"'
+                - "tailscale status --json | grep -Eq '\"BackendState\": *\"Running\"'"
             failureThreshold: 3
             periodSeconds: 15
             timeoutSeconds: 5
@@ -67,7 +67,7 @@ spec:
               command:
                 - sh
                 - -ec
-                - tailscale status --json | grep -Eq '"BackendState": *"Running"'
+                - "tailscale status --json | grep -Eq '\"BackendState\": *\"Running\"'"
             failureThreshold: 3
             periodSeconds: 30
             timeoutSeconds: 5

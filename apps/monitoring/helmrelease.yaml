@@ -24,6 +24,13 @@ spec:
         dashboards:
           enabled: true
           label: grafana_dashboard
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
       ingress:
         enabled: false
       persistence:
@@ -37,6 +44,13 @@ spec:
         enabled: false
       prometheusSpec:
         retention: 7d
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
         podMonitorSelector: {}
         podMonitorSelectorNilUsesHelmValues: false
         podMonitorNamespaceSelector: {}
