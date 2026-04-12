@@ -15,6 +15,7 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       serviceAccountName: tailscale
+      terminationGracePeriodSeconds: 30
       containers:
         - name: tailscale
           image: tailscale/tailscale:latest
@@ -36,6 +37,40 @@ spec:
                   fieldPath: spec.nodeName
             - name: TS_ACCEPT_DNS
               value: "false"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - tailscale status --json | grep -q '"BackendState":"Running"'
+            failureThreshold: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - tailscale status --json | grep -q '"BackendState":"Running"'
+            failureThreshold: 3
+            periodSeconds: 15
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -ec
+                - tailscale status --json | grep -q '"BackendState":"Running"'
+            failureThreshold: 3
+            periodSeconds: 30
+            timeoutSeconds: 5
           securityContext:
             privileged: true
           volumeMounts:
