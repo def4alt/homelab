@@ -21,17 +21,7 @@ spec:
           enabled: true
           label: grafana_dashboard
       ingress:
-        enabled: true
-        annotations:
-          traefik.ingress.kubernetes.io/router.entrypoints: websecure
-          traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
-          cert-manager.io/cluster-issuer: letsencrypt-prod
-        hosts:
-          - grafana.def4alt.com
-        tls:
-          - secretName: grafana-tls
-            hosts:
-              - grafana.def4alt.com
+        enabled: false
       persistence:
         enabled: true
         storageClassName: longhorn
@@ -40,17 +30,7 @@ spec:
         size: 5Gi
     prometheus:
       ingress:
-        enabled: true
-        annotations:
-          traefik.ingress.kubernetes.io/router.entrypoints: websecure
-          traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
-          cert-manager.io/cluster-issuer: letsencrypt-prod
-        hosts:
-          - prometheus.def4alt.com
-        tls:
-          - secretName: prometheus-tls
-            hosts:
-              - prometheus.def4alt.com
+        enabled: false
       prometheusSpec:
         retention: 7d
         podMonitorSelector: {}

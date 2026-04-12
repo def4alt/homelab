@@ -11,7 +11,7 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: traefik
+    - name: namespaces
   timeout: 10m
   wait: true
   decryption:

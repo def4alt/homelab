@@ -12,9 +12,6 @@ spec:
     name: flux-system
   dependsOn:
     - name: namespaces
-    - name: cert-manager
-    - name: traefik
-    - name: authentik
     - name: longhorn
   timeout: 15m
   wait: true

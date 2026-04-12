@@ -11,7 +11,7 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: tailscale
+    - name: namespaces
   timeout: 15m
   wait: true
   decryption:
