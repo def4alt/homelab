@@ -21,15 +21,7 @@ spec:
     postgresql:
       enabled: false
     server:
-      replicas: 2
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/instance: authentik
-                  app.kubernetes.io/component: server
-              topologyKey: kubernetes.io/hostname
+      replicas: 1
       persistence:
         size: 20Gi
       resources:
@@ -51,15 +43,7 @@ spec:
             hosts:
               - auth.def4alt.com
     worker:
-      replicas: 2
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app.kubernetes.io/instance: authentik
-                  app.kubernetes.io/component: worker
-              topologyKey: kubernetes.io/hostname
+      replicas: 1
       resources:
         requests:
           cpu: 100m

@@ -14,9 +14,9 @@ spec:
         namespace: longhorn-system
   values:
     defaultSettings:
-      defaultReplicaCount: 2
+      defaultReplicaCount: 1
       replicaSoftAntiAffinity: true
       storageReservedPercentageForDefaultDisk: 20
     persistence:
       defaultClass: true
-      defaultClassReplicaCount: 2
+      defaultClassReplicaCount: 1
