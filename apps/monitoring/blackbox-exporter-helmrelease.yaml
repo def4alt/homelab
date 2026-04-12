@@ -64,9 +64,6 @@ spec:
         - name: immich
           url: https://photos.def4alt.com/
           hostname: photos.def4alt.com
-        - name: immich-api
-          url: https://api-photos.def4alt.com/
-          hostname: api-photos.def4alt.com
         - name: glance
           url: https://dashboard.def4alt.com/
           hostname: dashboard.def4alt.com
