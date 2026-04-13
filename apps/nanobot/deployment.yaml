@@ -126,7 +126,7 @@ spec:
                                   "append_note",
                                   "refresh_index",
                               ],
-                              "toolTimeout": 300,
+                              "toolTimeout": 900,
                           }
                       },
                   },

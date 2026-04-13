@@ -26,6 +26,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 01:10Z) Fixed a rollout blocker where the first init image tag (`alpine/git:2.45.3`) did not exist, so the pod could pull from a known-good Alpine base image instead.
 - [x] (2026-04-13 01:25Z) Added a GitHub PAT key to `apps/nanobot/secrets/nanobot-secrets.sops.yaml` and switched the vault clone to use authenticated GitHub URLs.
 - [x] (2026-04-13 01:40Z) Fixed the MCP launch command to use the nanobot venv Python so the `mcp` module is actually available when the server starts.
+- [x] (2026-04-13 01:55Z) Increased the Obsidian MCP tool timeout to give the first index/session more room to finish.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -73,6 +74,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Launch the MCP server with `/data/home/.nanobot/venv/bin/python`.
   Rationale: nanobot installs the `mcp` package into its venv at startup, so the MCP server must use that interpreter to import the module successfully.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Set the Obsidian MCP `toolTimeout` to 900 seconds.
+  Rationale: the first vault sync and embedding pass can take longer than a few minutes, so the tool budget should not expire before the initial index is ready.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
