@@ -59,13 +59,6 @@ spec:
               value: "http://paperless-tika:9998"
             - name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
               value: "http://paperless-gotenberg:3000"
-          resources:
-            requests:
-              cpu: 100m
-              memory: 512Mi
-            limits:
-              cpu: 500m
-              memory: 1Gi
           ports:
             - name: http
               containerPort: 8000
