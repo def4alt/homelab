@@ -24,6 +24,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 00:45Z) Wired the nanobot runtime config to launch the vault MCP server and expose search and note-editing tools.
 - [x] (2026-04-13 00:55Z) Validated YAML syntax and compiled the embedded MCP script locally.
 - [x] (2026-04-13 01:10Z) Fixed a rollout blocker where the first init image tag (`alpine/git:2.45.3`) did not exist, so the pod could pull from a known-good Alpine base image instead.
+- [x] (2026-04-13 01:25Z) Added a GitHub PAT key to `apps/nanobot/secrets/nanobot-secrets.sops.yaml` and switched the vault clone to use authenticated GitHub URLs.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -36,6 +37,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: The first choice of git image tag was invalid and blocked the rollout.
   Evidence: kubelet reported `docker.io/alpine/git:2.45.3: not found`, so the pod stayed in `Init:ImagePullBackOff` while the old nanobot pod continued running.
+
+- Observation: The vault repository needs authentication from inside the cluster.
+  Evidence: the init container reported `fatal: could not read Username for 'https://github.com'`, which is why the deployment now injects `github-pat` from `nanobot-secrets`.
 
 ## Decision Log
 
@@ -57,6 +61,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Mount the MCP server as a ConfigMap file and use an initContainer plus a refresh sidecar for vault sync.
   Rationale: The script stays readable and reviewable in git, while the initContainer guarantees the vault exists before nanobot starts and the sidecar keeps it current afterwards.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Store the GitHub PAT in `apps/nanobot/secrets/nanobot-secrets.sops.yaml` under the key `github-pat` and feed it into both git containers.
+  Rationale: Reusing the existing nanobot secret keeps the auth material in the same SOPS-managed location as the other nanobot credentials.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective

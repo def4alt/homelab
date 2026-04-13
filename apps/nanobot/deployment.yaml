@@ -33,17 +33,19 @@ spec:
             - -c
             - |
               set -eu
-              mkdir -p /data/home/vault
-
-              if [ ! -d /data/home/vault/.git ]; then
-                git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "${OBSIDIAN_VAULT_REPO}" /data/home/vault
-              else
-                git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
-                git -C /data/home/vault reset --hard "origin/${OBSIDIAN_VAULT_BRANCH}"
-              fi
+              rm -rf /data/home/vault
+              git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault" /data/home/vault
+              git -C /data/home/vault remote set-url origin "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault"
+              git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
+              git -C /data/home/vault reset --hard "origin/${OBSIDIAN_VAULT_BRANCH}"
           env:
             - name: HOME
               value: /data/home
+            - name: GITHUB_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: github-pat
             - name: OBSIDIAN_VAULT_REPO
               valueFrom:
                 configMapKeyRef:
@@ -267,11 +269,9 @@ spec:
             - -c
             - |
               set -eu
-              mkdir -p /data/home/vault
-
-              if [ ! -d /data/home/vault/.git ]; then
-                git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "${OBSIDIAN_VAULT_REPO}" /data/home/vault
-              fi
+              rm -rf /data/home/vault
+              git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault" /data/home/vault
+              git -C /data/home/vault remote set-url origin "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault"
 
               while true; do
                 git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
@@ -281,6 +281,11 @@ spec:
           env:
             - name: HOME
               value: /data/home
+            - name: GITHUB_PAT
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: github-pat
             - name: OBSIDIAN_VAULT_REPO
               valueFrom:
                 configMapKeyRef:
