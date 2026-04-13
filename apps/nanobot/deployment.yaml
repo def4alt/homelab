@@ -117,7 +117,7 @@ spec:
                       },
                       "mcpServers": {
                           "obsidian": {
-                              "command": "python",
+                              "command": "/data/home/.nanobot/venv/bin/python",
                               "args": ["/opt/obsidian_rag_mcp.py"],
                               "enabledTools": [
                                   "search_notes",

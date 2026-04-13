@@ -25,6 +25,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 00:55Z) Validated YAML syntax and compiled the embedded MCP script locally.
 - [x] (2026-04-13 01:10Z) Fixed a rollout blocker where the first init image tag (`alpine/git:2.45.3`) did not exist, so the pod could pull from a known-good Alpine base image instead.
 - [x] (2026-04-13 01:25Z) Added a GitHub PAT key to `apps/nanobot/secrets/nanobot-secrets.sops.yaml` and switched the vault clone to use authenticated GitHub URLs.
+- [x] (2026-04-13 01:40Z) Fixed the MCP launch command to use the nanobot venv Python so the `mcp` module is actually available when the server starts.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -40,6 +41,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: The vault repository needs authentication from inside the cluster.
   Evidence: the init container reported `fatal: could not read Username for 'https://github.com'`, which is why the deployment now injects `github-pat` from `nanobot-secrets`.
+
+- Observation: The MCP server must be launched with the venv interpreter, not the container’s system Python.
+  Evidence: nanobot logged `ModuleNotFoundError: No module named 'mcp'` until the config pointed the MCP server at `/data/home/.nanobot/venv/bin/python`.
 
 ## Decision Log
 
@@ -65,6 +69,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Store the GitHub PAT in `apps/nanobot/secrets/nanobot-secrets.sops.yaml` under the key `github-pat` and feed it into both git containers.
   Rationale: Reusing the existing nanobot secret keeps the auth material in the same SOPS-managed location as the other nanobot credentials.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Launch the MCP server with `/data/home/.nanobot/venv/bin/python`.
+  Rationale: nanobot installs the `mcp` package into its venv at startup, so the MCP server must use that interpreter to import the module successfully.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
