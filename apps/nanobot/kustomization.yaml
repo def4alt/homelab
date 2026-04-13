@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - configmap.yaml
   - obsidian-rag-configmap.yaml
+  - soul-configmap.yaml
   - secrets/nanobot-secrets.sops.yaml
   - pvc.yaml
   - deployment.yaml

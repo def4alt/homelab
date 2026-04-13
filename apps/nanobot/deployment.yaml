@@ -144,6 +144,23 @@ spec:
               }
 
               Path("/data/home/.nanobot/config.json").write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
+
+              soul_template = Path("/opt/nanobot-soul.md").read_text(encoding="utf-8").strip()
+              soul_path = Path("/data/home/.nanobot/workspace/SOUL.md")
+              marker_start = "<!-- nanobot-managed-obsidian:start -->"
+              marker_end = "<!-- nanobot-managed-obsidian:end -->"
+              managed_block = f"{marker_start}\n{soul_template}\n{marker_end}"
+
+              current_soul = soul_path.read_text(encoding="utf-8") if soul_path.exists() else ""
+              if marker_start in current_soul and marker_end in current_soul:
+                  prefix, remainder = current_soul.split(marker_start, 1)
+                  _, suffix = remainder.split(marker_end, 1)
+                  pieces = [piece for piece in [prefix.rstrip(), managed_block, suffix.lstrip()] if piece]
+                  soul_path.write_text("\n\n".join(pieces) + "\n", encoding="utf-8")
+              elif current_soul.strip():
+                  soul_path.write_text(current_soul.rstrip() + "\n\n" + managed_block + "\n", encoding="utf-8")
+              else:
+                  soul_path.write_text(managed_block + "\n", encoding="utf-8")
               PY
 
               exec /data/home/.nanobot/venv/bin/nanobot gateway
@@ -264,6 +281,9 @@ spec:
             - name: obsidian-rag-script
               mountPath: /opt/obsidian_rag_mcp.py
               subPath: obsidian_rag_mcp.py
+            - name: nanobot-soul
+              mountPath: /opt/nanobot-soul.md
+              subPath: soul.md
         - name: vault-sync
           image: alpine/git:2.45.2
           imagePullPolicy: IfNotPresent
@@ -337,4 +357,8 @@ spec:
         - name: obsidian-rag-script
           configMap:
             name: nanobot-obsidian-rag
+            defaultMode: 0444
+        - name: nanobot-soul
+          configMap:
+            name: nanobot-soul
             defaultMode: 0444

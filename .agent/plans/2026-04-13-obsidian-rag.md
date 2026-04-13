@@ -28,6 +28,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 01:40Z) Fixed the MCP launch command to use the nanobot venv Python so the `mcp` module is actually available when the server starts.
 - [x] (2026-04-13 01:55Z) Increased the Obsidian MCP tool timeout to give the first index/session more room to finish.
 - [x] (2026-04-13 02:05Z) Added a vault-ready marker and taught the indexer to no-op until the clone is complete, so an early refresh cannot delete or rebuild the cache.
+- [x] (2026-04-13 02:15Z) Added a managed SOUL.md block so nanobot’s system prompt now tells it to prefer Obsidian for durable knowledge and note capture.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -49,6 +50,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: A refresh that runs before the vault checkout is complete can accidentally behave like a full resync.
   Evidence: when the pod restarted and the indexer ran too early, the cached file rows were treated as stale and the next refresh had to rebuild embeddings; the new vault-ready marker prevents that path.
+
+- Observation: nanobot already maintains a `SOUL.md` file in its workspace, so the cleanest prompt change was to append a managed block rather than replace the whole file.
+  Evidence: `kubectl exec` against the running pod showed `/data/home/.nanobot/workspace/SOUL.md` already existed before this change.
 
 ## Decision Log
 
@@ -86,6 +90,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Add a vault-ready marker file and teach the indexer to no-op until that marker exists.
   Rationale: this prevents a refresh from treating an incomplete checkout as a deleted vault and wiping the SQLite cache.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Manage the Obsidian instruction as a marked block inside `SOUL.md` instead of replacing the whole file.
+  Rationale: that keeps the default nanobot personality intact while layering on the Obsidian-specific behavior, and it lets future restarts update only the managed section.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
