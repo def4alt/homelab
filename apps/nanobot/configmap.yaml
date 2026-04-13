@@ -9,3 +9,4 @@ data:
   obsidian-vault-branch: main
   obsidian-embedding-model: qwen/qwen3-embedding-8b
   obsidian-sync-period-seconds: "300"
+  obsidian-default-top-k: "3"

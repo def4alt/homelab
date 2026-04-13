@@ -29,6 +29,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 01:55Z) Increased the Obsidian MCP tool timeout to give the first index/session more room to finish.
 - [x] (2026-04-13 02:05Z) Added a vault-ready marker and taught the indexer to no-op until the clone is complete, so an early refresh cannot delete or rebuild the cache.
 - [x] (2026-04-13 02:15Z) Added a managed SOUL.md block so nanobot’s system prompt now tells it to prefer Obsidian for durable knowledge and note capture.
+- [x] (2026-04-13 02:25Z) Tightened the Obsidian policy to answer from the first strong hit and reduced the default search fan-out so note questions stop exploring so aggressively.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -94,6 +95,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Manage the Obsidian instruction as a marked block inside `SOUL.md` instead of replacing the whole file.
   Rationale: that keeps the default nanobot personality intact while layering on the Obsidian-specific behavior, and it lets future restarts update only the managed section.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Lower the default Obsidian search fan-out to three results and tell nanobot to stop after the first strong note hit.
+  Rationale: the previous behavior kept exploring with extra filesystem searches and made note questions feel too slow.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective

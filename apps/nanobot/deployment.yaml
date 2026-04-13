@@ -217,6 +217,11 @@ spec:
               value: /data/home/vault
             - name: OBSIDIAN_INDEX_PATH
               value: /data/home/.nanobot/obsidian-rag/index.sqlite3
+            - name: OBSIDIAN_DEFAULT_TOP_K
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-default-top-k
           ports:
             - name: http
               containerPort: 18790
