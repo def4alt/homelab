@@ -4,4 +4,4 @@ metadata:
   name: nanobot-config
   namespace: ai
 data:
-  model: nvidia/nemotron-3-nano-30b-a3b:free
+  model: minimax/minimax-m2.5:free
