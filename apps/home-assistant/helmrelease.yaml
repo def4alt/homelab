@@ -26,13 +26,6 @@ spec:
       kubernetes.io/hostname: perun
     securityContext:
       privileged: true
-    resources:
-      requests:
-        cpu: 100m
-        memory: 512Mi
-      limits:
-        cpu: 500m
-        memory: 1Gi
     additionalVolumes:
       - name: zigbee-stick
         hostPath:

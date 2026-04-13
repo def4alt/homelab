@@ -30,11 +30,6 @@ spec:
                 secretKeyRef:
                   name: pihole-web-password
                   key: password
-          resources:
-            requests:
-              cpu: 100m
-            limits:
-              cpu: 250m
           ports:
             - name: dns-tcp
               containerPort: 53
