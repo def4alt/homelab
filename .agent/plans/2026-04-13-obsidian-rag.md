@@ -23,6 +23,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 00:45Z) Added a ConfigMap-mounted MCP server script that reads and writes vault files, chunks Markdown, stores a local SQLite cache, and only re-embeds changed chunks.
 - [x] (2026-04-13 00:45Z) Wired the nanobot runtime config to launch the vault MCP server and expose search and note-editing tools.
 - [x] (2026-04-13 00:55Z) Validated YAML syntax and compiled the embedded MCP script locally.
+- [x] (2026-04-13 01:10Z) Fixed a rollout blocker where the first init image tag (`alpine/git:2.45.3`) did not exist, so the pod could pull from a known-good Alpine base image instead.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -32,6 +33,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: An initContainer was the simplest way to avoid a startup race between the vault checkout and the MCP server.
   Evidence: the pod now clones `https://github.com/def4alt/vault` before the main container starts, while the sidecar keeps it refreshed afterwards.
+
+- Observation: The first choice of git image tag was invalid and blocked the rollout.
+  Evidence: kubelet reported `docker.io/alpine/git:2.45.3: not found`, so the pod stayed in `Init:ImagePullBackOff` while the old nanobot pod continued running.
 
 ## Decision Log
 

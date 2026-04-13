@@ -26,13 +26,14 @@ spec:
           type: RuntimeDefault
       initContainers:
         - name: vault-init
-          image: alpine/git:2.45.3
+          image: alpine:3.20
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
             - |
               set -eu
+              apk add --no-cache git ca-certificates >/dev/null
               mkdir -p /data/home/vault
 
               if [ ! -d /data/home/vault/.git ]; then
@@ -260,13 +261,14 @@ spec:
               mountPath: /opt/obsidian_rag_mcp.py
               subPath: obsidian_rag_mcp.py
         - name: vault-sync
-          image: alpine/git:2.45.3
+          image: alpine:3.20
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh
             - -c
             - |
               set -eu
+              apk add --no-cache git ca-certificates >/dev/null
               mkdir -p /data/home/vault
 
               if [ ! -d /data/home/vault/.git ]; then
