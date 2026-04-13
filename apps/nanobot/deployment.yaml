@@ -24,6 +24,48 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: vault-init
+          image: alpine/git:2.45.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /data/home/vault
+
+              if [ ! -d /data/home/vault/.git ]; then
+                git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "${OBSIDIAN_VAULT_REPO}" /data/home/vault
+              else
+                git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
+                git -C /data/home/vault reset --hard "origin/${OBSIDIAN_VAULT_BRANCH}"
+              fi
+          env:
+            - name: HOME
+              value: /data/home
+            - name: OBSIDIAN_VAULT_REPO
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-vault-repo
+            - name: OBSIDIAN_VAULT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-vault-branch
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /data/home
       containers:
         - name: nanobot
           image: python:3.12-slim
@@ -40,7 +82,7 @@ spec:
                 python -m venv /data/home/.nanobot/venv
               fi
 
-              /data/home/.nanobot/venv/bin/pip install --no-cache-dir -U nanobot-ai
+              /data/home/.nanobot/venv/bin/pip install --no-cache-dir -U nanobot-ai mcp
 
               python - <<'PY'
               import json
@@ -64,12 +106,27 @@ spec:
                       }
                   },
                   "tools": {
+                      "restrictToWorkspace": True,
                       "web": {
                           "search": {
                               "provider": "brave",
                               "apiKey": os.environ.get("BRAVE_API_KEY", ""),
                           }
-                      }
+                      },
+                      "mcpServers": {
+                          "obsidian": {
+                              "command": "python",
+                              "args": ["/opt/obsidian_rag_mcp.py"],
+                              "enabledTools": [
+                                  "search_notes",
+                                  "read_note",
+                                  "write_note",
+                                  "append_note",
+                                  "refresh_index",
+                              ],
+                              "toolTimeout": 300,
+                          }
+                      },
                   },
                   "channels": {
                       "telegram": {
@@ -114,6 +171,30 @@ spec:
                 configMapKeyRef:
                   name: nanobot-config
                   key: model
+            - name: OBSIDIAN_VAULT_REPO
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-vault-repo
+            - name: OBSIDIAN_VAULT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-vault-branch
+            - name: OBSIDIAN_EMBEDDING_MODEL
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-embedding-model
+            - name: OBSIDIAN_SYNC_PERIOD_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-sync-period-seconds
+            - name: OBSIDIAN_VAULT_PATH
+              value: /data/home/vault
+            - name: OBSIDIAN_INDEX_PATH
+              value: /data/home/.nanobot/obsidian-rag/index.sqlite3
           ports:
             - name: http
               containerPort: 18790
@@ -172,12 +253,75 @@ spec:
               memory: 2Gi
           volumeMounts:
             - name: data
-              mountPath: /data/home/.nanobot
+              mountPath: /data/home
             - name: tmp
               mountPath: /tmp
+            - name: obsidian-rag-script
+              mountPath: /opt/obsidian_rag_mcp.py
+              subPath: obsidian_rag_mcp.py
+        - name: vault-sync
+          image: alpine/git:2.45.3
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              mkdir -p /data/home/vault
+
+              if [ ! -d /data/home/vault/.git ]; then
+                git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "${OBSIDIAN_VAULT_REPO}" /data/home/vault
+              fi
+
+              while true; do
+                git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
+                git -C /data/home/vault reset --hard "origin/${OBSIDIAN_VAULT_BRANCH}"
+                sleep "${OBSIDIAN_SYNC_PERIOD_SECONDS}"
+              done
+          env:
+            - name: HOME
+              value: /data/home
+            - name: OBSIDIAN_VAULT_REPO
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-vault-repo
+            - name: OBSIDIAN_VAULT_BRANCH
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-vault-branch
+            - name: OBSIDIAN_SYNC_PERIOD_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: nanobot-config
+                  key: obsidian-sync-period-seconds
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: data
+              mountPath: /data/home
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: nanobot-data
         - name: tmp
           emptyDir: {}
+        - name: obsidian-rag-script
+          configMap:
+            name: nanobot-obsidian-rag
+            defaultMode: 0444

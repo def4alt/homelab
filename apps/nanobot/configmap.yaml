@@ -5,3 +5,7 @@ metadata:
   namespace: ai
 data:
   model: minimax/minimax-m2.5:free
+  obsidian-vault-repo: https://github.com/def4alt/vault
+  obsidian-vault-branch: main
+  obsidian-embedding-model: qwen/qwen3-embedding-8b
+  obsidian-sync-period-seconds: "300"

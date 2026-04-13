@@ -1,0 +1,579 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nanobot-obsidian-rag
+  namespace: ai
+data:
+  obsidian_rag_mcp.py: |
+    #!/usr/bin/env python3
+    from __future__ import annotations
+
+    import hashlib
+    import json
+    import math
+    import os
+    import re
+    import sqlite3
+    import subprocess
+    import urllib.error
+    import urllib.request
+    from array import array
+    from dataclasses import dataclass
+    from datetime import datetime, timezone
+    from pathlib import Path
+    from typing import Any
+
+    from mcp.server.fastmcp import FastMCP
+
+    VAULT_ROOT = Path(os.environ.get("OBSIDIAN_VAULT_PATH", "/data/home/vault")).resolve()
+    INDEX_PATH = Path(
+        os.environ.get(
+            "OBSIDIAN_INDEX_PATH",
+            "/data/home/.nanobot/obsidian-rag/index.sqlite3",
+        )
+    ).resolve()
+    EMBEDDING_MODEL = os.environ.get(
+        "OBSIDIAN_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b"
+    ).strip()
+    OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    OPENROUTER_REFERER = os.environ.get(
+        "OBSIDIAN_OPENROUTER_REFERER", "https://github.com/def4alt/homelab"
+    ).strip()
+    OPENROUTER_TITLE = os.environ.get(
+        "OBSIDIAN_OPENROUTER_TITLE", "nanobot-obsidian-rag"
+    ).strip()
+    DEFAULT_TOP_K = int(os.environ.get("OBSIDIAN_DEFAULT_TOP_K", "5"))
+    MAX_CHARS_PER_CHUNK = int(os.environ.get("OBSIDIAN_MAX_CHARS_PER_CHUNK", "1400"))
+    SYNC_SKIP_DIRS = {
+        ".git",
+        ".obsidian",
+        ".trash",
+        ".stfolders",
+        ".DS_Store",
+    }
+
+    mcp = FastMCP("obsidian-rag")
+
+
+    @dataclass
+    class Chunk:
+        path: str
+        chunk_index: int
+        heading: str
+        content: str
+        chunk_hash: str
+
+
+    def now_iso() -> str:
+        return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+    def connect() -> sqlite3.Connection:
+        INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(INDEX_PATH)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA temp_store=MEMORY")
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS files (
+                path TEXT PRIMARY KEY,
+                sha256 TEXT NOT NULL,
+                mtime REAL NOT NULL,
+                size INTEGER NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS chunks (
+                path TEXT NOT NULL,
+                chunk_index INTEGER NOT NULL,
+                chunk_hash TEXT NOT NULL,
+                heading TEXT NOT NULL,
+                content TEXT NOT NULL,
+                embedding BLOB NOT NULL,
+                norm REAL NOT NULL,
+                model TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (path, chunk_hash)
+            )
+            """
+        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_chunks_path ON chunks(path)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_chunks_hash ON chunks(chunk_hash)")
+        return conn
+
+
+    def ensure_vault() -> None:
+        if not VAULT_ROOT.exists():
+            raise RuntimeError(f"Vault root does not exist: {VAULT_ROOT}")
+
+
+    def canonicalize(text: str) -> str:
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+        lines = [line.rstrip() for line in text.split("\n")]
+        text = "\n".join(lines).strip()
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        return text
+
+
+    def stable_hash(text: str) -> str:
+        return hashlib.sha256(canonicalize(text).encode("utf-8")).hexdigest()
+
+
+    def hash_path(path: Path) -> str:
+        return hashlib.sha256(path.as_posix().encode("utf-8")).hexdigest()[:12]
+
+
+    def split_frontmatter(text: str) -> tuple[str | None, str]:
+        if not text.startswith("---\n"):
+            return None, text
+        end = text.find("\n---\n", 4)
+        if end == -1:
+            return None, text
+        end += len("\n---\n")
+        return text[:end].rstrip(), text[end:]
+
+
+    def heading_title(line: str) -> tuple[int, str] | None:
+        match = re.match(r"^(#{1,6})\s+(.*?)(?:\s+#*)?$", line)
+        if not match:
+            return None
+        level = len(match.group(1))
+        title = match.group(2).strip()
+        return level, title
+
+
+    def split_paragraphs(text: str) -> list[str]:
+        pieces: list[str] = []
+        current: list[str] = []
+
+        def flush() -> None:
+            if not current:
+                return
+            piece = "\n".join(current).strip()
+            if piece:
+                pieces.append(piece)
+            current.clear()
+
+        for paragraph in re.split(r"\n\s*\n", text.strip()):
+            paragraph = paragraph.strip()
+            if not paragraph:
+                continue
+            if len(paragraph) <= MAX_CHARS_PER_CHUNK:
+                candidate = "\n\n".join(current + [paragraph]).strip()
+                if current and len(candidate) > MAX_CHARS_PER_CHUNK:
+                    flush()
+                    current.append(paragraph)
+                else:
+                    current.append(paragraph)
+                continue
+
+            flush()
+            lines = paragraph.splitlines()
+            block: list[str] = []
+            block_size = 0
+            for line in lines:
+                if block_size + len(line) + 1 > MAX_CHARS_PER_CHUNK and block:
+                    pieces.append("\n".join(block).strip())
+                    block = [line]
+                    block_size = len(line)
+                else:
+                    block.append(line)
+                    block_size += len(line) + 1
+            if block:
+                pieces.append("\n".join(block).strip())
+
+        flush()
+        return pieces
+
+
+    def chunk_markdown(path: Path, content: str) -> list[Chunk]:
+        rel_path = str(path.relative_to(VAULT_ROOT))
+        text = content.replace("\r\n", "\n").replace("\r", "\n")
+        frontmatter, body = split_frontmatter(text)
+        chunks: list[Chunk] = []
+        index = 0
+        if frontmatter:
+            chunk_text = frontmatter
+            heading = "frontmatter"
+            chunks.append(
+                Chunk(
+                    path=rel_path,
+                    chunk_index=index,
+                    heading=heading,
+                    content=chunk_text.strip(),
+                    chunk_hash=stable_hash(f"{heading}\n\n{chunk_text}"),
+                )
+            )
+            index += 1
+
+        headings: list[str] = []
+        current: list[str] = []
+
+        def flush_current() -> None:
+            nonlocal index
+            if not current:
+                return
+            body_text = "\n".join(current).strip()
+            current.clear()
+            if not body_text:
+                return
+            heading_path = " / ".join(headings) if headings else "root"
+            for piece in split_paragraphs(body_text):
+                chunks.append(
+                    Chunk(
+                        path=rel_path,
+                        chunk_index=index,
+                        heading=heading_path,
+                        content=piece,
+                        chunk_hash=stable_hash(f"{heading_path}\n\n{piece}"),
+                    )
+                )
+                index += 1
+
+        for line in body.splitlines():
+            title = heading_title(line)
+            if title is None:
+                current.append(line)
+                continue
+            flush_current()
+            level, heading = title
+            headings[:] = headings[: max(level - 1, 0)]
+            headings.append(heading)
+
+        flush_current()
+        return chunks
+
+
+    def allowed_path(value: str) -> Path:
+        candidate = (VAULT_ROOT / value).resolve()
+        if not candidate.is_relative_to(VAULT_ROOT):
+            raise ValueError(f"Path escapes vault root: {value}")
+        return candidate
+
+
+    def read_text(path: Path) -> str:
+        return path.read_text(encoding="utf-8")
+
+
+    def write_text(path: Path, content: str) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
+
+    def append_text(path: Path, content: str) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            if content and not content.startswith("\n") and path.exists() and path.stat().st_size > 0:
+                handle.write("\n")
+            handle.write(content)
+
+
+    def file_sha256(path: Path) -> str:
+        return hashlib.sha256(canonicalize(read_text(path)).encode("utf-8")).hexdigest()
+
+
+    def embedding_to_blob(embedding: list[float]) -> tuple[bytes, float]:
+        values = array("f", embedding)
+        blob = values.tobytes()
+        norm = math.sqrt(sum(v * v for v in embedding))
+        return blob, norm
+
+
+    def blob_to_embedding(blob: bytes) -> array:
+        return array("f", blob)
+
+
+    def query_openrouter_embeddings(texts: list[str]) -> list[list[float]]:
+        if not OPENROUTER_API_KEY:
+            raise RuntimeError("OPENROUTER_API_KEY is required to build embeddings")
+        if not texts:
+            return []
+        payload = json.dumps({"model": EMBEDDING_MODEL, "input": texts}).encode("utf-8")
+        request = urllib.request.Request(
+            "https://openrouter.ai/api/v1/embeddings",
+            data=payload,
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+                "HTTP-Referer": OPENROUTER_REFERER,
+                "X-Title": OPENROUTER_TITLE,
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=120) as response:
+                result = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"OpenRouter embeddings request failed: {exc.code} {body}") from exc
+        data = result.get("data", [])
+        data.sort(key=lambda item: item.get("index", 0))
+        return [item["embedding"] for item in data]
+
+
+    def token_set(text: str) -> set[str]:
+        return set(re.findall(r"[a-z0-9]{3,}", text.lower()))
+
+
+    def cosine_score(query: array, query_norm: float, candidate: array, candidate_norm: float) -> float:
+        if not query_norm or not candidate_norm:
+            return 0.0
+        dot = 0.0
+        for left, right in zip(query, candidate):
+            dot += left * right
+        return dot / (query_norm * candidate_norm)
+
+
+    def chunk_snippet(text: str, limit: int = 420) -> str:
+        normalized = " ".join(text.split())
+        if len(normalized) <= limit:
+            return normalized
+        return normalized[: limit - 1].rstrip() + "…"
+
+
+    def sync_index(conn: sqlite3.Connection, force: bool = False) -> dict[str, int]:
+        ensure_vault()
+        scanned_files = 0
+        updated_files = 0
+        inserted_chunks = 0
+        reused_chunks = 0
+        removed_chunks = 0
+
+        current_paths: set[str] = set()
+        for path in VAULT_ROOT.rglob("*.md"):
+            if any(part in SYNC_SKIP_DIRS for part in path.parts):
+                continue
+            rel_path = str(path.relative_to(VAULT_ROOT))
+            current_paths.add(rel_path)
+            scanned_files += 1
+            text = read_text(path)
+            file_hash = hashlib.sha256(canonicalize(text).encode("utf-8")).hexdigest()
+            stat = path.stat()
+            file_row = conn.execute("SELECT sha256 FROM files WHERE path = ?", (rel_path,)).fetchone()
+            if file_row and file_row["sha256"] == file_hash and not force:
+                continue
+
+            chunks = chunk_markdown(path, text)
+            existing = {
+                row["chunk_hash"]: row
+                for row in conn.execute(
+                    "SELECT chunk_hash, embedding, norm FROM chunks WHERE path = ?",
+                    (rel_path,),
+                )
+            }
+            current_hashes = {chunk.chunk_hash for chunk in chunks}
+
+            pending: list[Chunk] = []
+            for chunk in chunks:
+                if chunk.chunk_hash in existing:
+                    reused_chunks += 1
+                    conn.execute(
+                        """
+                        UPDATE chunks
+                        SET chunk_index = ?, heading = ?, content = ?, updated_at = ?, model = ?
+                        WHERE path = ? AND chunk_hash = ?
+                        """,
+                        (
+                            chunk.chunk_index,
+                            chunk.heading,
+                            chunk.content,
+                            now_iso(),
+                            EMBEDDING_MODEL,
+                            rel_path,
+                            chunk.chunk_hash,
+                        ),
+                    )
+                    continue
+                pending.append(chunk)
+
+            if pending:
+                embeddings = query_openrouter_embeddings(
+                    [f"{chunk.heading}\n\n{chunk.content}" for chunk in pending]
+                )
+                for chunk, embedding in zip(pending, embeddings):
+                    blob, norm = embedding_to_blob(embedding)
+                    conn.execute(
+                        """
+                        INSERT OR REPLACE INTO chunks
+                        (path, chunk_index, chunk_hash, heading, content, embedding, norm, model, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            rel_path,
+                            chunk.chunk_index,
+                            chunk.chunk_hash,
+                            chunk.heading,
+                            chunk.content,
+                            blob,
+                            norm,
+                            EMBEDDING_MODEL,
+                            now_iso(),
+                        ),
+                    )
+                    inserted_chunks += 1
+
+            removed = conn.execute(
+                "SELECT chunk_hash FROM chunks WHERE path = ?",
+                (rel_path,),
+            ).fetchall()
+            for row in removed:
+                if row["chunk_hash"] not in current_hashes:
+                    conn.execute(
+                        "DELETE FROM chunks WHERE path = ? AND chunk_hash = ?",
+                        (rel_path, row["chunk_hash"]),
+                    )
+                    removed_chunks += 1
+
+            conn.execute(
+                """
+                INSERT INTO files(path, sha256, mtime, size, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(path) DO UPDATE SET
+                    sha256 = excluded.sha256,
+                    mtime = excluded.mtime,
+                    size = excluded.size,
+                    updated_at = excluded.updated_at
+                """,
+                (rel_path, file_hash, stat.st_mtime, stat.st_size, now_iso()),
+            )
+            updated_files += 1
+
+        known_paths = {
+            row["path"]
+            for row in conn.execute("SELECT path FROM files")
+        }
+        stale_paths = sorted(known_paths - current_paths)
+        for rel_path in stale_paths:
+            conn.execute("DELETE FROM chunks WHERE path = ?", (rel_path,))
+            conn.execute("DELETE FROM files WHERE path = ?", (rel_path,))
+            removed_chunks += 1
+
+        conn.commit()
+        return {
+            "scanned_files": scanned_files,
+            "updated_files": updated_files,
+            "inserted_chunks": inserted_chunks,
+            "reused_chunks": reused_chunks,
+            "removed_chunks": removed_chunks,
+        }
+
+
+    def all_chunks(conn: sqlite3.Connection) -> list[sqlite3.Row]:
+        return list(
+            conn.execute(
+                """
+                SELECT path, chunk_index, chunk_hash, heading, content, embedding, norm, model
+                FROM chunks
+                ORDER BY path, chunk_index
+                """
+            )
+        )
+
+
+    def search_index(conn: sqlite3.Connection, query: str, top_k: int) -> dict[str, Any]:
+        sync_index(conn)
+        query_embedding = query_openrouter_embeddings([query])[0]
+        query_vec = array("f", query_embedding)
+        query_norm = math.sqrt(sum(value * value for value in query_vec))
+        query_terms = token_set(query)
+
+        candidates = []
+        for row in all_chunks(conn):
+            candidate_vec = blob_to_embedding(row["embedding"])
+            candidate_norm = float(row["norm"])
+            cosine = cosine_score(query_vec, query_norm, candidate_vec, candidate_norm)
+            content_terms = token_set(row["content"])
+            overlap = 0.0
+            if query_terms:
+                overlap = len(query_terms & content_terms) / len(query_terms)
+            score = (cosine * 0.9) + (overlap * 0.1)
+            candidates.append(
+                {
+                    "path": row["path"],
+                    "chunk_index": row["chunk_index"],
+                    "heading": row["heading"],
+                    "score": round(score, 6),
+                    "snippet": chunk_snippet(row["content"]),
+                    "model": row["model"],
+                }
+            )
+
+        candidates.sort(key=lambda item: item["score"], reverse=True)
+        return {
+            "query": query,
+            "top_k": top_k,
+            "results": candidates[:top_k],
+            "vault_root": str(VAULT_ROOT),
+        }
+
+
+    @mcp.tool()
+    def refresh_index(force: bool = False) -> dict[str, Any]:
+        """Refresh the local Obsidian index and re-embed only changed chunks."""
+        with connect() as conn:
+            summary = sync_index(conn, force=force)
+            summary["vault_root"] = str(VAULT_ROOT)
+            summary["embedding_model"] = EMBEDDING_MODEL
+            return summary
+
+
+    @mcp.tool()
+    def search_notes(query: str, top_k: int = DEFAULT_TOP_K) -> dict[str, Any]:
+        """Search the vault by meaning and return the best matching note chunks."""
+        with connect() as conn:
+            return search_index(conn, query, top_k)
+
+
+    @mcp.tool()
+    def read_note(path: str) -> dict[str, Any]:
+        """Read a Markdown note from the vault."""
+        note_path = allowed_path(path)
+        return {
+            "path": path,
+            "content": read_text(note_path),
+        }
+
+
+    @mcp.tool()
+    def write_note(path: str, content: str) -> dict[str, Any]:
+        """Write a Markdown note and refresh the index for that file."""
+        note_path = allowed_path(path)
+        write_text(note_path, content)
+        with connect() as conn:
+            sync_index(conn, force=False)
+        return {
+            "path": path,
+            "status": "written",
+            "bytes": len(content.encode("utf-8")),
+        }
+
+
+    @mcp.tool()
+    def append_note(path: str, content: str) -> dict[str, Any]:
+        """Append text to a Markdown note and refresh the index for that file."""
+        note_path = allowed_path(path)
+        append_text(note_path, content)
+        with connect() as conn:
+            sync_index(conn, force=False)
+        return {
+            "path": path,
+            "status": "appended",
+            "bytes": len(content.encode("utf-8")),
+        }
+
+
+    def bootstrap() -> None:
+        if not VAULT_ROOT.exists():
+            raise SystemExit(f"Vault root does not exist: {VAULT_ROOT}")
+        with connect() as conn:
+            sync_index(conn, force=False)
+
+
+    if __name__ == "__main__":
+        bootstrap()
+        mcp.run()
