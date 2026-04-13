@@ -3,6 +3,9 @@ kind: HelmRelease
 metadata:
   name: authentik
   namespace: authentik
+  annotations:
+    fluxcd.io/automated: "true"
+    fluxcd.io/watch: "true"
 spec:
   interval: 10m
   chart:
