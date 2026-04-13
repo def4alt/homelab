@@ -32,6 +32,12 @@ data:
             "/data/home/.nanobot/obsidian-rag/index.sqlite3",
         )
     ).resolve()
+    VAULT_READY_PATH = Path(
+        os.environ.get(
+            "OBSIDIAN_VAULT_READY_PATH",
+            "/data/home/vault/.nanobot-ready",
+        )
+    ).resolve()
     EMBEDDING_MODEL = os.environ.get(
         "OBSIDIAN_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b"
     ).strip()
@@ -110,6 +116,10 @@ data:
     def ensure_vault() -> None:
         if not VAULT_ROOT.exists():
             raise RuntimeError(f"Vault root does not exist: {VAULT_ROOT}")
+
+
+    def vault_is_ready() -> bool:
+        return VAULT_READY_PATH.exists()
 
 
     def canonicalize(text: str) -> str:
@@ -338,6 +348,18 @@ data:
 
     def sync_index(conn: sqlite3.Connection, force: bool = False) -> dict[str, int]:
         ensure_vault()
+        if not vault_is_ready():
+            return {
+                "scanned_files": 0,
+                "updated_files": 0,
+                "inserted_chunks": 0,
+                "reused_chunks": 0,
+                "removed_chunks": 0,
+                "vault_root": str(VAULT_ROOT),
+                "embedding_model": EMBEDDING_MODEL,
+                "skipped": "vault-not-ready",
+            }
+
         scanned_files = 0
         updated_files = 0
         inserted_chunks = 0
@@ -442,6 +464,18 @@ data:
                 (rel_path, file_hash, stat.st_mtime, stat.st_size, now_iso()),
             )
             updated_files += 1
+
+        if scanned_files == 0:
+            return {
+                "scanned_files": 0,
+                "updated_files": 0,
+                "inserted_chunks": 0,
+                "reused_chunks": 0,
+                "removed_chunks": 0,
+                "vault_root": str(VAULT_ROOT),
+                "embedding_model": EMBEDDING_MODEL,
+                "skipped": "no-markdown-files",
+            }
 
         known_paths = {
             row["path"]

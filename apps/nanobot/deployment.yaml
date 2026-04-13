@@ -38,6 +38,7 @@ spec:
               git -C /data/home/vault remote set-url origin "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault"
               git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
               git -C /data/home/vault reset --hard "origin/${OBSIDIAN_VAULT_BRANCH}"
+              touch /data/home/vault/.nanobot-ready
           env:
             - name: HOME
               value: /data/home
@@ -56,6 +57,8 @@ spec:
                 configMapKeyRef:
                   name: nanobot-config
                   key: obsidian-vault-branch
+            - name: OBSIDIAN_VAULT_READY_PATH
+              value: /data/home/vault/.nanobot-ready
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true
@@ -273,9 +276,12 @@ spec:
               git clone --branch "${OBSIDIAN_VAULT_BRANCH}" --depth 1 "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault" /data/home/vault
               git -C /data/home/vault remote set-url origin "https://x-access-token:${GITHUB_PAT}@github.com/def4alt/vault"
 
+              touch /data/home/vault/.nanobot-ready
+
               while true; do
                 git -C /data/home/vault fetch origin "${OBSIDIAN_VAULT_BRANCH}"
                 git -C /data/home/vault reset --hard "origin/${OBSIDIAN_VAULT_BRANCH}"
+                touch /data/home/vault/.nanobot-ready
                 sleep "${OBSIDIAN_SYNC_PERIOD_SECONDS}"
               done
           env:
@@ -301,6 +307,8 @@ spec:
                 configMapKeyRef:
                   name: nanobot-config
                   key: obsidian-sync-period-seconds
+            - name: OBSIDIAN_VAULT_READY_PATH
+              value: /data/home/vault/.nanobot-ready
           securityContext:
             allowPrivilegeEscalation: false
             runAsNonRoot: true

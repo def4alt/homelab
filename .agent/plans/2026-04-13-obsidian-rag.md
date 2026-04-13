@@ -27,6 +27,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 01:25Z) Added a GitHub PAT key to `apps/nanobot/secrets/nanobot-secrets.sops.yaml` and switched the vault clone to use authenticated GitHub URLs.
 - [x] (2026-04-13 01:40Z) Fixed the MCP launch command to use the nanobot venv Python so the `mcp` module is actually available when the server starts.
 - [x] (2026-04-13 01:55Z) Increased the Obsidian MCP tool timeout to give the first index/session more room to finish.
+- [x] (2026-04-13 02:05Z) Added a vault-ready marker and taught the indexer to no-op until the clone is complete, so an early refresh cannot delete or rebuild the cache.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -45,6 +46,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: The MCP server must be launched with the venv interpreter, not the container’s system Python.
   Evidence: nanobot logged `ModuleNotFoundError: No module named 'mcp'` until the config pointed the MCP server at `/data/home/.nanobot/venv/bin/python`.
+
+- Observation: A refresh that runs before the vault checkout is complete can accidentally behave like a full resync.
+  Evidence: when the pod restarted and the indexer ran too early, the cached file rows were treated as stale and the next refresh had to rebuild embeddings; the new vault-ready marker prevents that path.
 
 ## Decision Log
 
@@ -78,6 +82,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Set the Obsidian MCP `toolTimeout` to 900 seconds.
   Rationale: the first vault sync and embedding pass can take longer than a few minutes, so the tool budget should not expire before the initial index is ready.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Add a vault-ready marker file and teach the indexer to no-op until that marker exists.
+  Rationale: this prevents a refresh from treating an incomplete checkout as a deleted vault and wiping the SQLite cache.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
