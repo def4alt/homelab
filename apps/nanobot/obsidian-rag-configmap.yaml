@@ -360,54 +360,71 @@ data:
                 "source": "rg",
             }
 
-        command = [
-            "rg",
-            "-n",
-            "-i",
-            "-F",
-            "--no-heading",
-            "--with-filename",
-            "--color",
-            "never",
-            "--glob",
-            "*.md",
-        ]
-        for skip_dir in SYNC_SKIP_DIRS:
-            command.extend(["--glob", f"!**/{skip_dir}/**"])
-        command.extend([needle, "."])
+        def run_rg(pattern: str) -> list[str]:
+            command = [
+                "rg",
+                "-n",
+                "-i",
+                "-F",
+                "--no-heading",
+                "--with-filename",
+                "--color",
+                "never",
+                "--glob",
+                "*.md",
+            ]
+            for skip_dir in SYNC_SKIP_DIRS:
+                command.extend(["--glob", f"!**/{skip_dir}/**"])
+            command.extend([pattern, "."])
 
-        try:
-            result = subprocess.run(
-                command,
-                cwd=str(VAULT_ROOT),
-                capture_output=True,
-                text=True,
-                timeout=30,
-            )
-        except (OSError, subprocess.TimeoutExpired):
+            try:
+                result = subprocess.run(
+                    command,
+                    cwd=str(VAULT_ROOT),
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                return []
+
+            if result.returncode not in (0, 1):
+                return []
+            return result.stdout.splitlines()
+
+        def build_result(
+            rel_path: str,
+            line_no: int,
+            content: str,
+            score: float,
+            match_type: str,
+        ) -> dict[str, Any]:
+            heading = "rg match"
+            stem = Path(rel_path).stem
+            normalized_stem = stem.lower().replace("_", " ")
+            normalized_needle = needle.lower().replace("_", " ")
+            if normalized_stem == normalized_needle:
+                heading = stem
+                match_type = "filename"
+                score += 0.1
+            elif content.lstrip().startswith("#"):
+                heading = content.lstrip("#").strip()
+                match_type = "heading"
             return {
-                "query": query,
-                "top_k": top_k,
-                "results": [],
-                "vault_root": str(VAULT_ROOT),
+                "path": rel_path,
+                "chunk_index": 0,
+                "heading": heading,
+                "score": round(score, 6),
+                "snippet": chunk_snippet(content),
+                "model": "rg",
                 "source": "rg",
+                "match_type": match_type,
+                "line": line_no,
             }
 
-        if result.returncode not in (0, 1):
-            return {
-                "query": query,
-                "top_k": top_k,
-                "results": [],
-                "vault_root": str(VAULT_ROOT),
-                "source": "rg",
-            }
-
-        normalized_needle = needle.lower().replace("_", " ")
-        candidates: list[dict[str, Any]] = []
+        exact_matches: list[dict[str, Any]] = []
         seen_paths: set[str] = set()
-        for line in result.stdout.splitlines():
-            if len(candidates) >= top_k:
-                break
+        for line in run_rg(needle):
             try:
                 rel_path, line_no, content = line.split(":", 2)
             except ValueError:
@@ -415,40 +432,97 @@ data:
             if rel_path in seen_paths:
                 continue
             seen_paths.add(rel_path)
+            exact_matches.append(build_result(rel_path, int(line_no), content, 1.0, "content"))
+            if len(exact_matches) >= top_k:
+                break
 
-            snippet = chunk_snippet(content)
-            heading = "rg match"
-            match_type = "content"
-            score = 1.0
-            stem = Path(rel_path).stem.lower().replace("_", " ")
-            if stem == normalized_needle:
-                score = 1.1
-                heading = Path(rel_path).stem
+        if exact_matches:
+            return {
+                "query": query,
+                "top_k": top_k,
+                "results": exact_matches[:top_k],
+                "vault_root": str(VAULT_ROOT),
+                "source": "rg",
+                "mode": "exact",
+            }
+
+        tokens = re.findall(r"[a-z0-9]{3,}", needle.lower())
+        if not tokens:
+            return {
+                "query": query,
+                "top_k": top_k,
+                "results": [],
+                "vault_root": str(VAULT_ROOT),
+                "source": "rg",
+                "mode": "empty",
+            }
+
+        file_hits: dict[str, dict[str, Any]] = {}
+        for token in tokens:
+            for line in run_rg(token):
+                try:
+                    rel_path, line_no, content = line.split(":", 2)
+                except ValueError:
+                    continue
+                entry = file_hits.setdefault(
+                    rel_path,
+                    {
+                        "tokens": set(),
+                        "line_no": int(line_no),
+                        "content": content,
+                        "heading": "rg token match",
+                    },
+                )
+                entry["tokens"].add(token)
+                line_number = int(line_no)
+                if line_number < entry["line_no"]:
+                    entry["line_no"] = line_number
+                    entry["content"] = content
+                if content.lstrip().startswith("#") and entry["heading"] == "rg token match":
+                    entry["heading"] = content.lstrip("#").strip()
+
+        candidates: list[dict[str, Any]] = []
+        for rel_path, entry in file_hits.items():
+            coverage = len(entry["tokens"])
+            if len(tokens) > 1 and coverage < 2:
+                continue
+            normalized_path = rel_path.lower().replace("_", " ")
+            normalized_needle = needle.lower().replace("_", " ")
+            score = coverage / len(tokens)
+            if Path(rel_path).stem.lower().replace("_", " ") == normalized_needle:
+                score += 0.2
                 match_type = "filename"
-            elif content.lstrip().startswith("#"):
-                heading = content.lstrip("#").strip()
+            elif normalized_needle in normalized_path:
+                score += 0.1
+                match_type = "content"
+            elif entry["heading"] != "rg token match":
                 match_type = "heading"
-
+            else:
+                match_type = "content"
             candidates.append(
-                {
-                    "path": rel_path,
-                    "chunk_index": 0,
-                    "heading": heading,
-                    "score": round(score, 6),
-                    "snippet": snippet,
-                    "model": "rg",
-                    "source": "rg",
-                    "match_type": match_type,
-                    "line": int(line_no),
-                }
+                build_result(
+                    rel_path,
+                    int(entry["line_no"]),
+                    entry["content"],
+                    score,
+                    match_type,
+                )
             )
 
+        candidates.sort(
+            key=lambda item: (
+                -item["score"],
+                item["line"],
+                item["path"],
+            )
+        )
         return {
             "query": query,
             "top_k": top_k,
             "results": candidates[:top_k],
             "vault_root": str(VAULT_ROOT),
             "source": "rg",
+            "mode": "tokens",
         }
 
 
