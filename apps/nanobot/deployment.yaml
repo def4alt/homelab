@@ -101,12 +101,16 @@ spec:
                   "providers": {
                       "openrouter": {
                           "apiKey": os.environ.get("OPENROUTER_API_KEY", ""),
-                      }
+                      },
+                      "custom": {
+                          "apiKey": os.environ.get("VENICE_API_KEY", ""),
+                          "apiBase": "https://api.venice.ai/api/v1",
+                      },
                   },
                   "agents": {
                       "defaults": {
-                          "provider": "openrouter",
-                          "model": os.environ.get("NANOBOT_MODEL", "nvidia/nemotron-3-nano-30b-a3b:free"),
+                          "provider": "custom",
+                          "model": os.environ.get("NANOBOT_MODEL", "google-gemma-4-31b-it"),
                           "workspace": "/data/home/.nanobot/workspace",
                       }
                   },
@@ -173,6 +177,11 @@ spec:
                   name: nanobot-secrets
                   key: openrouter-api-key
                   optional: true
+            - name: VENICE_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: nanobot-secrets
+                  key: venice-api-key
             - name: TELEGRAM_BOT_TOKEN
               valueFrom:
                 secretKeyRef:

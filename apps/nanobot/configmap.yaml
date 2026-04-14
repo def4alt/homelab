@@ -4,7 +4,7 @@ metadata:
   name: nanobot-config
   namespace: ai
 data:
-  model: minimax/minimax-m2.5:free
+  model: google-gemma-4-31b-it
   obsidian-vault-repo: https://github.com/def4alt/vault
   obsidian-vault-branch: main
   obsidian-embedding-model: qwen/qwen3-embedding-8b
