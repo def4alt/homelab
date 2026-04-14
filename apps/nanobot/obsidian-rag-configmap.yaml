@@ -349,6 +349,109 @@ data:
         return normalized[: limit - 1].rstrip() + "…"
 
 
+    def search_index_ripgrep(query: str, top_k: int) -> dict[str, Any]:
+        needle = " ".join(query.split())
+        if not needle:
+            return {
+                "query": query,
+                "top_k": top_k,
+                "results": [],
+                "vault_root": str(VAULT_ROOT),
+                "source": "rg",
+            }
+
+        command = [
+            "rg",
+            "-n",
+            "-i",
+            "-F",
+            "--no-heading",
+            "--with-filename",
+            "--color",
+            "never",
+            "--glob",
+            "*.md",
+        ]
+        for skip_dir in SYNC_SKIP_DIRS:
+            command.extend(["--glob", f"!**/{skip_dir}/**"])
+        command.extend([needle, "."])
+
+        try:
+            result = subprocess.run(
+                command,
+                cwd=str(VAULT_ROOT),
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return {
+                "query": query,
+                "top_k": top_k,
+                "results": [],
+                "vault_root": str(VAULT_ROOT),
+                "source": "rg",
+            }
+
+        if result.returncode not in (0, 1):
+            return {
+                "query": query,
+                "top_k": top_k,
+                "results": [],
+                "vault_root": str(VAULT_ROOT),
+                "source": "rg",
+            }
+
+        normalized_needle = needle.lower().replace("_", " ")
+        candidates: list[dict[str, Any]] = []
+        seen_paths: set[str] = set()
+        for line in result.stdout.splitlines():
+            if len(candidates) >= top_k:
+                break
+            try:
+                rel_path, line_no, content = line.split(":", 2)
+            except ValueError:
+                continue
+            if rel_path in seen_paths:
+                continue
+            seen_paths.add(rel_path)
+
+            snippet = chunk_snippet(content)
+            heading = "rg match"
+            match_type = "content"
+            score = 1.0
+            stem = Path(rel_path).stem.lower().replace("_", " ")
+            if stem == normalized_needle:
+                score = 1.1
+                heading = Path(rel_path).stem
+                match_type = "filename"
+            elif content.lstrip().startswith("#"):
+                heading = content.lstrip("#").strip()
+                match_type = "heading"
+
+            candidates.append(
+                {
+                    "path": rel_path,
+                    "chunk_index": 0,
+                    "heading": heading,
+                    "score": round(score, 6),
+                    "snippet": snippet,
+                    "model": "rg",
+                    "source": "rg",
+                    "match_type": match_type,
+                    "line": int(line_no),
+                }
+            )
+
+        return {
+            "query": query,
+            "top_k": top_k,
+            "results": candidates[:top_k],
+            "vault_root": str(VAULT_ROOT),
+            "source": "rg",
+        }
+
+
     def sync_index_loop() -> None:
         if SYNC_PERIOD_SECONDS <= 0:
             return
@@ -574,7 +677,21 @@ data:
     def search_notes(query: str, top_k: int = DEFAULT_TOP_K) -> dict[str, Any]:
         """Search the vault by meaning and return the best matching note chunks."""
         with connect() as conn:
-            return search_index(conn, query, top_k)
+            try:
+                semantic = search_index(conn, query, top_k)
+            except Exception:
+                return search_index_ripgrep(query, top_k)
+
+        if semantic.get("results"):
+            best_score = float(semantic["results"][0].get("score", 0.0))
+            if best_score >= 0.55:
+                return semantic
+
+        rg_results = search_index_ripgrep(query, top_k)
+        if rg_results.get("results"):
+            return rg_results
+
+        return semantic
 
 
     @mcp.tool()

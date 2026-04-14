@@ -33,6 +33,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 02:35Z) Switched the main chat provider from the rate-limited Minimaxi free model to Venice AI using `google-gemma-4-31b-it`.
 - [x] (2026-04-13 02:55Z) Removed vault resync from the hot `search_notes` path, added a background sync loop, and lowered the default Obsidian fan-out to one result so note lookups return faster.
 - [x] (2026-04-13 03:05Z) Passed `OPENROUTER_API_KEY` and the Obsidian embedding settings explicitly into the MCP subprocess, because the stdio launcher only inherits a narrow safe environment by default.
+- [x] (2026-04-13 03:20Z) Added a deterministic `rg` fallback for literal note/title matches when semantic search errors or returns weak results.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -114,6 +115,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Pass embedding and vault settings explicitly to the Obsidian MCP subprocess.
   Rationale: the MCP stdio launcher does not inherit arbitrary pod environment variables, so the search tool would otherwise lose `OPENROUTER_API_KEY` and fail before it can build embeddings.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Add an `rg` fallback for literal Obsidian searches.
+  Rationale: semantic search is the default, but exact title/text matches should still work when embeddings are unavailable or a semantic hit is weak.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
