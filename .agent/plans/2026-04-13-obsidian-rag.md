@@ -31,6 +31,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 02:15Z) Added a managed SOUL.md block so nanobot’s system prompt now tells it to prefer Obsidian for durable knowledge and note capture.
 - [x] (2026-04-13 02:25Z) Tightened the Obsidian policy to answer from the first strong hit and reduced the default search fan-out so note questions stop exploring so aggressively.
 - [x] (2026-04-13 02:35Z) Switched the main chat provider from the rate-limited Minimaxi free model to Venice AI using `google-gemma-4-31b-it`.
+- [x] (2026-04-13 02:55Z) Removed vault resync from the hot `search_notes` path, added a background sync loop, and lowered the default Obsidian fan-out to one result so note lookups return faster.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -104,6 +105,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Move the main chat provider from the free Minimaxi model to Venice AI with `google-gemma-4-31b-it`.
   Rationale: the logs showed repeated upstream 429 rate limits on `minimax/minimax-m2.5:free`, so the assistant needed a less-throttled default model.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Make `search_notes` query-only and run vault sync in a background loop instead of on every search.
+  Rationale: the previous hot-path sync forced a full vault scan before every retrieval request, which made note lookups much slower than necessary.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
