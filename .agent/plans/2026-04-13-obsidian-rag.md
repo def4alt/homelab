@@ -34,6 +34,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 02:55Z) Removed vault resync from the hot `search_notes` path, added a background sync loop, and lowered the default Obsidian fan-out to one result so note lookups return faster.
 - [x] (2026-04-13 03:05Z) Passed `OPENROUTER_API_KEY` and the Obsidian embedding settings explicitly into the MCP subprocess, because the stdio launcher only inherits a narrow safe environment by default.
 - [x] (2026-04-13 03:20Z) Added a deterministic `rg` fallback for literal note/title matches when semantic search errors or returns weak results.
+- [x] (2026-04-13 03:30Z) Switched nanobot to a `Recreate` rollout strategy so only one pod touches the shared vault PVC during updates.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -49,6 +50,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: The vault repository needs authentication from inside the cluster.
   Evidence: the init container reported `fatal: could not read Username for 'https://github.com'`, which is why the deployment now injects `github-pat` from `nanobot-secrets`.
+
+- Observation: Rolling updates can race with the vault checkout because the init container and the old pod share the same PVC.
+  Evidence: the restart briefly produced `fatal: could not open '/data/home/vault/.git/objects/pack/tmp_pack_...'` while two pods were alive at once, so the deployment now uses `strategy: Recreate`.
 
 - Observation: The MCP server must be launched with the venv interpreter, not the container’s system Python.
   Evidence: nanobot logged `ModuleNotFoundError: No module named 'mcp'` until the config pointed the MCP server at `/data/home/.nanobot/venv/bin/python`.
@@ -119,6 +123,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Add an `rg` fallback for literal Obsidian searches.
   Rationale: semantic search is the default, but exact title/text matches should still work when embeddings are unavailable or a semantic hit is weak.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Use a `Recreate` deployment strategy for nanobot.
+  Rationale: the vault checkout lives on a shared PVC, so only one pod should touch it during a rollout; otherwise the new init container can race the old vault sync sidecar.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective
