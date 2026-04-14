@@ -94,44 +94,6 @@ spec:
 
               /data/home/.nanobot/venv/bin/pip install --no-cache-dir -U nanobot-ai mcp
 
-              mkdir -p /data/home/.nanobot/bin
-              if [ ! -x /data/home/.nanobot/bin/rg ]; then
-                python - <<'PY'
-                import io
-                import os
-                import platform
-                import tarfile
-                import urllib.request
-
-                version = "14.1.1"
-                machine = platform.machine().lower()
-                if machine in {"x86_64", "amd64"}:
-                    target = "x86_64-unknown-linux-musl"
-                elif machine in {"aarch64", "arm64"}:
-                    target = "aarch64-unknown-linux-musl"
-                else:
-                    raise SystemExit(f"unsupported architecture: {machine}")
-
-                url = (
-                    f"https://github.com/BurntSushi/ripgrep/releases/download/{version}/"
-                    f"ripgrep-{version}-{target}.tar.gz"
-                )
-                archive = urllib.request.urlopen(url, timeout=60).read()
-                with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as tar:
-                    member = next((item for item in tar.getmembers() if item.name.endswith("/rg")), None)
-                    if member is None:
-                        raise SystemExit("ripgrep archive did not contain an rg binary")
-                    extracted = tar.extractfile(member)
-                    if extracted is None:
-                        raise SystemExit("could not extract rg binary from archive")
-                    output = "/data/home/.nanobot/bin/rg"
-                    with open(output, "wb") as handle:
-                        handle.write(extracted.read())
-                os.chmod(output, 0o755)
-                PY
-              fi
-              export PATH="/data/home/.nanobot/bin:$PATH"
-
               python - <<'PY'
               import json
               import os
@@ -179,7 +141,6 @@ spec:
                                   "OBSIDIAN_VAULT_READY_PATH": "/data/home/vault/.nanobot-ready",
                                   "OBSIDIAN_DEFAULT_TOP_K": os.environ.get("OBSIDIAN_DEFAULT_TOP_K", "5"),
                                   "OBSIDIAN_SYNC_PERIOD_SECONDS": os.environ.get("OBSIDIAN_SYNC_PERIOD_SECONDS", "300"),
-                                  "OBSIDIAN_RG_BIN": os.environ.get("OBSIDIAN_RG_BIN", "/data/home/.nanobot/bin/rg"),
                               },
                               "enabledTools": [
                                   "search_notes",
