@@ -126,6 +126,17 @@ spec:
                           "obsidian": {
                               "command": "/data/home/.nanobot/venv/bin/python",
                               "args": ["/opt/obsidian_rag_mcp.py"],
+                              "env": {
+                                  "OPENROUTER_API_KEY": os.environ.get("OPENROUTER_API_KEY", ""),
+                                  "OPENROUTER_REFERER": os.environ.get("OBSIDIAN_OPENROUTER_REFERER", "https://github.com/def4alt/homelab"),
+                                  "OPENROUTER_TITLE": os.environ.get("OBSIDIAN_OPENROUTER_TITLE", "nanobot-obsidian-rag"),
+                                  "OBSIDIAN_EMBEDDING_MODEL": os.environ.get("OBSIDIAN_EMBEDDING_MODEL", "qwen/qwen3-embedding-8b"),
+                                  "OBSIDIAN_VAULT_PATH": "/data/home/vault",
+                                  "OBSIDIAN_INDEX_PATH": "/data/home/.nanobot/obsidian-rag/index.sqlite3",
+                                  "OBSIDIAN_VAULT_READY_PATH": "/data/home/vault/.nanobot-ready",
+                                  "OBSIDIAN_DEFAULT_TOP_K": os.environ.get("OBSIDIAN_DEFAULT_TOP_K", "1"),
+                                  "OBSIDIAN_SYNC_PERIOD_SECONDS": os.environ.get("OBSIDIAN_SYNC_PERIOD_SECONDS", "300"),
+                              },
                               "enabledTools": [
                                   "search_notes",
                                   "read_note",
