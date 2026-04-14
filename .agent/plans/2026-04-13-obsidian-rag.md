@@ -35,6 +35,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 03:05Z) Passed `OPENROUTER_API_KEY` and the Obsidian embedding settings explicitly into the MCP subprocess, because the stdio launcher only inherits a narrow safe environment by default.
 - [x] (2026-04-13 03:20Z) Added a deterministic `rg` fallback for literal note/title matches when semantic search errors or returns weak results.
 - [x] (2026-04-13 03:30Z) Switched nanobot to a `Recreate` rollout strategy so only one pod touches the shared vault PVC during updates.
+- [x] (2026-04-13 03:40Z) Bootstrapped a portable `rg` binary into the pod so the Obsidian MCP server can use ripgrep even though the base image does not ship it.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
 ## Surprises & Discoveries
@@ -53,6 +54,9 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Observation: Rolling updates can race with the vault checkout because the init container and the old pod share the same PVC.
   Evidence: the restart briefly produced `fatal: could not open '/data/home/vault/.git/objects/pack/tmp_pack_...'` while two pods were alive at once, so the deployment now uses `strategy: Recreate`.
+
+- Observation: The base `python:3.12-slim` image does not include `rg`.
+  Evidence: the live pod returned `sh: 1: rg: not found`, so the deployment now bootstraps a portable ripgrep binary into `/data/home/.nanobot/bin`.
 
 - Observation: The MCP server must be launched with the venv interpreter, not the container’s system Python.
   Evidence: nanobot logged `ModuleNotFoundError: No module named 'mcp'` until the config pointed the MCP server at `/data/home/.nanobot/venv/bin/python`.
@@ -127,6 +131,10 @@ The user should be able to see the feature working by restarting the `nanobot` w
 
 - Decision: Use a `Recreate` deployment strategy for nanobot.
   Rationale: the vault checkout lives on a shared PVC, so only one pod should touch it during a rollout; otherwise the new init container can race the old vault sync sidecar.
+  Date/Author: 2026-04-13 / Codex
+
+- Decision: Bootstrap a portable ripgrep binary inside the container instead of relying on the base image.
+  Rationale: the Obsidian MCP fallback needs `rg`, and the slim Python image does not ship it by default.
   Date/Author: 2026-04-13 / Codex
 
 ## Outcomes & Retrospective

@@ -51,6 +51,7 @@ data:
         "OBSIDIAN_OPENROUTER_TITLE", "nanobot-obsidian-rag"
     ).strip()
     DEFAULT_TOP_K = int(os.environ.get("OBSIDIAN_DEFAULT_TOP_K", "5"))
+    RG_BIN = os.environ.get("OBSIDIAN_RG_BIN", "rg").strip() or "rg"
     SYNC_PERIOD_SECONDS = int(os.environ.get("OBSIDIAN_SYNC_PERIOD_SECONDS", "300"))
     MAX_CHARS_PER_CHUNK = int(os.environ.get("OBSIDIAN_MAX_CHARS_PER_CHUNK", "1400"))
     SYNC_SKIP_DIRS = {
@@ -362,7 +363,7 @@ data:
 
         def run_rg(pattern: str) -> list[str]:
             command = [
-                "rg",
+                RG_BIN,
                 "-n",
                 "-i",
                 "-F",
