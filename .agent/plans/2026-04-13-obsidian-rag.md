@@ -34,7 +34,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
 - [x] (2026-04-13 02:55Z) Removed vault resync from the hot `search_notes` path, added a background sync loop, and lowered the default Obsidian fan-out to one result so note lookups return faster.
 - [x] (2026-04-13 03:05Z) Passed `OPENROUTER_API_KEY` and the Obsidian embedding settings explicitly into the MCP subprocess, because the stdio launcher only inherits a narrow safe environment by default.
 - [x] (2026-04-13 03:20Z) Added a deterministic `rg` fallback for literal note/title matches when semantic search errors or returns weak results.
-- [x] (2026-04-13 03:30Z) Switched nanobot to a `Recreate` rollout strategy so only one pod touches the shared vault PVC during updates.
+- [x] (2026-04-13 03:30Z) Switched nanobot to a single-pod rollout policy (`maxSurge: 0`, `maxUnavailable: 1`) so only one pod touches the shared vault PVC during updates.
 - [x] (2026-04-13 03:40Z) Bootstrapped a portable `rg` binary into the pod so the Obsidian MCP server can use ripgrep even though the base image does not ship it.
 - [ ] Validate the end-to-end flow against the live cluster by syncing the vault, indexing a few notes, running a semantic query, and confirming that unchanged chunks are not re-embedded.
 
@@ -53,7 +53,7 @@ The user should be able to see the feature working by restarting the `nanobot` w
   Evidence: the init container reported `fatal: could not read Username for 'https://github.com'`, which is why the deployment now injects `github-pat` from `nanobot-secrets`.
 
 - Observation: Rolling updates can race with the vault checkout because the init container and the old pod share the same PVC.
-  Evidence: the restart briefly produced `fatal: could not open '/data/home/vault/.git/objects/pack/tmp_pack_...'` while two pods were alive at once, so the deployment now uses `strategy: Recreate`.
+  Evidence: the restart briefly produced `fatal: could not open '/data/home/vault/.git/objects/pack/tmp_pack_...'` while two pods were alive at once, so the deployment now uses a zero-surge rollout policy.
 
 - Observation: The base `python:3.12-slim` image does not include `rg`.
   Evidence: the live pod returned `sh: 1: rg: not found`, so the deployment now bootstraps a portable ripgrep binary into `/data/home/.nanobot/bin`.
@@ -129,8 +129,8 @@ The user should be able to see the feature working by restarting the `nanobot` w
   Rationale: semantic search is the default, but exact title/text matches should still work when embeddings are unavailable or a semantic hit is weak.
   Date/Author: 2026-04-13 / Codex
 
-- Decision: Use a `Recreate` deployment strategy for nanobot.
-  Rationale: the vault checkout lives on a shared PVC, so only one pod should touch it during a rollout; otherwise the new init container can race the old vault sync sidecar.
+- Decision: Use a zero-surge rolling update for nanobot.
+  Rationale: the vault checkout lives on a shared PVC, so only one pod should touch it during a rollout; `maxSurge: 0` and `maxUnavailable: 1` avoid concurrent writers without tripping deployment validation.
   Date/Author: 2026-04-13 / Codex
 
 - Decision: Bootstrap a portable ripgrep binary inside the container instead of relying on the base image.
