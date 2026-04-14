@@ -134,7 +134,7 @@ spec:
                                   "OBSIDIAN_VAULT_PATH": "/data/home/vault",
                                   "OBSIDIAN_INDEX_PATH": "/data/home/.nanobot/obsidian-rag/index.sqlite3",
                                   "OBSIDIAN_VAULT_READY_PATH": "/data/home/vault/.nanobot-ready",
-                                  "OBSIDIAN_DEFAULT_TOP_K": os.environ.get("OBSIDIAN_DEFAULT_TOP_K", "1"),
+                                  "OBSIDIAN_DEFAULT_TOP_K": os.environ.get("OBSIDIAN_DEFAULT_TOP_K", "5"),
                                   "OBSIDIAN_SYNC_PERIOD_SECONDS": os.environ.get("OBSIDIAN_SYNC_PERIOD_SECONDS", "300"),
                               },
                               "enabledTools": [
