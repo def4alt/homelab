@@ -44,6 +44,42 @@
     name = "iqn.2016-04.com.open-iscsi:${meta.hostname}";
   };
 
+  services.tailscale.enable = true;
+
+  systemd.services.tailscale-api-photos = {
+    description = "Expose api-photos.def4alt.com over Tailscale";
+    after = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
+    wants = [
+      "network-online.target"
+      "tailscaled.service"
+    ];
+    wantedBy = [ "multi-user.target" ];
+    path = with pkgs; [ coreutils gnugrep tailscale ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      set -euo pipefail
+
+      for _ in $(seq 1 60); do
+        if tailscale status --json | grep -Eq '"BackendState": *"Running"'; then
+          tailscale serve reset >/dev/null 2>&1 || true
+          tailscale serve --bg --yes --tcp=443 tcp://127.0.0.1:31818
+          exit 0
+        fi
+
+        sleep 2
+      done
+
+      exit 1
+    '';
+  };
+
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.perun = {
     isNormalUser = true;

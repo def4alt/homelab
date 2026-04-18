@@ -6,7 +6,6 @@ resources:
   - infra/cert-manager-issuers.yaml
   - infra/traefik.yaml
   - infra/cloudflared.yaml
-  - infra/tailscale.yaml
   - infra/metallb.yaml
   - infra/metallb-config.yaml
   - infra/longhorn.yaml
