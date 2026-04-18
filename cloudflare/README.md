@@ -39,8 +39,8 @@ Then:
 
 Optional flags:
 
-- `manage_tunnel_config = true` will manage tunnel ingress rules for those hostnames, forwarding to Traefik at `https://traefik.infra.svc.cluster.local:443` and setting both Host header and TLS SNI to the requested hostname.
-- `manage_dns = true` will create `CNAME` records for each hostname pointing at `<tunnel_id>.cfargotunnel.com` (useful if you want Terraform to own DNS as well).
+- `manage_tunnel_config = true` will manage tunnel ingress rules for the public hostnames, forwarding to Traefik at `https://traefik.infra.svc.cluster.local:443` and setting both Host header and TLS SNI to the requested hostname.
+- `manage_dns = true` will create `CNAME` records for all managed hostnames. `api-photos.def4alt.com` is intentionally kept on the Tailscale path and is not part of the Cloudflare tunnel ingress set.
 
 ## Operational notes
 

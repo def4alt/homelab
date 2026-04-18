@@ -10,7 +10,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
     }
 
     dynamic "ingress_rule" {
-      for_each = local.hostnames_sorted
+      for_each = local.public_hostnames_sorted
       content {
         hostname = ingress_rule.value
         service  = var.tunnel_origin_url

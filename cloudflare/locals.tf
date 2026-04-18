@@ -1,9 +1,8 @@
 locals {
-  hostnames = toset([
+  public_hostnames = toset([
     "auth.${var.base_domain}",
     "papers.${var.base_domain}",
     "photos.${var.base_domain}",
-    "api-photos.${var.base_domain}",
     "grafana.${var.base_domain}",
     "dashboard.${var.base_domain}",
     "prometheus.${var.base_domain}",
@@ -14,14 +13,19 @@ locals {
     var.base_domain,
   ])
 
+  tailnet_hostnames = toset([
+    "api-photos.${var.base_domain}",
+  ])
+
+  all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames)
+
   cname_overrides = {
     "api-photos.${var.base_domain}" = "perun.tail6f3b0.ts.net"
   }
 
-  unproxied_hostnames = toset([
-    "api-photos.${var.base_domain}",
-  ])
+  unproxied_hostnames = local.tailnet_hostnames
 
-  hostnames_sorted    = sort(tolist(local.hostnames))
-  tunnel_cname_target = "${var.tunnel_id}.cfargotunnel.com"
+  public_hostnames_sorted = sort(tolist(local.public_hostnames))
+  all_hostnames_sorted    = sort(tolist(local.all_hostnames))
+  tunnel_cname_target     = "${var.tunnel_id}.cfargotunnel.com"
 }

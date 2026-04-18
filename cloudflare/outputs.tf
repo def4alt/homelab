@@ -1,4 +1,4 @@
 output "hostnames" {
-  value = sort(tolist(local.hostnames))
+  value = local.all_hostnames_sorted
 }
 

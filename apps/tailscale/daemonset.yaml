@@ -76,6 +76,22 @@ spec:
             timeoutSeconds: 5
           securityContext:
             privileged: true
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -ec
+                  - >-
+                    for _ in $(seq 1 30); do
+                      if tailscale status --json | grep -Eq '"BackendState": *"Running"'; then
+                        tailscale serve reset >/dev/null 2>&1 || true
+                        tailscale serve --bg --yes --tcp=443 tcp://192.168.88.193:443
+                        exit 0
+                      fi
+                      sleep 2
+                    done
+                    exit 1
           volumeMounts:
             - name: dev-net-tun
               mountPath: /dev/net/tun
