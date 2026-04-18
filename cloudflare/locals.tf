@@ -20,7 +20,7 @@ locals {
   all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames)
 
   cname_overrides = {
-    "api-photos.${var.base_domain}" = "perun-1.tail6f3b0.ts.net"
+    "api-photos.${var.base_domain}" = "perun.tail6f3b0.ts.net"
   }
 
   unproxied_hostnames = local.tailnet_hostnames

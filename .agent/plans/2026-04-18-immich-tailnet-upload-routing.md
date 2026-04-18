@@ -27,3 +27,4 @@ Keep `photos.def4alt.com` public behind Cloudflare and move `api-photos.def4alt.
 - `api-photos.def4alt.com` is excluded from the Cloudflare tunnel ingress set.
 - The Tailscale node now runs on the host via NixOS, and `tailscale serve` forwards TCP 443 to Traefik through `127.0.0.1:31818`.
 - The k3s Tailscale DaemonSet has been removed from GitOps.
+- The host tailnet node now uses the plain `perun` name again.
