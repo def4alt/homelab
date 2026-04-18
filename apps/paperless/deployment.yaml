@@ -16,7 +16,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: paperless
-          image: ghcr.io/paperless-ngx/paperless-ngx:2.9.0
+          image: ghcr.io/paperless-ngx/paperless-ngx:latest
           env:
             - name: PAPERLESS_URL
               value: "https://papers.def4alt.com"
