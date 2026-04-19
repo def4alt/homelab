@@ -45,6 +45,8 @@ spec:
       eula: "TRUE"
       type: PAPER
       version: LATEST
+      onlineMode: false
+      enforceSecureProfile: false
       memory: 3G
       serviceType: LoadBalancer
       servicePort: 25565
