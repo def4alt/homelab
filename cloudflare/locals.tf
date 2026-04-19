@@ -13,17 +13,22 @@ locals {
     var.base_domain,
   ])
 
+  minecraft_hostname = "minecraft.${var.base_domain}"
+  minecraft_hostnames = toset([
+    local.minecraft_hostname,
+  ])
+
   tailnet_hostnames = toset([
     "api-photos.${var.base_domain}",
   ])
 
-  all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames)
+  all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames, local.minecraft_hostnames)
 
   cname_overrides = {
     "api-photos.${var.base_domain}" = "perun.tail6f3b0.ts.net"
   }
 
-  unproxied_hostnames = local.tailnet_hostnames
+  unproxied_hostnames = setunion(local.tailnet_hostnames, local.minecraft_hostnames)
 
   public_hostnames_sorted = sort(tolist(local.public_hostnames))
   all_hostnames_sorted    = sort(tolist(local.all_hostnames))

@@ -11,3 +11,4 @@ cloudflare_api_token = "<token-with-dns-and-tunnel-perms>"
 manage_tunnel_config = true
 manage_dns           = true
 tunnel_origin_url    = "https://traefik.infra.svc.cluster.local:443"
+minecraft_lb_ip      = "192.168.88.194"

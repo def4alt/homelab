@@ -32,9 +32,15 @@ variable "manage_tunnel_config" {
 }
 
 variable "manage_dns" {
-  description = "If true, manage DNS CNAME records for hostnames in locals.tf."
+  description = "If true, manage DNS records for hostnames in locals.tf, including the Minecraft A record when configured."
   type        = bool
   default     = false
+}
+
+variable "minecraft_lb_ip" {
+  description = "MetalLB IP for minecraft.def4alt.com. Leave null to skip the A record."
+  type        = string
+  default     = null
 }
 
 variable "tunnel_origin_url" {

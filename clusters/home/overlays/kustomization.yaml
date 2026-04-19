@@ -10,6 +10,7 @@ resources:
   - infra/metallb-config.yaml
   - infra/longhorn.yaml
   - infra/cnpg.yaml
+  - infra/juicefs.yaml
   - infra/authentik.yaml
   - infra/monitoring.yaml
   - apps/pi-hole.yaml
@@ -20,4 +21,5 @@ resources:
   - apps/nanobot.yaml
   - apps/executor.yaml
   - apps/kaneo.yaml
+  - apps/minecraft.yaml
   - apps/blog.yaml
