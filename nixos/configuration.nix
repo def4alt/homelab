@@ -46,8 +46,8 @@
 
   services.tailscale.enable = true;
 
-  systemd.services.tailscale-api-photos = {
-    description = "Expose api-photos.def4alt.com over Tailscale";
+  systemd.services.tailscale-public-tcp = {
+    description = "Expose api-photos.def4alt.com and minecraft.def4alt.com over Tailscale";
     after = [
       "network-online.target"
       "tailscaled.service"
@@ -69,6 +69,7 @@
         if tailscale status --json | grep -Eq '"BackendState": *"Running"'; then
           tailscale serve reset >/dev/null 2>&1 || true
           tailscale serve --bg --yes --tcp=443 tcp://127.0.0.1:31818
+          tailscale serve --bg --yes --tcp=25565 tcp://127.0.0.1:31697
           exit 0
         fi
 
