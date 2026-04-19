@@ -4,19 +4,19 @@ metadata:
   name: cnpg-barman-s3
   namespace: paperless
 spec:
-  retentionPolicy: 14d
+  retentionPolicy: 180d
   configuration:
-    destinationPath: s3://def4alt-homelab/cnpg/paperless/paperless-db-plugin
-    endpointURL: https://s3.eu-central-003.backblazeb2.com
+    destinationPath: s3://def4alt-homelab-backups/cnpg/paperless/paperless-db-plugin
+    endpointURL: https://s3.eu-west-1.amazonaws.com
     s3Credentials:
       accessKeyId:
-        name: cnpg-barman-s3
+        name: cnpg-barman-aws
         key: ACCESS_KEY_ID
       secretAccessKey:
-        name: cnpg-barman-s3
+        name: cnpg-barman-aws
         key: ACCESS_SECRET_KEY
       region:
-        name: cnpg-barman-s3
+        name: cnpg-barman-aws
         key: REGION
     data:
       compression: gzip

@@ -1,0 +1,8 @@
+aws_region              = "eu-west-1"
+aws_backup_bucket_name   = "def4alt-homelab-backups"
+aws_backup_prefix        = "cnpg"
+aws_transition_days      = 1
+aws_expiration_days      = 181
+b2_bucket_name           = "def4alt-homelab-immich-library"
+b2_key_name              = "immich-library"
+b2_s3_region             = "eu-central-003"

@@ -20,6 +20,7 @@
             kubernetes-helm
             sops
             opentofu
+            awscli2
           ];
         };
       });

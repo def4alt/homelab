@@ -3,6 +3,8 @@ kind: Kustomization
 namespace: immich
 resources:
   - pvc.yaml
+  - pvc-juicefs.yaml
+  - migration-job.yaml
   - server-deployment.yaml
   - service.yaml
   - ingress.yaml
