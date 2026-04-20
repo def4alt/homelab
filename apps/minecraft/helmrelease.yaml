@@ -24,14 +24,18 @@ spec:
     resources:
       requests:
         cpu: 500m
-        memory: 2Gi
+        memory: 5Gi
       limits:
         cpu: 2
-        memory: 4Gi
+        memory: 5Gi
+    nodeSelector:
+      kubernetes.io/hostname: perun
     startupProbe:
       enabled: true
       failureThreshold: 60
       periodSeconds: 10
+    extraPodSpec:
+      priorityClassName: minecraft-high
     extraEnv:
       TZ: Europe/Berlin
     persistence:
@@ -47,7 +51,7 @@ spec:
       version: LATEST
       onlineMode: false
       enforceSecureProfile: false
-      memory: 3G
+      memory: 4G
       serviceType: LoadBalancer
       servicePort: 25565
       loadBalancerIP: 192.168.88.194
