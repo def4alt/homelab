@@ -6,8 +6,8 @@ This ExecPlan is a living document. Keep `Progress`, `Surprises & Discoveries`, 
 
 The homelab has too many backup-related jobs landing at the same time, which creates avoidable IO bursts on `perun`. This change spreads backup/snapshot activity across the overnight window and assigns different frequencies based on app importance:
 
-- **Daily**: Immich, Paperless, Kaneo, Nanobot
-- **Weekly**: everything else with backup coverage
+- **Weekly CNPG**: Immich, Paperless, Kaneo, Authentik, Home Assistant, Executor, JuiceFS
+- **Daily Longhorn**: Nanobot and the PVC-backed apps that still need snapshot coverage
 - **Window**: avoid `08:00-22:00`, keep jobs in the overnight slots
 
 The outcome should be flatter storage load, fewer attach/mount spikes, and less contention with k3s/etcd.
@@ -64,13 +64,12 @@ Relevant existing files:
 
 ### 1) Stagger CNPG scheduled backups
 
-Use daily jobs for the highest-change DBs and weekly jobs for the rest:
+Use weekly jobs for all CNPG-covered DBs, spread across the overnight window:
 
-- Daily:
+- Weekly:
   - Immich DB
   - Paperless DB
   - Kaneo DB
-- Weekly:
   - Authentik DB
   - Home Assistant DB
   - Executor DB
@@ -122,7 +121,7 @@ If the new schedule causes trouble, revert the schedule changes first and leave 
 
 ## Outcomes & Retrospective
 
-- CNPG backups are now split into daily and weekly windows.
+- CNPG backups are now split across weekly windows, with Longhorn snapshots handling the daily PVC-side coverage.
 - Longhorn recurring snapshots are restored for the PVC-backed apps that still need them.
 - The home overlay now includes the Longhorn config overlay again.
 - `kubectl kustomize clusters/home/overlays` succeeds locally.

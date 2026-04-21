@@ -1,10 +1,10 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: paperless-db-daily
+  name: paperless-db-weekly
   namespace: paperless
 spec:
-  schedule: "0 15 0 * * *"
+  schedule: "0 15 0 * * 5"
   backupOwnerReference: self
   cluster:
     name: paperless-db

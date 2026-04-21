@@ -1,10 +1,10 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
-  name: immich-db-daily
+  name: immich-db-weekly
   namespace: immich
 spec:
-  schedule: "0 15 22 * * *"
+  schedule: "0 15 22 * * 4"
   backupOwnerReference: self
   cluster:
     name: immich-db
