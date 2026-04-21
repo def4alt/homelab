@@ -519,13 +519,10 @@ apiVersion: v1
 data:
   config.yaml: |-
     enableNodeSelector: false
-    mountPodPatch: |-
-      spec:
-        containers:
-          - name: jfs-mount
-            resources:
-              requests:
-                cpu: 500m
+    mountPodPatch:
+      - resources:
+          requests:
+            cpu: 500m
 kind: ConfigMap
 metadata:
   labels:
