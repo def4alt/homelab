@@ -8,6 +8,7 @@ metadata:
     fluxcd.io/watch: "true"
 spec:
   interval: 10m
+  timeout: 10m
   chart:
     spec:
       chart: authentik
@@ -45,8 +46,20 @@ spec:
           - secretName: authentik-tls
             hosts:
               - auth.def4alt.com
+      livenessProbe:
+        timeoutSeconds: 10
+      readinessProbe:
+        timeoutSeconds: 10
+      startupProbe:
+        timeoutSeconds: 10
     worker:
       replicas: 1
+      livenessProbe:
+        timeoutSeconds: 10
+      readinessProbe:
+        timeoutSeconds: 10
+      startupProbe:
+        timeoutSeconds: 10
       resources:
         requests:
           cpu: 100m
