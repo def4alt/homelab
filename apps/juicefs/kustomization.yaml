@@ -3,8 +3,5 @@ kind: Kustomization
 resources:
   - juicefs-csi-driver.yaml
   - postgres-cluster.yaml
-  - barman-objectstore.yaml
-  - scheduled-backup.yaml
   - storageclass.yaml
   - secrets/juicefs-auth.sops.yaml
-  - ../secrets/cnpg-barman-s3.sops.yaml
