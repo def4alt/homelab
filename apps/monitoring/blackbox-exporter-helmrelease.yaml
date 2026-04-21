@@ -67,9 +67,6 @@ spec:
         - name: glance
           url: https://dashboard.def4alt.com/
           hostname: dashboard.def4alt.com
-        - name: executor
-          url: https://executor.def4alt.com/
-          hostname: executor.def4alt.com
         - name: kaneo
           url: https://projects.def4alt.com/
           hostname: projects.def4alt.com

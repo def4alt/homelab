@@ -4,7 +4,6 @@ resources:
   - namespace-cert-manager.yaml
   - namespace-ai.yaml
   - namespace-cnpg-system.yaml
-  - namespace-executor.yaml
   - namespace-authentik.yaml
   - namespace-infra.yaml
   - namespace-metallb-system.yaml

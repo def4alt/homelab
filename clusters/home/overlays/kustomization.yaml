@@ -20,7 +20,6 @@ resources:
   - apps/immich.yaml
   - apps/glance.yaml
   - apps/nanobot.yaml
-  - apps/executor.yaml
   - apps/kaneo.yaml
   - apps/minecraft.yaml
   - apps/blog.yaml
