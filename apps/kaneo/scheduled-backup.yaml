@@ -4,7 +4,7 @@ metadata:
   name: kaneo-db-daily
   namespace: kaneo
 spec:
-  schedule: "0 20 3 * * *"
+  schedule: "0 15 2 * * *"
   backupOwnerReference: self
   cluster:
     name: kaneo-db

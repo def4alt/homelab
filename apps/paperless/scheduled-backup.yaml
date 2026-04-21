@@ -4,7 +4,7 @@ metadata:
   name: paperless-db-daily
   namespace: paperless
 spec:
-  schedule: "0 25 3 * * *"
+  schedule: "0 15 0 * * *"
   backupOwnerReference: self
   cluster:
     name: paperless-db

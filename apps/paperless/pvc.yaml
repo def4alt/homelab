@@ -4,6 +4,8 @@ metadata:
   name: paperless-storage
   namespace: paperless
   labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/paperless: enabled
 spec:
   accessModes:
     - ReadWriteOnce
