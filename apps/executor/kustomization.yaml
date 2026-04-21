@@ -3,8 +3,6 @@ kind: Kustomization
 namespace: executor
 resources:
   - postgres-cluster.yaml
-  - barman-objectstore.yaml
-  - scheduled-backup.yaml
   - resourcequota.yaml
   - deployment.yaml
   - service.yaml
@@ -12,4 +10,3 @@ resources:
   - rbac.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/executor-secrets.sops.yaml
-  - ../secrets/cnpg-barman-s3.sops.yaml
