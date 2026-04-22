@@ -41,8 +41,8 @@ spec:
               value: /opt/data
             - name: HERMES_INFERENCE_PROVIDER
               value: openrouter
-            - name: API_SERVER_HOST
-              value: 0.0.0.0
+            - name: API_SERVER_ENABLED
+              value: "true"
             - name: OPENROUTER_API_KEY
               valueFrom:
                 secretKeyRef:
@@ -68,22 +68,58 @@ spec:
               drop:
                 - ALL
           startupProbe:
-            httpGet:
-              path: /health
-              port: http
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  python3 - <<'PY'
+                  import urllib.request
+                  import sys
+
+                  try:
+                      with urllib.request.urlopen('http://127.0.0.1:8642/health', timeout=3) as response:
+                          sys.exit(0 if response.status == 200 else 1)
+                  except Exception:
+                      sys.exit(1)
+                  PY
             periodSeconds: 5
             failureThreshold: 60
           readinessProbe:
-            httpGet:
-              path: /health
-              port: http
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  python3 - <<'PY'
+                  import urllib.request
+                  import sys
+
+                  try:
+                      with urllib.request.urlopen('http://127.0.0.1:8642/health', timeout=3) as response:
+                          sys.exit(0 if response.status == 200 else 1)
+                  except Exception:
+                      sys.exit(1)
+                  PY
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
           livenessProbe:
-            httpGet:
-              path: /health
-              port: http
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  python3 - <<'PY'
+                  import urllib.request
+                  import sys
+
+                  try:
+                      with urllib.request.urlopen('http://127.0.0.1:8642/health', timeout=3) as response:
+                          sys.exit(0 if response.status == 200 else 1)
+                  except Exception:
+                      sys.exit(1)
+                  PY
             periodSeconds: 30
             timeoutSeconds: 3
             failureThreshold: 3
