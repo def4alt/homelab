@@ -41,6 +41,8 @@ spec:
               value: /opt/data
             - name: HERMES_INFERENCE_PROVIDER
               value: openrouter
+            - name: API_SERVER_HOST
+              value: 0.0.0.0
             - name: OPENROUTER_API_KEY
               valueFrom:
                 secretKeyRef:
