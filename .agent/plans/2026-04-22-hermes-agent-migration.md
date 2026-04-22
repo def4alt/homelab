@@ -21,18 +21,21 @@ The key user-visible proof is simple: after Flux reconciles the change, the bot 
 - [x] (2026-04-22 00:00Z) Read the project instructions and identified that this change touches multiple manifests and should be tracked as an ExecPlan.
 - [x] (2026-04-22 00:00Z) Reviewed the existing `apps/nanobot` deployment pattern, the `ai` namespace, and the Flux overlay structure.
 - [x] (2026-04-22 00:00Z) Reviewed Hermes docs for Docker, configuration, Telegram messaging, and security. Confirmed the gateway health endpoint is `/health` and Telegram allowlisting uses `TELEGRAM_ALLOWED_USERS`.
-- [x] (2026-04-22 00:00Z) Create `apps/hermes-agent` manifests that use the native Hermes container image, `/opt/data` volume, and `/health` probe instead of the nanobot-specific bootstrap logic.
-- [x] (2026-04-22 00:00Z) Reuse the existing nanobot secret values in a new Hermes SOPS secret file so the Telegram bot token and allowlist continue to work without introducing new plaintext secrets.
-- [x] (2026-04-22 00:00Z) Update the Flux overlay to reconcile Hermes instead of nanobot, and remove the old nanobot overlay entry.
-- [x] (2026-04-22 00:00Z) Delete the nanobot app manifests so the cluster no longer carries two competing Telegram bot deployments.
-- [x] (2026-04-22 00:00Z) Validate the rendered manifests with Kustomize; both the app overlay and the cluster overlay render successfully.
+- [x] (2026-04-22 18:57Z) Create `apps/hermes-agent` manifests that use the native Hermes container image, `/opt/data` volume, and Hermes API server health checks instead of the nanobot-specific bootstrap logic.
+- [x] (2026-04-22 18:57Z) Reuse the existing nanobot secret values in a new Hermes SOPS secret file so the Telegram bot token and allowlist continue to work without introducing new plaintext secrets.
+- [x] (2026-04-22 18:57Z) Update the Flux overlay to reconcile Hermes instead of nanobot, and remove the old nanobot overlay entry.
+- [x] (2026-04-22 18:57Z) Delete the nanobot app manifests so the cluster no longer carries two competing Telegram bot deployments.
+- [x] (2026-04-22 18:57Z) Validate the rendered manifests with Kustomize; both the app overlay and the cluster overlay render successfully.
+- [x] (2026-04-22 18:57Z) Reconcile Flux in-cluster and confirm the Hermes Deployment became Ready while the nanobot workload disappeared.
 
 ## Surprises & Discoveries
 
 - Observation: Hermes’ official Docker image expects its writable data under `/opt/data`, and its entrypoint bootstraps `config.yaml`, `.env`, `SOUL.md`, sessions, memories, and skills there.
   Evidence: `website/docs/user-guide/docker.md` and `docker/entrypoint.sh` in the Hermes repository.
-- Observation: Hermes gateway health is served on `/health`, which makes an HTTP readiness/liveness probe straightforward.
-  Evidence: `gateway/platforms/api_server.py` documents `GET /health` and `GET /health/detailed`.
+- Observation: Hermes gateway health is served on `/health`, but the API server must be explicitly enabled with `API_SERVER_ENABLED=true` before that endpoint appears.
+  Evidence: `gateway/platforms/api_server.py` and `gateway/config.py`.
+- Observation: Kubernetes HTTP probes hit the pod IP, while Hermes' API server defaults to loopback; an exec probe against `127.0.0.1:8642/health` keeps the deployment native without adding an auth key.
+  Evidence: the first rollout only became Ready after switching to exec probes and enabling the API server.
 - Observation: Telegram allowlisting is explicit and simple; the repo uses `TELEGRAM_ALLOWED_USERS` for platform-specific gating.
   Evidence: `website/docs/user-guide/messaging/telegram.md` and `website/docs/user-guide/security.md`.
 - Observation: The Hermes gateway can be started natively with the CLI subcommand `hermes gateway`, and the official container entrypoint hands those args to the Hermes binary after bootstrapping `/opt/data`.
@@ -49,10 +52,13 @@ The key user-visible proof is simple: after Flux reconciles the change, the bot 
   Rationale: This avoids asking for new plaintext secrets and keeps the migration self-contained while still allowing the nanobot resources to be removed later.
   Date/Author: 2026-04-22 / Codex
 - Decision: Keep the deployment to Telegram only and do not add an ingress or service for the optional Hermes API/dashboard port.
-  Rationale: The user asked for an allowlist-only Telegram bot and asked for the simplest nanobot-like deployment. Adding external exposure would expand the security surface without solving the requested use case.
+  Rationale: The user asked for an allowlist-only Telegram bot and asked for the simplest Hermes-native deployment. Adding external exposure would expand the security surface without solving the requested use case.
   Date/Author: 2026-04-22 / Codex
 - Decision: Use the official `nousresearch/hermes-agent` image and its native `hermes gateway` subcommand path instead of rebuilding Hermes or wrapping it in custom bootstrap scripts.
   Rationale: The user explicitly asked to keep this Hermes-native, and the official image already ships the bootstrap logic for `/opt/data`, config, and gateway startup.
+  Date/Author: 2026-04-22 / Codex
+- Decision: Enable the API server internally with `API_SERVER_ENABLED=true` and probe it locally with an exec check.
+  Rationale: Hermes only exposes `/health` when the API server is enabled, and Kubernetes HTTP probes target the pod IP rather than loopback. The exec probe keeps the deployment self-contained and avoids needing an API auth key for an internal-only readiness check.
   Date/Author: 2026-04-22 / Codex
 - Decision: Avoid nanobot-specific config maps, init containers, and custom note-sync logic.
   Rationale: Those were tied to nanobot’s Obsidian workflow and would impose an unrelated architecture on Hermes.
@@ -63,7 +69,7 @@ The key user-visible proof is simple: after Flux reconciles the change, the bot 
 
 ## Outcomes & Retrospective
 
-Hermes now replaces nanobot in the repo: the app manifests are native to Hermes, the bot token and allowlist are reused from the old deployment, and the cluster overlay now points at `apps/hermes-agent`. The remaining follow-up is operational: Flux needs to reconcile the new app in-cluster, and the old nanobot workload should disappear once the commit is applied.
+Hermes now replaces nanobot in the repo and in the cluster. The app manifests are native to Hermes, the bot token and allowlist are reused from the old deployment, the cluster overlay points at `apps/hermes-agent`, and Flux has already reconciled the new app so the Hermes pod is Ready. The old nanobot workload has been removed.
 
 ## Context and Orientation
 
