@@ -451,6 +451,7 @@ After the plan is implemented and validated:
 - [x] (2026-04-25) Remove the Hermes SOPS secret manifest after the Vault-injected Hermes rollout succeeded and verification confirmed the pod no longer exposed app secrets via env vars.
 - [ ] Add and validate NetworkPolicies.
 - [x] (2026-04-25) Validate the Vault-backed Hermes rollout in cluster: the pod injected `vault-agent-init` and `vault-agent`, `/opt/data/.env` resolved to `/vault/secrets/hermes.env`, and `env` no longer exposed `OPENROUTER_*` or `TELEGRAM_*` variables.
+- [x] (2026-04-25) Extend the Vault-rendered Hermes `.env` template to include `GITHUB_TOKEN` sourced from `kv/hermes-agent.github_token`.
 
 ## Notes for the Implementer
 
