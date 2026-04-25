@@ -452,6 +452,7 @@ After the plan is implemented and validated:
 - [ ] Add and validate NetworkPolicies.
 - [x] (2026-04-25) Validate the Vault-backed Hermes rollout in cluster: the pod injected `vault-agent-init` and `vault-agent`, `/opt/data/.env` resolved to `/vault/secrets/hermes.env`, and `env` no longer exposed `OPENROUTER_*` or `TELEGRAM_*` variables.
 - [x] (2026-04-25) Extend the Vault-rendered Hermes `.env` template to include `GITHUB_TOKEN` sourced from `kv/hermes-agent.github_token`.
+- [x] (2026-04-25) Update the Hermes launcher to persist `terminal.env_passthrough: [GITHUB_TOKEN]` into `/opt/data/config.yaml` at startup so terminal/code-execution sandboxes can explicitly receive the GitHub token.
 
 ## Notes for the Implementer
 
