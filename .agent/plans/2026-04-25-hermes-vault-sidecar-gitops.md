@@ -440,6 +440,8 @@ After the plan is implemented and validated:
 - [x] (2026-04-25) Add namespace and Flux wiring for Vault.
 - [x] (2026-04-25) Add Vault HelmRelease and baseline values.
 - [x] (2026-04-25) Render validation passed for `apps/vault` and `clusters/home/overlays` after wiring the new Vault Flux Kustomization.
+- [x] (2026-04-25) Commit `feat(vault): add Flux-managed Vault bootstrap` and push it to `origin/main` so Flux can reconcile the new Vault app.
+- [x] (2026-04-25) Reconcile Flux `source/git`, `kustomization/namespaces`, and `kustomization/vault`; the injector is Running and `vault-0` is Running but not Ready yet because Vault is not initialized/unsealed.
 - [ ] Write the bootstrap runbook for init/unseal/Kubernetes auth/policy creation.
 - [ ] Add Hermes service account and injector annotations.
 - [ ] Remove `secretKeyRef` usage from Hermes.
