@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace-cert-manager.yaml
   - namespace-ai.yaml
+  - namespace-vault.yaml
   - namespace-cnpg-system.yaml
   - namespace-authentik.yaml
   - namespace-infra.yaml
