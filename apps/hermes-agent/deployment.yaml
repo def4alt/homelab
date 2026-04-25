@@ -42,8 +42,8 @@ spec:
           type: RuntimeDefault
       containers:
         - name: hermes
-          image: nousresearch/hermes-agent:latest
-          imagePullPolicy: IfNotPresent
+          image: ghcr.io/def4alt/hermes-agent-homelab:main
+          imagePullPolicy: Always
           command:
             - /bin/sh
             - /opt/bin/start-hermes.sh
