@@ -6,6 +6,10 @@ metadata:
 spec:
   interval: 10m
   path: ./apps/hermes-agent
+  dependsOn:
+    - name: namespaces
+    - name: longhorn
+    - name: vault
   prune: true
   sourceRef:
     kind: GitRepository

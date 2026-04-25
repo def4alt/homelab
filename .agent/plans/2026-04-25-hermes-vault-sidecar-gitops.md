@@ -402,6 +402,8 @@ Expect:
 - **Risk:** Hermes does not support file-native secret reads.
   **Mitigation:** Add an explicit discovery checkpoint before deleting the existing SOPS secret path. Do not claim the “no env vars” goal if the implementation requires exporting env vars at runtime.
 
+- **Discovery:** Hermes gateway hot-reloads `HERMES_HOME/.env` directly, which means a Vault-rendered secret file can be consumed without process env vars, but writing that file straight into `/opt/data/.env` would persist secrets on the PVC. The cutover should therefore use a tmpfs-rendered Vault file plus a symlink at `/opt/data/.env` rather than writing secret contents onto the Hermes data volume.
+
 - **Risk:** NetworkPolicy breaks the injector webhook or Vault auth.
   **Mitigation:** Stage policy rollout after core functionality works, and validate with throwaway pods before tightening.
 
@@ -442,8 +444,9 @@ After the plan is implemented and validated:
 - [x] (2026-04-25) Render validation passed for `apps/vault` and `clusters/home/overlays` after wiring the new Vault Flux Kustomization.
 - [x] (2026-04-25) Commit `feat(vault): add Flux-managed Vault bootstrap` and push it to `origin/main` so Flux can reconcile the new Vault app.
 - [x] (2026-04-25) Reconcile Flux `source/git`, `kustomization/namespaces`, and `kustomization/vault`; the injector is Running and `vault-0` is Running but not Ready yet because Vault is not initialized/unsealed.
-- [ ] Write the bootstrap runbook for init/unseal/Kubernetes auth/policy creation.
-- [ ] Add Hermes service account and injector annotations.
+- [x] (2026-04-25) Write the bootstrap runbook for init/unseal/Kubernetes auth/policy creation at `docs/operations/vault-bootstrap-hermes.md`.
+- [x] (2026-04-25) Add the Hermes service account and Flux `dependsOn` wiring so the app can later bind Vault Kubernetes auth without racing namespace, storage, or Vault reconciliation.
+- [ ] Add Hermes injector annotations.
 - [ ] Remove `secretKeyRef` usage from Hermes.
 - [ ] Remove the Hermes SOPS secret manifest after cutover.
 - [ ] Add and validate NetworkPolicies.
