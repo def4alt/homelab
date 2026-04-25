@@ -446,8 +446,8 @@ After the plan is implemented and validated:
 - [x] (2026-04-25) Reconcile Flux `source/git`, `kustomization/namespaces`, and `kustomization/vault`; the injector is Running and `vault-0` is Running but not Ready yet because Vault is not initialized/unsealed.
 - [x] (2026-04-25) Write the bootstrap runbook for init/unseal/Kubernetes auth/policy creation at `docs/operations/vault-bootstrap-hermes.md`.
 - [x] (2026-04-25) Add the Hermes service account and Flux `dependsOn` wiring so the app can later bind Vault Kubernetes auth without racing namespace, storage, or Vault reconciliation.
-- [ ] Add Hermes injector annotations.
-- [ ] Remove `secretKeyRef` usage from Hermes.
+- [x] (2026-04-25) Prepare Hermes injector annotations and a launcher ConfigMap that waits for a Vault-rendered `.env`, then symlinks `/opt/data/.env` to the injected file so secrets stay off the PVC.
+- [x] (2026-04-25) Remove `secretKeyRef` usage from the staged Hermes Deployment manifest, but do not apply the cutover until Vault is initialized, unsealed, and populated with Hermes secrets.
 - [ ] Remove the Hermes SOPS secret manifest after cutover.
 - [ ] Add and validate NetworkPolicies.
 - [ ] Validate end-to-end in cluster.

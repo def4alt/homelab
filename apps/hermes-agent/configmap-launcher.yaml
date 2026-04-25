@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-agent-launcher
+  namespace: ai
+data:
+  start-hermes.sh: |
+    #!/bin/sh
+    set -eu
+
+    vault_env=/vault/secrets/hermes.env
+    hermes_env=/opt/data/.env
+
+    i=0
+    while [ ! -s "$vault_env" ]; do
+      i=$((i + 1))
+      if [ "$i" -ge 120 ]; then
+        echo "vault-injected env file not ready: $vault_env" >&2
+        exit 1
+      fi
+      sleep 1
+    done
+
+    ln -sf "$vault_env" "$hermes_env"
+    exec /opt/hermes/.venv/bin/python3 /opt/hermes/.venv/bin/hermes gateway

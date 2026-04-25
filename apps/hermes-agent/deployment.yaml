@@ -19,6 +19,17 @@ spec:
     metadata:
       labels:
         app: hermes-agent
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: hermes-agent
+        vault.hashicorp.com/agent-inject-secret-hermes-env: kv/data/hermes-agent
+        vault.hashicorp.com/agent-inject-file-hermes-env: hermes.env
+        vault.hashicorp.com/agent-inject-template-hermes-env: |
+          {{- with secret "kv/data/hermes-agent" -}}
+          OPENROUTER_API_KEY={{ .Data.data.openrouter_api_key }}
+          TELEGRAM_BOT_TOKEN={{ .Data.data.telegram_bot_token }}
+          TELEGRAM_ALLOWED_USERS={{ .Data.data.telegram_allowed_users }}
+          {{- end }}
     spec:
       serviceAccountName: hermes-agent
       securityContext:
@@ -32,8 +43,9 @@ spec:
         - name: hermes
           image: nousresearch/hermes-agent:latest
           imagePullPolicy: IfNotPresent
-          args:
-            - gateway
+          command:
+            - /bin/sh
+            - /opt/bin/start-hermes.sh
           env:
             - name: HOME
               value: /opt/data
@@ -43,21 +55,6 @@ spec:
               value: openrouter
             - name: API_SERVER_ENABLED
               value: "true"
-            - name: OPENROUTER_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-agent-secrets
-                  key: openrouter-api-key
-            - name: TELEGRAM_BOT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-agent-secrets
-                  key: telegram-bot-token
-            - name: TELEGRAM_ALLOWED_USERS
-              valueFrom:
-                secretKeyRef:
-                  name: hermes-agent-secrets
-                  key: telegram-allowed-users
           ports:
             - name: http
               containerPort: 8642
@@ -133,11 +130,18 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /opt/data
+            - name: launcher
+              mountPath: /opt/bin
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: hermes-agent-data
+        - name: launcher
+          configMap:
+            name: hermes-agent-launcher
+            defaultMode: 0555
         - name: tmp
           emptyDir: {}

@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - secrets/hermes-agent-secrets.sops.yaml
   - serviceaccount.yaml
+  - configmap-launcher.yaml
   - pvc.yaml
   - deployment.yaml
