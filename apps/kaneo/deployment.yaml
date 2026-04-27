@@ -4,7 +4,7 @@ metadata:
   name: kaneo
   namespace: kaneo
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: kaneo
