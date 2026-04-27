@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: $0 <apps|minecraft>" >&2
+  exit 1
+fi
+
+mode="$1"
+case "$mode" in
+  apps|minecraft) ;;
+  *)
+    echo "invalid mode: $mode" >&2
+    echo "expected one of: apps, minecraft" >&2
+    exit 1
+    ;;
+esac
+
+repo_root="$(cd "$(dirname "$0")/.." && pwd)"
+cluster_file="$repo_root/clusters/home/kustomization.yaml"
+
+python3 - "$cluster_file" "$mode" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+mode = sys.argv[2]
+text = path.read_text()
+replacements = {
+    "  - modes/apps\n": f"  - modes/{mode}\n",
+    "  - modes/minecraft\n": f"  - modes/{mode}\n",
+    "  - overlays\n": f"  - modes/{mode}\n",
+}
+
+for old, new in replacements.items():
+    if old in text:
+        path.write_text(text.replace(old, new, 1))
+        break
+else:
+    raise SystemExit(f"could not find active mode line in {path}")
+PY
+
+echo "Switched active home mode to: $mode"
+echo "Next: git add clusters/home/kustomization.yaml && git commit -m 'feat(home): switch to $mode mode'"
