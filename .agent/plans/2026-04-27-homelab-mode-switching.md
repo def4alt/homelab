@@ -17,7 +17,7 @@ The switch must be a small Git change that Flux can reconcile cleanly without fi
 - [x] (2026-04-27 00:00Z) Created mode-aware app wrapper directories under `apps/modes/` that reuse existing app manifests and only patch replica counts.
 - [x] (2026-04-27 00:00Z) Created `clusters/home/modes/apps` and `clusters/home/modes/minecraft` overlays that patch Flux app Kustomization `spec.path` fields.
 - [x] (2026-04-27 00:00Z) Switched `clusters/home/kustomization.yaml` to use one active mode overlay instead of referencing `overlays` directly.
-- [x] (2026-04-27 00:00Z) Added `scripts/switch-home-mode.sh` to edit the active mode path.
+- [x] (2026-04-27 00:00Z) Added `scripts/switch-mode` to edit the active mode path.
 - [x] (2026-04-27 00:00Z) Validated both modes and the active cluster path with local Kustomize builds and syntax-checked the helper script.
 - [x] (2026-04-27 00:00Z) Added `docs/operations/home-modes.md` with usage notes and the CNPG caveat.
 

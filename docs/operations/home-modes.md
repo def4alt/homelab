@@ -12,8 +12,8 @@ The active mode is selected in `clusters/home/kustomization.yaml`.
 Use the helper script from the repo root:
 
 ```bash
-./scripts/switch-home-mode.sh minecraft
-./scripts/switch-home-mode.sh apps
+./scripts/switch-mode minecraft
+./scripts/switch-mode apps
 ```
 
 Then commit and push the mode change so Flux can reconcile it:
