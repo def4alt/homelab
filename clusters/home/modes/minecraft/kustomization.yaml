@@ -33,13 +33,3 @@ patches:
       - op: replace
         path: /spec/path
         value: ./apps/modes/minecraft/paperless
-  - target:
-      group: kustomize.toolkit.fluxcd.io
-      version: v1
-      kind: Kustomization
-      name: kaneo
-      namespace: flux-system
-    patch: |-
-      - op: replace
-        path: /spec/path
-        value: ./apps/modes/minecraft/kaneo

@@ -6,7 +6,7 @@ This ExecPlan is a living document. The sections `Progress`, `Surprises & Discov
 
 Add a GitOps-friendly two-mode setup for the home cluster so the user can switch between:
 - `minecraft` mode: Minecraft stays up while selected app workloads are forced down
-- `apps` mode: Immich, Paperless, Kaneo, and Hermes Agent stay up while Minecraft is forced down
+- `apps` mode: Immich, Paperless, and Hermes Agent stay up while Minecraft is forced down
 
 The switch must be a small Git change that Flux can reconcile cleanly without fighting manual `kubectl scale` changes.
 
@@ -54,9 +54,9 @@ The cleanest mode switch is to keep those base app directories intact, create mo
 ## Plan of Work
 
 1. Add `apps/modes/apps/minecraft` to force Minecraft `replicaCount` to `0` in apps mode.
-2. Add `apps/modes/minecraft/{hermes-agent,immich,paperless,kaneo}` to force those app Deployments to `0` in minecraft mode.
+2. Add `apps/modes/minecraft/{hermes-agent,immich,paperless}` to force those app Deployments to `0` in minecraft mode.
 3. Add `clusters/home/modes/apps/kustomization.yaml` to include `../../overlays` and patch the Minecraft Flux Kustomization path.
-4. Add `clusters/home/modes/minecraft/kustomization.yaml` to include `../../overlays` and patch the Hermes/Immich/Paperless/Kaneo Flux Kustomization paths.
+4. Add `clusters/home/modes/minecraft/kustomization.yaml` to include `../../overlays` and patch the Hermes/Immich/Paperless Flux Kustomization paths.
 5. Change `clusters/home/kustomization.yaml` to point at one active mode directory instead of `overlays` directly.
 6. Add a helper script to swap the active mode path in `clusters/home/kustomization.yaml`.
 7. Validate with `kustomize build` for both mode overlays and the active root path.
@@ -79,4 +79,4 @@ This design is declarative and safe to reapply. Switching modes is done by a sin
 - Root Flux sync: `clusters/home/flux-system/gotk-sync.yaml`
 - Cluster root kustomization: `clusters/home/kustomization.yaml`
 - Existing Flux app Kustomizations: `clusters/home/overlays/apps/*.yaml`
-- Base app manifests: `apps/{minecraft,hermes-agent,immich,paperless,kaneo}`
+- Base app manifests: `apps/{minecraft,hermes-agent,immich,paperless}`

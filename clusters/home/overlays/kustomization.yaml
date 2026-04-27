@@ -21,6 +21,5 @@ resources:
   - apps/immich.yaml
   - apps/glance.yaml
   - apps/hermes-agent.yaml
-  - apps/kaneo.yaml
   - apps/minecraft.yaml
   - apps/blog.yaml

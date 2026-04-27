@@ -67,9 +67,6 @@ spec:
         - name: glance
           url: https://dashboard.def4alt.com/
           hostname: dashboard.def4alt.com
-        - name: kaneo
-          url: https://projects.def4alt.com/
-          hostname: projects.def4alt.com
         - name: paperless
           url: https://papers.def4alt.com/
           hostname: papers.def4alt.com

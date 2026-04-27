@@ -27,8 +27,6 @@ data:
                     url: https://auth.def4alt.com/
                   - title: Paperless
                     url: https://papers.def4alt.com/
-                  - title: Kaneo
-                    url: https://projects.def4alt.com/
                   - title: Blog
                     url: https://def4alt.com/
                   - title: Immich Photos
