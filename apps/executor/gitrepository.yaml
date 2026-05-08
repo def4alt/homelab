@@ -1,0 +1,13 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: executor
+  namespace: executor
+spec:
+  interval: 1m
+  ref:
+    branch: main
+  url: https://github.com/def4alt/executor
+  # Uncomment if the repo is private:
+  # secretRef:
+  #   name: executor-git-credentials

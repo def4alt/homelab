@@ -1,0 +1,51 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: executor
+  namespace: executor
+spec:
+  interval: 10m
+  timeout: 10m
+  chart:
+    spec:
+      chart: ./charts/executor
+      sourceRef:
+        kind: GitRepository
+        name: executor
+        namespace: executor
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    image:
+      tag: latest
+
+    ingress:
+      enabled: true
+      hosts:
+        - host: executor.def4alt.com
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - executor.def4alt.com
+          secretName: executor-tls
+
+    repo:
+      url: ""
+      existingPvc: ""
+
+    workspace:
+      size: 10Gi
+
+    resources:
+      limits:
+        cpu: 2
+        memory: 4Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi

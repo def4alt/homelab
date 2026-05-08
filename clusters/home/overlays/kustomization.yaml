@@ -23,3 +23,4 @@ resources:
   - apps/hermes-agent.yaml
   - apps/minecraft.yaml
   - apps/blog.yaml
+  - apps/executor.yaml
