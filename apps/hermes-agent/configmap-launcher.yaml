@@ -8,22 +8,15 @@ data:
     #!/bin/sh
     set -eu
 
-    vault_env=/vault/secrets/hermes.env
     hermes_env=/opt/data/.env
     hermes_config=/opt/data/config.yaml
 
-    i=0
-    while [ ! -s "$vault_env" ]; do
-      i=$((i + 1))
-      if [ "$i" -ge 120 ]; then
-        echo "vault-injected env file not ready: $vault_env" >&2
-        exit 1
-      fi
-      sleep 1
-    done
+    # Write .env from injected env vars
+    printenv \
+      | grep -E '^(OPENCODE_API_KEY|TELEGRAM_BOT_TOKEN|TELEGRAM_ALLOWED_USERS|GITHUB_TOKEN)=' \
+      > "$hermes_env"
 
-    ln -sf "$vault_env" "$hermes_env"
-
+    # Ensure GITHUB_TOKEN is in terminal.env_passthrough
     python3 - "$hermes_config" <<'PY'
     from pathlib import Path
     import sys

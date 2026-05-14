@@ -9,7 +9,6 @@ spec:
   dependsOn:
     - name: namespaces
     - name: longhorn
-    - name: vault
   prune: true
   sourceRef:
     kind: GitRepository

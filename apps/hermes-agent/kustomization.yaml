@@ -5,3 +5,4 @@ resources:
   - configmap-launcher.yaml
   - pvc.yaml
   - deployment.yaml
+  - secrets/hermes-env.sops.yaml

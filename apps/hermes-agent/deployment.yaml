@@ -19,18 +19,6 @@ spec:
     metadata:
       labels:
         app: hermes-agent
-      annotations:
-        vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/role: hermes-agent
-        vault.hashicorp.com/agent-inject-secret-hermes-env: kv/data/hermes-agent
-        vault.hashicorp.com/agent-inject-file-hermes-env: hermes.env
-        vault.hashicorp.com/agent-inject-template-hermes-env: |
-          {{- with secret "kv/data/hermes-agent" -}}
-          OPENROUTER_API_KEY={{ .Data.data.openrouter_api_key }}
-          TELEGRAM_BOT_TOKEN={{ .Data.data.telegram_bot_token }}
-          TELEGRAM_ALLOWED_USERS={{ .Data.data.telegram_allowed_users }}
-          GITHUB_TOKEN={{ .Data.data.github_token }}
-          {{- end }}
     spec:
       serviceAccountName: hermes-agent
       securityContext:
@@ -56,6 +44,9 @@ spec:
               value: openrouter
             - name: API_SERVER_ENABLED
               value: "true"
+          envFrom:
+            - secretRef:
+                name: hermes-agent-env
           ports:
             - name: http
               containerPort: 8642
