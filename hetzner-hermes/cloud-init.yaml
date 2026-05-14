@@ -1,0 +1,126 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - python3
+  - python3-openpyxl
+  - python3-pandas
+  - python3-pdf2image
+  - python3-pdfplumber
+  - python3-pypdf
+  - python3-pytesseract
+  - python3-reportlab
+  - poppler-utils
+  - qpdf
+  - rsync
+  - tesseract-ocr
+  - ufw
+
+write_files:
+  - path: /usr/local/bin/setup-hermes.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euxo pipefail
+
+      # ── UFW — only SSH ──────────────────────────────────────────
+      ufw --force reset
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw allow ssh
+      ufw --force enable
+
+      # ── Mount volume at /srv/hermes-data ────────────────────────
+      for _ in $(seq 1 60); do
+        VOL_PATH="$(find /mnt -maxdepth 1 -type d -name 'HC_Volume_*' 2>/dev/null | head -n1)"
+        if [ -n "$VOL_PATH" ] && mountpoint -q "$VOL_PATH"; then
+          mkdir -p /srv/hermes-data
+          mountpoint -q /srv/hermes-data || mount --bind "$VOL_PATH" /srv/hermes-data
+          grep -q "/srv/hermes-data" /etc/fstab 2>/dev/null || \
+            echo "$VOL_PATH /srv/hermes-data none bind 0 0" >> /etc/fstab
+          break
+        fi
+        sleep 5
+      done
+
+      mountpoint -q /srv/hermes-data || {
+        echo "Hermes data volume did not appear under /mnt/HC_Volume_*" >&2
+        exit 1
+      }
+
+      # ── Hermes user + persistent data dir ───────────────────────
+      id -u hermes >/dev/null 2>&1 || useradd --create-home --shell /bin/bash hermes
+      install -d -o hermes -g hermes /srv/hermes-data/.hermes
+      ln -sfn /srv/hermes-data/.hermes /home/hermes/.hermes
+      chown -h hermes:hermes /home/hermes/.hermes
+
+      # ── Install Hermes officially as the hermes user ────────────
+      if [ ! -x /home/hermes/.local/bin/hermes ]; then
+        su - hermes -c 'bash -lc "curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash"'
+      fi
+
+      # ── Hermes systemd unit ─────────────────────────────────────
+      cat >/etc/systemd/system/hermes.service <<'SERVICEEOF'
+      [Unit]
+      Description=Hermes Gateway
+      After=network-online.target
+      Wants=network-online.target
+      RequiresMountsFor=/srv/hermes-data
+
+      [Service]
+      User=hermes
+      Group=hermes
+      WorkingDirectory=/home/hermes
+      Environment=HOME=/home/hermes
+      ExecStart=/home/hermes/.local/bin/hermes gateway
+      Restart=always
+      RestartSec=10
+
+      [Install]
+      WantedBy=multi-user.target
+      SERVICEEOF
+
+      # ── Hermes update timer ─────────────────────────────────────
+      cat >/usr/local/bin/update-hermes.sh <<'UPDATESCRIPT'
+      #!/usr/bin/env bash
+      set -euo pipefail
+      su - hermes -c 'bash -lc "/home/hermes/.local/bin/hermes update"'
+      if systemctl is-active --quiet hermes.service; then
+        systemctl restart hermes.service
+      fi
+      UPDATESCRIPT
+      chmod 0755 /usr/local/bin/update-hermes.sh
+
+      cat >/etc/systemd/system/hermes-update.service <<'UPDATEEOF'
+      [Unit]
+      Description=Update Hermes to the latest version
+      RequiresMountsFor=/srv/hermes-data
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/update-hermes.sh
+      UPDATEEOF
+
+      cat >/etc/systemd/system/hermes-update.timer <<'TIMEREOF'
+      [Unit]
+      Description=Daily Hermes update check
+
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+      RandomizedDelaySec=1h
+
+      [Install]
+      WantedBy=timers.target
+      TIMEREOF
+
+      # ── Enable background updates only ──────────────────────────
+      systemctl daemon-reload
+      systemctl enable hermes-update.timer
+      systemctl start hermes-update.timer
+
+runcmd:
+  - /usr/local/bin/setup-hermes.sh 2>&1 | tee /var/log/hermes-bootstrap.log
