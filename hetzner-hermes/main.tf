@@ -55,6 +55,14 @@ resource "hcloud_firewall" "hermes" {
     port      = "22"
     description = "SSH"
   }
+
+  rule {
+    direction = "in"
+    protocol  = "udp"
+    source_ips = var.allowed_ssh_cidrs
+    port      = "60000-61000"
+    description = "Mosh"
+  }
 }
 
 resource "hcloud_firewall_attachment" "hermes" {
