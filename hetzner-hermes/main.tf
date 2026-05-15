@@ -28,7 +28,7 @@ resource "hcloud_server" "hermes" {
   user_data   = file("${path.module}/cloud-init.yaml")
 
   public_net {
-    ipv4_enabled = true
+    ipv4_enabled = false
     ipv6_enabled = true
   }
 }
@@ -54,14 +54,6 @@ resource "hcloud_firewall" "hermes" {
     source_ips = var.allowed_ssh_cidrs
     port      = "22"
     description = "SSH"
-  }
-
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    source_ips = ["0.0.0.0/0", "::/0"]
-    port      = "8008"
-    description = "Matrix homeserver"
   }
 }
 
