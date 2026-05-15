@@ -28,7 +28,7 @@ resource "hcloud_server" "hermes" {
   user_data   = file("${path.module}/cloud-init.yaml")
 
   public_net {
-    ipv4_enabled = false
+    ipv4_enabled = true
     ipv6_enabled = true
   }
 }
