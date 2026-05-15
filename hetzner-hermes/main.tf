@@ -55,6 +55,14 @@ resource "hcloud_firewall" "hermes" {
     port      = "22"
     description = "SSH"
   }
+
+  rule {
+    direction = "in"
+    protocol  = "tcp"
+    source_ips = ["0.0.0.0/0", "::/0"]
+    port      = "8008"
+    description = "Matrix homeserver"
+  }
 }
 
 resource "hcloud_firewall_attachment" "hermes" {
