@@ -10,6 +10,18 @@ resource "cloudflare_record" "cname" {
   proxied         = contains(local.unproxied_hostnames, each.key) ? false : true
 }
 
+resource "cloudflare_record" "matrix_aaaa" {
+  count = var.manage_dns ? 1 : 0
+
+  zone_id         = var.zone_id
+  name            = trimsuffix("matrix.${var.base_domain}", ".${var.base_domain}")
+  type            = "AAAA"
+  content         = "2a01:4f8:1c19:38fa::1"
+  allow_overwrite = true
+  ttl             = 1
+  proxied         = false
+}
+
 resource "cloudflare_record" "minecraft_a" {
   count = var.manage_dns ? 1 : 0
 
