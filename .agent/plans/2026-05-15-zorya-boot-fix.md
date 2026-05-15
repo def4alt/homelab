@@ -14,4 +14,4 @@
 **Progress:**
 - 2026-05-15: Identified missing hardware config as the likely cause after repeated partlabel boot failures.
 - 2026-05-15: Identified unstable `/dev/sdX` ordering between rescue/installer boots. Switched `zorya` disko devices to stable `/dev/disk/by-id/*` paths so the OS disk is always the 76.3G QEMU disk and the data disk is always the 20G Hetzner volume.
-- 2026-05-15: Added a sops-managed password hash for `def4alt` and wired it through `hashedPasswordFile` so sudo can be enabled cleanly after the next rebuild.
+- 2026-05-15: Added a direct `hashedPassword` for `def4alt` in the NixOS config instead of using `sops-nix`, because fresh installs do not yet have the age key available during first activation.
