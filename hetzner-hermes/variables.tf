@@ -23,7 +23,7 @@ variable "server_type" {
 
 variable "server_name" {
   type        = string
-  default     = "hermes-vps"
+  default     = "zorya"
   description = "Hostname for the Hermes VM."
 }
 
