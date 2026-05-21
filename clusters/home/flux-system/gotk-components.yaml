@@ -4516,8 +4516,8 @@ spec:
             port: http
         resources:
           limits:
-            cpu: 1000m
-            memory: 1Gi
+            cpu: 500m
+            memory: 512Mi
           requests:
             cpu: 50m
             memory: 64Mi
@@ -4531,8 +4531,6 @@ spec:
           seccompProfile:
             type: RuntimeDefault
         volumeMounts:
-        - mountPath: /data
-          name: data
         - mountPath: /tmp
           name: tmp
       nodeSelector:
