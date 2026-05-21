@@ -63,7 +63,6 @@ Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate t
 - `apps/immich/secrets/redis-auth.sops.yaml` – Immich Redis credentials.
 - `apps/authentik/secrets/postgres-auth.sops.yaml` – Authentik Postgres credentials.
 - `apps/authentik/secrets/authentik-config.sops.yaml` – Authentik config (emails, webhooks, etc.).
-- `apps/shell/secrets/tailscale-auth.sops.yaml` – Tailscale auth key for the shell pod.
 - `apps/shell/secrets/ssh-authorized-keys.sops.yaml` – SSH public keys for shell access.
 
 Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files so Flux can decrypt them when the `sops-age` secret matches the key pair you used.
@@ -71,7 +70,7 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 ## Services
 
 - **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
-- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, nanobot, Shell (SSH + tmux via Tailscale).
+- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, nanobot, Shell (SSH + tmux via kubectl exec/port-forward from perun).
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the shared CNPG Barman AWS key.
 
 Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.

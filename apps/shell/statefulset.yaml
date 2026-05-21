@@ -55,34 +55,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 20
 
-        - name: tailscale
-          image: tailscale/tailscale:latest
-          env:
-            - name: TS_HOSTNAME
-              value: "shell"
-            - name: TS_USERSPACE
-              value: "false"
-            - name: TS_AUTH_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: tailscale-auth
-                  key: TS_AUTH_KEY
-            - name: TS_EXTRA_ARGS
-              value: "--advertise-tags=tag:homelab"
-          securityContext:
-            capabilities:
-              add: ["NET_ADMIN"]
-          volumeMounts:
-            - name: tailscale-state
-              mountPath: /var/lib/tailscale
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
-
       volumes:
         - name: home
           persistentVolumeClaim:
@@ -95,5 +67,3 @@ spec:
           configMap:
             name: shell-entrypoint
             defaultMode: 0755
-        - name: tailscale-state
-          emptyDir: {}
