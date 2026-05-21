@@ -48,13 +48,13 @@ data:
     if [ ! -f "${HOME_DIR}/.npmrc" ]; then
       printf 'prefix=%s/.local/npm-global\n' "${HOME_DIR}" > "${HOME_DIR}/.npmrc"
     fi
+    sed -i '/^export NPM_CONFIG_PREFIX="\$HOME\/\.local\/npm-global"$/d' "${HOME_DIR}/.profile" 2>/dev/null || true
     if ! grep -q '^# shell npm-global$' "${HOME_DIR}/.profile" 2>/dev/null; then
       cat >> "${HOME_DIR}/.profile" <<'PROFILE'
 
     # shell npm-global
-    export NPM_CONFIG_PREFIX="$HOME/.local/npm-global"
     export PATH="$HOME/.local/npm-global/bin:$PATH"
-    PROFILE
+PROFILE
     fi
 
     # Install nvm once into the persistent home volume.
