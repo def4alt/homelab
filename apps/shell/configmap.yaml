@@ -43,15 +43,11 @@ data:
     mkdir -p "${HOME_DIR}"
     chown "${USER}:${USER}" "${HOME_DIR}"
 
-    # Keep npm global installs on the persistent home volume.
-    mkdir -p "${HOME_DIR}/.local/npm-global"
-    if [ ! -f "${HOME_DIR}/.npmrc" ]; then
-      printf 'prefix=%s/.local/npm-global\n' "${HOME_DIR}" > "${HOME_DIR}/.npmrc"
+    # Remove legacy npm prefix settings; nvm manages persistent globals in home.
+    if grep -q '^prefix=.*/\.local/npm-global$' "${HOME_DIR}/.npmrc" 2>/dev/null; then
+      rm -f "${HOME_DIR}/.npmrc"
     fi
-    sed -i '/^export NPM_CONFIG_PREFIX="\$HOME\/\.local\/npm-global"$/d' "${HOME_DIR}/.profile" 2>/dev/null || true
-    if ! grep -q '^# shell npm-global$' "${HOME_DIR}/.profile" 2>/dev/null; then
-      printf '\n# shell npm-global\nexport PATH="$HOME/.local/npm-global/bin:$PATH"\n' >> "${HOME_DIR}/.profile"
-    fi
+    sed -i '/^# shell npm-global$/d;/^export PATH="\$HOME\/\.local\/npm-global\/bin:\$PATH"$/d' "${HOME_DIR}/.profile" 2>/dev/null || true
 
     # Install nvm once into the persistent home volume.
     if [ ! -s "${HOME_DIR}/.nvm/nvm.sh" ]; then
@@ -68,7 +64,7 @@ data:
     nvm use --lts >/dev/null
     npm list -g --depth=0 @openai/codex >/dev/null 2>&1 || npm install -g @openai/codex
     npm list -g --depth=0 @earendil-works/pi-coding-agent >/dev/null 2>&1 || npm install -g --ignore-scripts @earendil-works/pi-coding-agent
-    chown -R "${USER}:${USER}" "${HOME_DIR}/.local" "${HOME_DIR}/.npmrc" "${HOME_DIR}/.profile"
+    chown -R "${USER}:${USER}" "${HOME_DIR}/.profile"
     chown -R "${USER}:${USER}" "${HOME_DIR}/.nvm"
 
     # Set up SSH authorized_keys
