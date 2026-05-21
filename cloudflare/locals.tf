@@ -12,10 +12,11 @@ locals {
     var.base_domain,
   ])
 
-  shell_hostname = "shell.${var.base_domain}"
-
   minecraft_hostname   = "minecraft.${var.base_domain}"
   minecraft_tailnet_ip = "100.119.240.70"
+
+  shell_hostname   = "shell.${var.base_domain}"
+  shell_tailnet_ip = "100.119.240.70"
 
   tailnet_hostnames = toset([
     "api-photos.${var.base_domain}",

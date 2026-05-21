@@ -47,7 +47,7 @@
   services.tailscale.enable = true;
 
   systemd.services.tailscale-public-tcp = {
-    description = "Expose api-photos.def4alt.com and minecraft.def4alt.com over Tailscale";
+    description = "Expose api-photos.def4alt.com, minecraft.def4alt.com, and shell.def4alt.com over Tailscale";
     after = [
       "network-online.target"
       "tailscaled.service"
@@ -70,6 +70,7 @@
           tailscale serve reset >/dev/null 2>&1 || true
           tailscale serve --bg --yes --tcp=443 tcp://127.0.0.1:31818
           tailscale serve --bg --yes --tcp=25565 tcp://127.0.0.1:31697
+          tailscale serve --bg --yes --tcp=22 tcp://127.0.0.1:31022
           exit 0
         fi
 
