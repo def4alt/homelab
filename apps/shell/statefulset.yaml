@@ -45,13 +45,13 @@ spec:
               cpu: "1"
               memory: 512Mi
           readinessProbe:
-            exec:
-              command: ["pgrep", "sshd"]
-            initialDelaySeconds: 10
+            tcpSocket:
+              port: 22
+            initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
-            exec:
-              command: ["pgrep", "sshd"]
+            tcpSocket:
+              port: 22
             initialDelaySeconds: 30
             periodSeconds: 20
 
