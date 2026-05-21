@@ -70,7 +70,7 @@
           tailscale serve reset >/dev/null 2>&1 || true
           tailscale serve --bg --yes --tcp=443 tcp://127.0.0.1:31818
           tailscale serve --bg --yes --tcp=25565 tcp://127.0.0.1:31697
-          tailscale serve --bg --yes --tls=false --tcp=22 tcp://127.0.0.1:31022
+          tailscale serve --bg --yes --tcp=22 tcp://127.0.0.1:31022
           exit 0
         fi
 
