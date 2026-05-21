@@ -40,6 +40,21 @@ data:
     mkdir -p "${HOME_DIR}"
     chown "${USER}:${USER}" "${HOME_DIR}"
 
+    # Keep npm global installs on the persistent home volume.
+    mkdir -p "${HOME_DIR}/.local/npm-global"
+    if [ ! -f "${HOME_DIR}/.npmrc" ]; then
+      printf 'prefix=%s/.local/npm-global\n' "${HOME_DIR}" > "${HOME_DIR}/.npmrc"
+    fi
+    if ! grep -q '^# shell npm-global$' "${HOME_DIR}/.profile" 2>/dev/null; then
+      cat >> "${HOME_DIR}/.profile" <<'PROFILE'
+
+# shell npm-global
+export NPM_CONFIG_PREFIX="$HOME/.local/npm-global"
+export PATH="$HOME/.local/npm-global/bin:$PATH"
+PROFILE
+    fi
+    chown -R "${USER}:${USER}" "${HOME_DIR}/.local" "${HOME_DIR}/.npmrc" "${HOME_DIR}/.profile"
+
     # Set up SSH authorized_keys
     mkdir -p "${HOME_DIR}/.ssh"
     if [ -d /etc/ssh/authorized_keys ]; then
