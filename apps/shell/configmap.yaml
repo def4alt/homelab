@@ -17,9 +17,13 @@ data:
       apt-get install -y --no-install-recommends \
         openssh-server tmux git curl vim htop \
         less wget ca-certificates bash-completion \
-        rsync man-db nano
+        rsync man-db nano sudo
       rm -rf /var/lib/apt/lists/*
     fi
+
+    # Configure sudo for user
+    echo "${USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${USER}
+    chmod 0440 /etc/sudoers.d/${USER}
 
     # Generate SSH host keys if missing
     if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
