@@ -7,7 +7,3 @@ resources:
   - statefulset.yaml
   - service.yaml
   - secrets/ssh-authorized-keys.sops.yaml
-decryption:
-  provider: sops
-  secretRef:
-    name: sops-age
