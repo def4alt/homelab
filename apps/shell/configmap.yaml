@@ -51,10 +51,10 @@ data:
     if ! grep -q '^# shell npm-global$' "${HOME_DIR}/.profile" 2>/dev/null; then
       cat >> "${HOME_DIR}/.profile" <<'PROFILE'
 
-# shell npm-global
-export NPM_CONFIG_PREFIX="$HOME/.local/npm-global"
-export PATH="$HOME/.local/npm-global/bin:$PATH"
-PROFILE
+    # shell npm-global
+    export NPM_CONFIG_PREFIX="$HOME/.local/npm-global"
+    export PATH="$HOME/.local/npm-global/bin:$PATH"
+    PROFILE
     fi
 
     # Install nvm once into the persistent home volume.
@@ -65,11 +65,11 @@ PROFILE
     if ! grep -q '^# shell nvm$' "${HOME_DIR}/.profile" 2>/dev/null; then
       cat >> "${HOME_DIR}/.profile" <<'PROFILE'
 
-# shell nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
-PROFILE
+    # shell nvm
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+    PROFILE
     fi
     export NVM_DIR="${HOME_DIR}/.nvm"
     # Install a persistent Node.js toolchain and CLI tools once.
