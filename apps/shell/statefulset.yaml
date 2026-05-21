@@ -39,11 +39,11 @@ spec:
               subPath: entrypoint.sh
           resources:
             requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: "1"
+              cpu: 200m
               memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 2Gi
           readinessProbe:
             tcpSocket:
               port: 22
