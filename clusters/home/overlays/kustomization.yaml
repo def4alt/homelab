@@ -21,4 +21,3 @@ resources:
   - apps/glance.yaml
   - apps/minecraft.yaml
   - apps/blog.yaml
-  - apps/shell.yaml

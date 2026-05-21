@@ -70,7 +70,7 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 ## Services
 
 - **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
-- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, nanobot, Shell (SSH + tmux via kubectl exec/port-forward from perun).
+- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, nanobot.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the shared CNPG Barman AWS key.
 
 Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.

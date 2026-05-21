@@ -1,9 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-namespace: shell
-resources:
-  - configmap.yaml
-  - pvc.yaml
-  - statefulset.yaml
-  - service.yaml
-  - secrets/ssh-authorized-keys.sops.yaml
