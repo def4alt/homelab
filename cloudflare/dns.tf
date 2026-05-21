@@ -1,5 +1,5 @@
 resource "cloudflare_record" "cname" {
-  for_each = var.manage_dns ? setunion(local.public_hostnames, local.tailnet_hostnames) : toset([])
+  for_each = var.manage_dns ? setunion(local.public_hostnames, local.tailnet_hostnames, toset([local.shell_hostname])) : toset([])
 
   zone_id         = var.zone_id
   name            = each.key == var.base_domain ? "@" : trimsuffix(each.key, ".${var.base_domain}")

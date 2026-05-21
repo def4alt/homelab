@@ -6,7 +6,12 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
 
   config {
     warp_routing {
-      enabled = false
+      enabled = true
+    }
+
+    ingress_rule {
+      hostname = local.shell_hostname
+      service  = "ssh://shell.shell.svc.cluster.local:22"
     }
 
     dynamic "ingress_rule" {
