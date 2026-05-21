@@ -10,10 +10,13 @@ data:
 
     USER="${SSH_USER:-dev}"
     HOME_DIR="/home/${USER}"
+    export DEBIAN_FRONTEND=noninteractive
 
-    # Install packages if not already present
+    # Refresh apt indexes on every container start.
+    apt-get update
+
+    # Install packages if not already present.
     if ! command -v sshd &>/dev/null; then
-      apt-get update
       apt-get install -y --no-install-recommends \
         openssh-server tmux git curl vim htop \
         less wget ca-certificates bash-completion \
@@ -53,7 +56,30 @@ export NPM_CONFIG_PREFIX="$HOME/.local/npm-global"
 export PATH="$HOME/.local/npm-global/bin:$PATH"
 PROFILE
     fi
+
+    # Install nvm once into the persistent home volume.
+    if [ ! -s "${HOME_DIR}/.nvm/nvm.sh" ]; then
+      rm -rf "${HOME_DIR}/.nvm"
+      git clone --depth=1 --branch v0.40.3 https://github.com/nvm-sh/nvm.git "${HOME_DIR}/.nvm"
+    fi
+    if ! grep -q '^# shell nvm$' "${HOME_DIR}/.profile" 2>/dev/null; then
+      cat >> "${HOME_DIR}/.profile" <<'PROFILE'
+
+# shell nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+PROFILE
+    fi
+    export NVM_DIR="${HOME_DIR}/.nvm"
+    # Install a persistent Node.js toolchain and CLI tools once.
+    . "$NVM_DIR/nvm.sh"
+    nvm install --lts >/dev/null
+    nvm use --lts >/dev/null
+    npm list -g --depth=0 @openai/codex >/dev/null 2>&1 || npm install -g @openai/codex
+    npm list -g --depth=0 @earendil-works/pi-coding-agent >/dev/null 2>&1 || npm install -g --ignore-scripts @earendil-works/pi-coding-agent
     chown -R "${USER}:${USER}" "${HOME_DIR}/.local" "${HOME_DIR}/.npmrc" "${HOME_DIR}/.profile"
+    chown -R "${USER}:${USER}" "${HOME_DIR}/.nvm"
 
     # Set up SSH authorized_keys
     mkdir -p "${HOME_DIR}/.ssh"
