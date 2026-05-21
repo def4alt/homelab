@@ -9,6 +9,11 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
       enabled = false
     }
 
+    ingress_rule {
+      hostname = local.shell_hostname
+      service  = "ssh://shell.shell.svc.cluster.local:22"
+    }
+
     dynamic "ingress_rule" {
       for_each = local.public_hostnames_sorted
       content {

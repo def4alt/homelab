@@ -12,18 +12,18 @@ locals {
     var.base_domain,
   ])
 
+  shell_hostname = "shell.${var.base_domain}"
+
   tailnet_hostnames = toset([
     "api-photos.${var.base_domain}",
     "minecraft.${var.base_domain}",
-    "shell.${var.base_domain}",
   ])
 
-  all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames)
+  all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames, toset([local.shell_hostname]))
 
   cname_overrides = {
     "api-photos.${var.base_domain}"  = "perun.tail6f3b0.ts.net"
     "minecraft.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
-    "shell.${var.base_domain}"       = "perun.tail6f3b0.ts.net"
   }
 
   unproxied_hostnames = local.tailnet_hostnames

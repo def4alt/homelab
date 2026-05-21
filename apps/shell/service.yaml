@@ -4,11 +4,9 @@ metadata:
   name: shell
   namespace: shell
 spec:
-  type: NodePort
   selector:
     app: shell
   ports:
     - name: ssh
       port: 22
       targetPort: 22
-      nodePort: 31022
