@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: shell
+  namespace: shell
+spec:
+  serviceName: shell
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shell
+  template:
+    metadata:
+      labels:
+        app: shell
+    spec:
+      containers:
+        - name: shell
+          image: debian:trixie-slim
+          command: ["/entrypoint.sh"]
+          ports:
+            - containerPort: 22
+              name: ssh
+          env:
+            - name: SSH_USER
+              value: "dev"
+            - name: SSH_UID
+              value: "1000"
+            - name: SSH_GID
+              value: "1000"
+          volumeMounts:
+            - name: home
+              mountPath: /home
+            - name: ssh-keys
+              mountPath: /etc/ssh/authorized_keys
+              readOnly: true
+            - name: entrypoint
+              mountPath: /entrypoint.sh
+              subPath: entrypoint.sh
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          readinessProbe:
+            exec:
+              command: ["pgrep", "sshd"]
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["pgrep", "sshd"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
+        - name: tailscale
+          image: tailscale/tailscale:latest
+          env:
+            - name: TS_HOSTNAME
+              value: "shell"
+            - name: TS_USERSPACE
+              value: "false"
+            - name: TS_AUTH_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: tailscale-auth
+                  key: TS_AUTH_KEY
+            - name: TS_EXTRA_ARGS
+              value: "--advertise-tags=tag:homelab"
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          volumeMounts:
+            - name: tailscale-state
+              mountPath: /var/lib/tailscale
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+      volumes:
+        - name: home
+          persistentVolumeClaim:
+            claimName: shell-home
+        - name: ssh-keys
+          secret:
+            secretName: ssh-authorized-keys
+            optional: true
+        - name: entrypoint
+          configMap:
+            name: shell-entrypoint
+            defaultMode: 0755
+        - name: tailscale-state
+          emptyDir: {}

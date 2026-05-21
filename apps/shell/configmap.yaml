@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shell-entrypoint
+  namespace: shell
+data:
+  entrypoint.sh: |
+    #!/bin/bash
+    set -e
+
+    USER="${SSH_USER:-dev}"
+    HOME_DIR="/home/${USER}"
+
+    # Install packages if not already present
+    if ! command -v sshd &>/dev/null; then
+      apt-get update
+      apt-get install -y --no-install-recommends \
+        openssh-server tmux git curl vim htop \
+        less wget ca-certificates bash-completion \
+        rsync man-db nano
+      rm -rf /var/lib/apt/lists/*
+    fi
+
+    # Generate SSH host keys if missing
+    if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
+      ssh-keygen -A
+    fi
+
+    # Create user if not exists
+    if ! id "${USER}" &>/dev/null; then
+      groupadd -g "${SSH_GID:-1000}" "${USER}" || true
+      useradd -m -u "${SSH_UID:-1000}" -g "${SSH_GID:-1000}" -s /bin/bash "${USER}"
+    fi
+
+    # Ensure home directory exists with correct ownership
+    mkdir -p "${HOME_DIR}"
+    chown "${USER}:${USER}" "${HOME_DIR}"
+
+    # Set up SSH authorized_keys
+    mkdir -p "${HOME_DIR}/.ssh"
+    if [ -d /etc/ssh/authorized_keys ]; then
+      cat /etc/ssh/authorized_keys/* > "${HOME_DIR}/.ssh/authorized_keys" 2>/dev/null || true
+    fi
+    chown -R "${USER}:${USER}" "${HOME_DIR}/.ssh"
+    chmod 700 "${HOME_DIR}/.ssh"
+    chmod 600 "${HOME_DIR}/.ssh/authorized_keys" 2>/dev/null || true
+
+    # Configure sshd
+    cat > /etc/ssh/sshd_config <<EOF
+    Port 22
+    ListenAddress 0.0.0.0
+    HostKey /etc/ssh/ssh_host_rsa_key
+    HostKey /etc/ssh/ssh_host_ecdsa_key
+    HostKey /etc/ssh/ssh_host_ed25519_key
+
+    AuthenticationMethods publickey
+    PubkeyAuthentication yes
+    PasswordAuthentication no
+    PermitEmptyPasswords no
+    ChallengeResponseAuthentication no
+    UsePAM yes
+
+    AuthorizedKeysFile .ssh/authorized_keys
+
+    Subsystem sftp /usr/lib/openssh/sftp-server
+
+    AcceptEnv LANG LC_*
+    X11Forwarding no
+    PrintMotd no
+    EOF
+
+    # Add tmux auto-start to profile
+    cat > /etc/profile.d/tmux-auto.sh <<'PROFILE'
+    if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ]; then
+      exec tmux new-session -A -s main
+    fi
+    PROFILE
+
+    exec /usr/sbin/sshd -D -e
