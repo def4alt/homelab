@@ -9,3 +9,15 @@ resource "cloudflare_record" "cname" {
   ttl             = 1
   proxied         = contains(local.unproxied_hostnames, each.key) ? false : true
 }
+
+resource "cloudflare_record" "minecraft_a" {
+  count = var.manage_dns ? 1 : 0
+
+  zone_id         = var.zone_id
+  name            = trimsuffix(local.minecraft_hostname, ".${var.base_domain}")
+  type            = "A"
+  content         = local.minecraft_tailnet_ip
+  allow_overwrite = true
+  ttl             = 1
+  proxied         = false
+}
