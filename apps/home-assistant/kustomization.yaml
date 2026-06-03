@@ -3,6 +3,7 @@ kind: Kustomization
 namespace: home-assistant
 resources:
   - helmrepository.yaml
+  - pvc-local.yaml
   - helmrelease.yaml
   - postgres-cluster.yaml
   - barman-objectstore.yaml

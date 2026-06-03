@@ -5,3 +5,4 @@ resources:
   - pv-pihole.yaml
   - pv-minecraft.yaml
   - pv-monitoring-grafana.yaml
+  - pv-home-assistant-config.yaml
