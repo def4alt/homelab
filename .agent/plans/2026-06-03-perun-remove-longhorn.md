@@ -16,7 +16,7 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - [x] (2026-06-03 14:10Z) Identify the repo files that currently force the home cluster to depend on Longhorn.
 - [x] (2026-06-03 14:48Z) Complete the `pi-hole` prototype migration: copy data into local claims, restart on the new claims, validate DNS and the web UI path, and prune the old GitOps-managed Longhorn PVCs.
 - [x] (2026-06-03 14:24Z) Add the replacement storage layer scaffold to the repo and re-enable k3s local-path support in `perun`'s NixOS config.
-- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover (completed: `pi-hole`, Grafana, and Home Assistant application state are on local claims; staged local PV/PVC exists for Minecraft; remaining: Prometheus, Minecraft cutover, and all CNPG data PVCs).
+- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover (completed: `pi-hole`, Grafana, Home Assistant application state, and Home Assistant DB are on local claims; JuiceFS metadata and Immich DB migrations were attempted but not completed cleanly; remaining: Prometheus, Minecraft cutover, Immich DB finalization, and a safe JuiceFS metadata migration path).
 - [x] (2026-06-03 14:55Z) Add Barman ObjectStore and ScheduledBackup coverage for `home-assistant-db` and `juicefs-db` so CNPG migrations have a restore path before cutover.
 - [ ] Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
 - [ ] Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
@@ -46,6 +46,9 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 
 - Observation: Home Assistant can be cut over safely by switching the chart from `StatefulSet` mode to `Deployment` mode with an `existingClaim`.
   Evidence: After the repo change, Helm deleted the old StatefulSet, created `deployment.apps/home-assistant`, mounted `home-assistant-config-local`, and `wget http://127.0.0.1:8123/` inside the pod returned `HTTP/1.1 200 OK`.
+
+- Observation: The JuiceFS metadata migration is riskier than the other CNPG cutovers because the mounted filesystem can leave behind stale mount pods and a local CNPG restore can be harder to recover once the metadata service starts flapping.
+  Evidence: After switching `juicefs-auth.metaurl` to `juicefs-db-local-rw`, the stale mount pod in `kube-system` blocked remounts, and later `juicefs-db-local-1` entered `CrashLoopBackOff` with `PANIC: could not locate a valid checkpoint record at 0/60002C8`.
 
 ## Decision Log
 
@@ -77,9 +80,13 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
   Rationale: The app state claim was small and chart-managed, while the CNPG database claim is a separate higher-risk migration. Splitting them reduces scope and proved the chart can run from a local claim without waiting for the database migration strategy to be finalized.
   Date/Author: 2026-06-03 / Codex
 
+- Decision: Roll back the JuiceFS metadata service cutover in GitOps until a safer recovery path is implemented.
+  Rationale: The attempted local-cluster cutover left `juicefs-db-local` unstable and prevented Immich from mounting the JuiceFS volume reliably. Preserving recoverability is more important than forcing that migration through in one pass.
+  Date/Author: 2026-06-03 / Codex
+
 ## Outcomes & Retrospective
 
-Partial outcome on 2026-06-03: the migration method is proven for multiple workload shapes. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. Home Assistant now runs as a Deployment from `home-assistant-config-local`, and the old Longhorn config PVC has been deleted after being copied. The plan still has major remaining work: Prometheus, Minecraft, and all CNPG data PVCs are not yet off Longhorn.
+Partial outcome on 2026-06-03: the migration method is proven for multiple workload shapes. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. Home Assistant now runs as a Deployment from `home-assistant-config-local`, and both its app-state PVC and database PVC have been moved off Longhorn. The plan still has major remaining work: Prometheus, Minecraft, Immich DB, and a safe JuiceFS metadata migration path.
 
 ## Context and Orientation
 

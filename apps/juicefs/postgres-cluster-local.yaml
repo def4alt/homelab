@@ -16,8 +16,3 @@ spec:
     storageClass: manual-local
   monitoring:
     enablePodMonitor: true
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: cnpg-barman-s3
