@@ -16,13 +16,13 @@ The first visible outcome is that `blog` serves from Hetzner without changing th
 - [x] (2026-06-03 07:24Z) Record the migration design and implementation sequence in this ExecPlan.
 - [x] (2026-06-03 07:45Z) Add Hetzner app overlay objects under `clusters/hetzner/overlays/apps/`, add Hetzner `cnpg` and `traefik-auth` infra overlays, and wire them into `clusters/hetzner/overlays/kustomization.yaml`.
 - [x] (2026-06-03 07:46Z) Create Hetzner-specific namespace and storage wrapper paths under `apps/modes/hetzner/` for `authentik`, `blog`, `glance`, and `paperless` prerequisites.
-- [ ] Implement Wave 1 by reconciling `blog` from `clusters/hetzner`; removal from the home-cluster overlay is deferred until traffic cutover is explicit.
-- [ ] Implement Wave 2 by adding Hetzner `cnpg` infrastructure and the `authentik` app, including the forward-auth Traefik middleware needed by later apps.
-- [ ] Implement Wave 3 by adding `glance` to Hetzner with a Hetzner-specific storage patch that avoids Longhorn.
-- [ ] Implement Wave 4 by adding `paperless` to Hetzner with Hetzner-specific storage patches that avoid Longhorn while keeping its own Postgres and Redis topology.
-- [ ] Validate the staged Hetzner deployments on the live cluster.
+- [x] (2026-06-03 08:00Z) Implement Wave 1 by reconciling `blog` from `clusters/hetzner`; removal from the home-cluster overlay is deferred until traffic cutover is explicit.
+- [x] (2026-06-03 08:03Z) Implement Wave 2 by adding Hetzner `cnpg` infrastructure, the `authentik` app, and the Hetzner-only forward-auth middleware path needed by later apps.
+- [x] (2026-06-03 08:05Z) Implement Wave 3 by adding `glance` to Hetzner with a Hetzner-specific storage patch that avoids Longhorn.
+- [x] (2026-06-03 08:06Z) Implement Wave 4 by adding `paperless` to Hetzner with Hetzner-specific storage patches that avoid Longhorn while keeping its own Postgres and Redis topology.
+- [x] (2026-06-03 08:06Z) Validate the staged Hetzner deployments on the live cluster: `blog`, `authentik`, `glance`, `paperless`, `cnpg`, and `traefik-auth` all reconcile successfully.
 - [ ] Plan and execute public traffic cutover, then remove Hetzner-owned apps from `clusters/home/overlays/kustomization.yaml`.
-- [ ] Update `README.md` so the public-app placement and staged cutover are obvious to a novice operator.
+- [x] (2026-06-03 08:07Z) Update `README.md` so the public-app placement and staged cutover are obvious to a novice operator.
 
 ## Surprises & Discoveries
 
@@ -80,7 +80,7 @@ At plan creation time, the Hetzner cluster already has the minimal edge infrastr
 
 The main lesson from the bootstrap work is that “shared app directory” does not automatically mean “safe for both clusters.” The migration must be explicit about which directories are cluster-neutral and which need Hetzner-specific wrappers.
 
-After the first implementation pass, the repository now contains Hetzner-specific overlay objects for all selected public apps plus Hetzner wrappers for storage and Authentik middleware scope. The remaining work is live reconciliation, validation, and traffic cutover rather than basic repository scaffolding.
+After the first implementation pass, the repository now contains Hetzner-specific overlay objects for all selected public apps plus Hetzner wrappers for storage and Authentik middleware scope. The live Hetzner cluster now has `blog`, `authentik`, `glance`, `paperless`, `cnpg`, and `traefik-auth` reconciled successfully. The remaining work is public traffic cutover and the later removal of those apps from the home cluster overlays.
 
 ## Context and Orientation
 
@@ -235,3 +235,4 @@ The migration relies on these repository interfaces:
 Change note: Initial plan created to move selected public apps (`blog`, `authentik`, `glance`, `paperless`) to the Hetzner cluster while explicitly keeping `minecraft` on the home cluster.
 Change note: Updated after adding the Hetzner app overlay scaffolding and discovering that Cloudflare-proxied public DNS requires staged deployment before removing home-cluster ownership.
 Change note: Updated after the first live Hetzner app rollout to exclude the Authentik certificate from staged reconciliation so application health can converge before public cutover.
+Change note: Updated after the staged Hetzner app set (`blog`, `authentik`, `glance`, `paperless`) reconciled successfully and the README was revised to describe the split and the remaining traffic-cutover step.

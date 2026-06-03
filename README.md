@@ -37,6 +37,13 @@ Before running either command, review `nixos/configuration.nix` plus the host-sp
 
 k3s runs on both NixOS hosts, but each host is its own independent single-node cluster. FluxCD reconciles the home cluster from `clusters/home` and the Hetzner cluster from `clusters/hetzner`. The `apps/` directory remains the canonical source of Traefik, Cert-Manager, infra helpers, and the applications themselves; each cluster chooses which app directories to reconcile through its own Flux overlays.
 
+The current intended split is:
+
+- `clusters/home` keeps the home-bound and storage-heavy workloads such as Home Assistant, Immich, Pi-hole, Minecraft, Longhorn, JuiceFS, and monitoring.
+- `clusters/hetzner` owns the public edge stack and stages the public app set: Blog, Authentik, Glance, and Paperless, plus its own Traefik, Cert-Manager, and CloudNativePG operator.
+
+The public DNS cutover is a separate operational step. Staging an app on Hetzner does not by itself move public traffic if Cloudflare is still routing the hostname to the previous origin.
+
 All infra overlays set `spec.decryption.provider: sops`, so Flux decrypts the secrets stored under `apps/*/secrets/*.sops.yaml` using a dedicated Age key. The cluster must contain the namespace-scoped secret `flux-system/sops-age` that holds the private key to decrypt those secrets.
 
 Create the key pair (if you do not already have one) with:
@@ -83,8 +90,10 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 
 ## Services
 
-- **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, and monitoring helpers.
-- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, and Minecraft.
+- **Home infrastructure**: Traefik (+ CRDs), MetalLB (+ config), Longhorn (+ recurring backup jobs), JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, and monitoring helpers.
+- **Shared or per-cluster infrastructure**: Cert-Manager (and Issuers) and CloudNativePG clusters.
+- **Public app set staged on Hetzner**: Blog on `def4alt.com`, Authentik SSO, Glance dashboard, and Paperless.
+- **Home app set**: Home Assistant, Immich, Pi-hole, and Minecraft.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the shared CNPG Barman AWS key.
 
 Keeping the cluster overlays aligned with `apps/` lets Flux keep each site in sync once the secrets are in place.
