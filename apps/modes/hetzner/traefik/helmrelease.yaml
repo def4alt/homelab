@@ -25,7 +25,8 @@ spec:
         cpu: 500m
         memory: 256Mi
     service:
-      type: ClusterIP
+      spec:
+        type: ClusterIP
     ports:
       web:
         port: 8000
