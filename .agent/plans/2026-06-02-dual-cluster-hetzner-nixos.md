@@ -169,3 +169,4 @@ Change note: Updated `zorya` to use the same hashed password as `perun` and remo
 Change note: Updated the shared k3s config to support per-host `token` / `tokenFile`, and temporarily set a literal bootstrap token on `zorya` for installation.
 Change note: Reused the existing Flux GitHub PAT and SOPS age secret material from `perun` for the Hetzner cluster bootstrap so `zorya` can reconcile the same repo and encrypted secrets with the standard Flux auth flow.
 Change note: Split the Hetzner bootstrap paths away from the home app namespace set and home-specific Traefik middleware so the edge cluster only reconciles the minimal infra resources from the plan.
+Change note: After the first successful Hetzner install, switched `zorya` back from the temporary literal bootstrap k3s token to the runtime-generated token file path.
