@@ -1,9 +1,0 @@
-hcloud_token   = "YOUR_HETZNER_API_TOKEN"
-ssh_key_name   = "your-ssh-key-name"
-location       = "fsn1"
-server_type    = "cpx22"
-server_name    = "zorya"
-volume_size_gb = 20
-
-# Restrict SSH to your actual source IPs for production
-# allowed_ssh_cidrs = ["YOUR_IPV4/32", "YOUR_IPV6/128"]

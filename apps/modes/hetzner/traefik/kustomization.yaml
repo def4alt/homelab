@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../traefik
+patches:
+  - target:
+      group: helm.toolkit.fluxcd.io
+      version: v2
+      kind: HelmRelease
+      name: traefik
+      namespace: infra
+    patch: |-
+      - op: replace
+        path: /spec/values/service/type
+        value: ClusterIP
+      - op: add
+        path: /spec/values/hostNetwork
+        value: true
+      - op: add
+        path: /spec/values/deployment/dnsPolicy
+        value: ClusterFirstWithHostNet
+      - op: add
+        path: /spec/values/ports/web/hostPort
+        value: 80
+      - op: add
+        path: /spec/values/ports/websecure/hostPort
+        value: 443

@@ -1,52 +1,57 @@
-{ pkgs, meta, ... }:
+{ lib, pkgs, meta, ... }:
 
-{
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+let
+  authorizedKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFh6m4qX4U4sYAI+ngMuLACi4pqSz2pNjdPcB8aEzD6k"
+  ];
 
+  primaryUser = {
+    isNormalUser = true;
+    extraGroups = meta.userGroups;
+    packages = with pkgs; [ tree ];
+    openssh.authorizedKeys.keys = authorizedKeys;
+  } // lib.optionalAttrs (meta ? hashedPassword) {
+    hashedPassword = meta.hashedPassword;
+  };
+in {
   nix = {
     extraOptions = ''
       experimental-features = nix-command flakes
     '';
   };
 
-  # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 5;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.hostName = meta.hostname; # Define your hostname.
-  # Pick only one of the below networking options.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.hostName = meta.hostname;
+  networking.networkmanager.enable = true;
+  networking.firewall.enable = meta.firewallEnable;
+  networking.firewall.allowedTCPPorts = meta.firewallTCPPorts;
 
-  # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
-  # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
     font = "Lat2-Terminus16";
     keyMap = "us";
-    #useXkbConfig = true; # use xkb.options in tty.
   };
 
-  # Fixes for longhorn
-  systemd.tmpfiles.rules = [
+  systemd.tmpfiles.rules = lib.mkIf meta.enableLonghornHostTweaks [
     "L+ /usr/local/bin - - - - /run/current-system/sw/bin/"
   ];
-  virtualisation.docker.logDriver = "json-file";
 
-  services.openiscsi = {
+  virtualisation.docker.logDriver = lib.mkIf meta.enableLonghornHostTweaks "json-file";
+
+  services.openiscsi = lib.mkIf meta.enableOpeniscsi {
     enable = true;
     name = "iqn.2016-04.com.open-iscsi:${meta.hostname}";
   };
 
   services.tailscale.enable = true;
+  services.qemuGuest.enable = meta.enableQemuGuest;
 
-  systemd.services.tailscale-public-tcp = {
+  systemd.services.tailscale-public-tcp = lib.mkIf meta.enableTailscalePublicTcp {
     description = "Expose api-photos.def4alt.com and minecraft.def4alt.com over Tailscale";
     after = [
       "network-online.target"
@@ -80,26 +85,7 @@
     '';
   };
 
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  users.users.perun = {
-    isNormalUser = true;
-    extraGroups = [ 
-      "wheel"
-      "docker"
-      "dialout"
-      "tty"
-      "uucp"
-    ]; # Enable ‘sudo’ for the user.
-    packages = with pkgs; [
-      tree
-    ];
-    # Created using mkpasswd
-    hashedPassword = "$6$CaCEWrNfJLit0lxA$ZUyRUZH9Vy6hlCseXfyRuz2KxYTtrAieGUqWRnpEnnJA3PdbJE8M.kmn6JKyMlYHRu7yNfvlM1F7oT7efwp7l.";
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFh6m4qX4U4sYAI+ngMuLACi4pqSz2pNjdPcB8aEzD6k"
-    ];
-  };
+  users.users.${meta.primaryUser} = primaryUser;
 
   services.k3s = {
     enable = true;
@@ -110,7 +96,6 @@
       "--cluster-init"
       "--disable servicelb"
       "--disable traefik"
-      "--disable local-storage"
       "--kubelet-arg=max-pods=150"
       "--kube-apiserver-arg=event-ttl=72h"
       "--etcd-arg=quota-backend-bytes=4294967296"
@@ -119,50 +104,18 @@
       "--etcd-snapshot-schedule-cron=0 */6 * * *"
       "--etcd-snapshot-retention=28"
       "--etcd-snapshot-compress"
-    ] ++ (if meta.hostname == "perun" then [] else [
-      "--server https://perun:6443"
-    ]));
-    clusterInit = (meta.hostname == "perun");
+    ] ++ meta.k3sExtraFlags);
+    clusterInit = true;
   };
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
   environment.systemPackages = with pkgs; [
-     vim
-     cifs-utils
-     nfs-utils
-     git
+    vim
+    cifs-utils
+    nfs-utils
+    git
   ];
 
-  # List services that you want to enable:
   services.openssh.enable = true;
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ 80 ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
-
-  # Copy the NixOS configuration file and link it from the resulting system
-  # (/run/current-system/configuration.nix). This is useful in case you
-  # accidentally delete configuration.nix.
-  # system.copySystemConfiguration = true;
-
-  # This option defines the first version of NixOS you have installed on this particular machine,
-  # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
-  #
-  # Most users should NEVER change this value after the initial install, for any reason,
-  # even if you've upgraded your system to a newer NixOS release.
-  #
-  # This value does NOT affect the Nixpkgs version your packages and OS are pulled from,
-  # so changing it will NOT upgrade your system.
-  #
-  # This value being lower than the current NixOS release does NOT mean your system is
-  # out of date, out of support, or vulnerable.
-  #
-  # Do NOT change this value unless you have manually inspected all the changes it would make to your configuration,
-  # and migrated your data accordingly.
-  #
-  # For more information, see `man configuration.nix` or https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
-  system.stateVersion = "25.11"; # Did you read the comment?
+  system.stateVersion = "25.11";
 }

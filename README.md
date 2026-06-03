@@ -4,14 +4,28 @@
 
 ### NixOS baseline
 
-This repo represents the full stack for a single NixOS host. The flake in `nixos/flake.nix` defines one node called `perun`, and the rest of the repo assumes that host name. To reproduce the same setup on bare metal, boot the target machine with the standard NixOS installer and run:
+This repo now represents two independent NixOS sites:
+
+- `perun` — the home host that runs the `clusters/home` k3s + Flux stack
+- `zorya` — the Hetzner host that is intended to run the `clusters/hetzner` k3s + Flux stack
+
+The flake in `nixos/flake.nix` exposes both hosts. To install either machine, boot the target with a NixOS installer or rescue image and run `nixos-anywhere` against the desired flake output.
+
+Home host example:
 
 ```sh
 nix run github:nix-community/nixos-anywhere -- --flake '.#perun' \
   --target-host nixos@<installer-ip> --build-on-remote
 ```
 
-Before running the command you can tweak `nixos/configuration.nix`, `hardware-configuration.nix`, or any module under `nixos/`. The flake also pulls in `disko` so the disk layout you install will match the source-controlled partitioning.
+Hetzner host example:
+
+```sh
+nix run github:nix-community/nixos-anywhere -- --flake '.#zorya' \
+  --target-host root@46.62.137.102 --build-on-remote
+```
+
+Before running either command, review `nixos/configuration.nix` plus the host-specific hardware and disk files. `perun` uses `nixos/hardware-configuration.nix` and `nixos/disko-config.nix`. `zorya` uses `nixos/hosts/zorya/hardware-configuration.nix` and `nixos/hosts/zorya/disko-config.nix`. The flake also pulls in `disko` so the installed partitioning matches the source-controlled layout.
 
 ### Cloudflare tunnels
 
@@ -21,7 +35,7 @@ Before running the command you can tweak `nixos/configuration.nix`, `hardware-co
 
 ### k3s + Flux
 
-k3s runs on the NixOS host, and FluxCD reconciles everything under `clusters/home`. The `apps/` directory is the canonical source of Traefik, Cert-Manager, infra helpers, and the applications themselves; Flux is bootstrapped in `clusters/home/flux-system` and pulls overlays from `clusters/home/overlays`.
+k3s runs on both NixOS hosts, but each host is its own independent single-node cluster. FluxCD reconciles the home cluster from `clusters/home` and the Hetzner cluster from `clusters/hetzner`. The `apps/` directory remains the canonical source of Traefik, Cert-Manager, infra helpers, and the applications themselves; each cluster chooses which app directories to reconcile through its own Flux overlays.
 
 All infra overlays set `spec.decryption.provider: sops`, so Flux decrypts the secrets stored under `apps/*/secrets/*.sops.yaml` using a dedicated Age key. The cluster must contain the namespace-scoped secret `flux-system/sops-age` that holds the private key to decrypt those secrets.
 
@@ -40,7 +54,7 @@ kubectl -n flux-system create secret generic sops-age \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Once that secret exists, Flux can reconcile the overlays under `clusters/home/overlays` without further manual steps.
+Once that secret exists, Flux can reconcile the overlays under whichever cluster path you bootstrap (`clusters/home/overlays` or `clusters/hetzner/overlays`) without further manual steps.
 
 ## Secrets to set
 
@@ -69,8 +83,8 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 
 ## Services
 
-- **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, Tailscale daemonset, Restic backups.
-- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, nanobot.
+- **Infrastructure**: Traefik (+ CRDs), Cert-Manager (and Issuers), MetalLB (+ config), Longhorn (+ recurring backup jobs), CloudNativePG clusters, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, and monitoring helpers.
+- **Applications**: Authentik SSO, Home Assistant, Paperless, Blog on def4alt.com, Glance dashboard, Immich, Pi-hole, and Minecraft.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the shared CNPG Barman AWS key.
 
-Keeping `clusters/home/overlays` aligned with `apps/` lets Flux keep every service in sync once the secrets are in place.
+Keeping the cluster overlays aligned with `apps/` lets Flux keep each site in sync once the secrets are in place.
