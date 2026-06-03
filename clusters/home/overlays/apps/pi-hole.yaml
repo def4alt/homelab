@@ -13,7 +13,6 @@ spec:
   dependsOn:
     - name: cert-manager
     - name: local-storage
-    - name: longhorn
     - name: traefik
   timeout: 10m
   wait: true
