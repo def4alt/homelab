@@ -28,7 +28,7 @@ spec:
         enabled: false
       persistence:
         enabled: true
-        storageClassName: longhorn
+        existingClaim: monitoring-grafana-local
         accessModes:
           - ReadWriteOnce
         size: 5Gi
