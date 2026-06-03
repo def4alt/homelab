@@ -167,4 +167,4 @@ Change note: Updated after removing the obsolete `hetzner-hermes/` Ubuntu bootst
 Change note: Updated after regenerating `zorya` hardware config from the live Hetzner installer, switching the disko whole-disk target to `/dev/sda`, and assigning the Hetzner SSH key to `zorya`.
 Change note: Updated `zorya` to use the same hashed password as `perun` and removed the invalid shared `services.k3s.tokenFile` setting so single-node cluster init can complete after install.
 Change note: Updated the shared k3s config to support per-host `token` / `tokenFile`, and temporarily set a literal bootstrap token on `zorya` for installation.
-Change note: Adjusted the Hetzner Flux bootstrap to pull the public GitHub repo without a bootstrap auth secret, so `clusters/hetzner/flux-system` can be applied directly after install.
+Change note: Reused the existing Flux GitHub PAT and SOPS age secret material from `perun` for the Hetzner cluster bootstrap so `zorya` can reconcile the same repo and encrypted secrets with the standard Flux auth flow.
