@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - helmrepository.yaml
   - secrets/alertmanager.sops.yaml
+  - pvc-local.yaml
   - helmrelease.yaml
   - blackbox-exporter-helmrelease.yaml
   - prometheusrules.yaml

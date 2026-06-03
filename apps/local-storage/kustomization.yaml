@@ -4,3 +4,4 @@ resources:
   - storageclass.yaml
   - pv-pihole.yaml
   - pv-minecraft.yaml
+  - pv-monitoring-grafana.yaml
