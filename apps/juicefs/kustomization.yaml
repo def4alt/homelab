@@ -4,6 +4,7 @@ namespace: juicefs
 resources:
   - juicefs-csi-driver.yaml
   - postgres-cluster.yaml
+  - postgres-cluster-local.yaml
   - barman-objectstore.yaml
   - scheduled-backup.yaml
   - storageclass.yaml

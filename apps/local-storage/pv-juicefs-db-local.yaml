@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-juicefs-db-local
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: juicefs
+    name: juicefs-db-local-1
+  hostPath:
+    path: /var/lib/k8s-local-storage/juicefs/juicefs-db-local
+    type: DirectoryOrCreate
