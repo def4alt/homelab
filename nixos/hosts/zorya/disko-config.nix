@@ -3,8 +3,8 @@
     disk = {
       main = {
         type = "disk";
-        # Hetzner Cloud root disk; adjust only if rescue-mode inspection shows a different by-id path.
-        device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-scsi0";
+        # Verified from the 2026-06-03 Hetzner rescue environment on 46.62.137.102.
+        device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_119416279";
         content = {
           type = "gpt";
           partitions = {
@@ -37,26 +37,12 @@
                     mountOptions = [ "compress=zstd" "noatime" ];
                     mountpoint = "/nix";
                   };
+                  "/var/lib/rancher" = {
+                    mountOptions = [ "compress=zstd" "noatime" ];
+                    mountpoint = "/var/lib/rancher";
+                  };
                 };
                 mountpoint = "/partition-root";
-              };
-            };
-          };
-        };
-      };
-      data = {
-        type = "disk";
-        # Hetzner Cloud volume created by the historical zorya Terraform project.
-        device = "/dev/disk/by-id/scsi-0HC_Volume_zorya-data";
-        content = {
-          type = "gpt";
-          partitions = {
-            data = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/var/lib/rancher";
               };
             };
           };

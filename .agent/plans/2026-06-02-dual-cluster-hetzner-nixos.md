@@ -19,6 +19,7 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 - [x] (2026-06-02 18:38Z) Update `README.md` so the repo no longer claims to be a single-host setup.
 - [x] (2026-06-02 18:39Z) Validate the new NixOS flake and the new cluster overlays locally.
 - [x] (2026-06-02 18:39Z) Document the remaining manual apply steps and the operational limits caused by missing remote credentials in this plan and the README.
+- [x] (2026-06-03 07:55Z) Verify `zorya` from the Hetzner rescue environment, confirm the actual root-disk by-id path, and simplify the disk layout so `nixos-anywhere` does not depend on a missing attached volume.
 
 ## Surprises & Discoveries
 
@@ -34,6 +35,9 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 - Observation: The existing Flux bootstrap manifests are generic enough to reuse for a second cluster with only the Git path changed.
   Evidence: Copying `clusters/home/flux-system/gotk-components.yaml` verbatim and changing only `gotk-sync.yaml.spec.path` to `./clusters/hetzner` still allowed `kubectl kustomize clusters/hetzner` to render successfully.
 
+- Observation: The live Hetzner rescue environment for `zorya` currently exposes only one writable disk, and its root disk by-id path differs from the placeholder path used in the initial host file.
+  Evidence: `ssh root@46.62.137.102 'lsblk -o NAME,MODEL,SIZE,TYPE,FSTYPE,MOUNTPOINTS,SERIAL; ls /dev/disk/by-id'` showed only the 76.3G QEMU root disk as `scsi-0QEMU_QEMU_HARDDISK_119416279` plus the rescue ISO, and no `scsi-0HC_Volume_*` device was present.
+
 ## Decision Log
 
 - Decision: Reuse `zorya` as the Hetzner hostname instead of inventing a new second-site host name.
@@ -47,6 +51,10 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 - Decision: Keep the first Hetzner cluster overlay intentionally small.
   Rationale: The user asked to set up the second cluster and NixOS host, not yet to migrate all public services. A minimal Flux tree with namespaces, cert-manager, and a Hetzner-shaped Traefik entry point is a safer first milestone than copying every home-cluster dependency.
   Date/Author: 2026-06-02 / Codex
+
+- Decision: Install `zorya` onto the verified root disk only and place `/var/lib/rancher` on a Btrfs subvolume until a dedicated Hetzner volume is actually present.
+  Rationale: The rescue environment has no attached `HC_Volume` block device today, so keeping the previous two-disk layout would make `nixos-anywhere` fail before installation even starts.
+  Date/Author: 2026-06-03 / Codex
 
 ## Outcomes & Retrospective
 
