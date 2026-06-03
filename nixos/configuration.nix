@@ -26,7 +26,6 @@ in {
   };
   boot.loader.grub = lib.mkIf (meta.useGrub or false) {
     enable = true;
-    device = meta.grubDevice;
   };
   boot.loader.efi.canTouchEfiVariables = !(meta.useGrub or false);
 

@@ -56,7 +56,6 @@
             enableTailscalePublicTcp = false;
             enableQemuGuest = true;
             useGrub = true;
-            grubDevice = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_119416279";
             firewallEnable = true;
             firewallTCPPorts = [ 22 80 443 ];
             k3sExtraFlags = [ ];
