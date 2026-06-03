@@ -1,0 +1,18 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: home-assistant-db-local
+  namespace: home-assistant
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: homeassistant
+      owner: homeassistant
+      secret:
+        name: home-assistant-db-auth
+  storage:
+    size: 25Gi
+    storageClass: manual-local
+  monitoring:
+    enablePodMonitor: true

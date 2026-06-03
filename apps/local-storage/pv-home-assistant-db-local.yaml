@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-home-assistant-db-local
+spec:
+  capacity:
+    storage: 25Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: home-assistant
+    name: home-assistant-db-local-1
+  hostPath:
+    path: /var/lib/k8s-local-storage/home-assistant/home-assistant-db-local
+    type: DirectoryOrCreate

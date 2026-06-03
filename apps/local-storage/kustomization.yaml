@@ -7,3 +7,4 @@ resources:
   - pv-monitoring-grafana.yaml
   - pv-home-assistant-config.yaml
   - pv-juicefs-db-local.yaml
+  - pv-home-assistant-db-local.yaml
