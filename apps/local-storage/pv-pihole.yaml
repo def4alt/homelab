@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-pihole-etc-local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: pi-hole
+    name: pihole-etc-local
+  hostPath:
+    path: /var/lib/k8s-local-storage/pi-hole/pihole-etc
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-pihole-dnsmasq-local
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: pi-hole
+    name: pihole-dnsmasq-local
+  hostPath:
+    path: /var/lib/k8s-local-storage/pi-hole/pihole-dnsmasq
+    type: DirectoryOrCreate

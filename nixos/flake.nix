@@ -38,9 +38,7 @@
             useGrub = false;
             firewallEnable = false;
             firewallTCPPorts = [ ];
-            k3sExtraFlags = [
-              "--disable local-storage"
-            ];
+            k3sExtraFlags = [ ];
           };
           modules = [
             ./hardware-configuration.nix

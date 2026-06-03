@@ -1,23 +1,16 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: pi-hole
+  name: local-storage
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./apps/pi-hole
+  path: ./apps/local-storage
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: cert-manager
-    - name: local-storage
-    - name: longhorn
-    - name: traefik
+    - name: namespaces
   timeout: 10m
   wait: true
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age
