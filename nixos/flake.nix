@@ -54,6 +54,7 @@
             hostname = "zorya";
             primaryUser = "def4alt";
             userGroups = [ "wheel" "docker" ];
+            hashedPassword = "$6$CaCEWrNfJLit0lxA$ZUyRUZH9Vy6hlCseXfyRuz2KxYTtrAieGUqWRnpEnnJA3PdbJE8M.kmn6JKyMlYHRu7yNfvlM1F7oT7efwp7l.";
             authorizedKeys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJHkn9VZPfLdE+bJtPkHEK/k4fZNc1M8coHxC4HAU+JV"
             ];

@@ -165,3 +165,4 @@ Change note: Initial plan created to add a second NixOS host (`zorya`) and a sec
 Change note: Updated after implementation to record the completed repository refactor, local validation results, and the remaining manual apply steps.
 Change note: Updated after removing the obsolete `hetzner-hermes/` Ubuntu bootstrap so the plan no longer points at deleted files.
 Change note: Updated after regenerating `zorya` hardware config from the live Hetzner installer, switching the disko whole-disk target to `/dev/sda`, and assigning the Hetzner SSH key to `zorya`.
+Change note: Updated `zorya` to use the same hashed password as `perun` and removed the invalid shared `services.k3s.tokenFile` setting so single-node cluster init can complete after install.
