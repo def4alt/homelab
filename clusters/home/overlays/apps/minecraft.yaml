@@ -13,7 +13,6 @@ spec:
   dependsOn:
     - name: namespaces
     - name: local-storage
-    - name: metallb-config
   timeout: 10m
   wait: true
   decryption:
