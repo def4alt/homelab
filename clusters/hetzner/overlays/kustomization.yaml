@@ -4,4 +4,10 @@ resources:
   - infra/namespaces.yaml
   - infra/cert-manager.yaml
   - infra/cert-manager-issuers.yaml
+  - infra/cnpg.yaml
   - infra/traefik.yaml
+  - infra/traefik-auth.yaml
+  - apps/blog.yaml
+  - apps/authentik.yaml
+  - apps/glance.yaml
+  - apps/paperless.yaml

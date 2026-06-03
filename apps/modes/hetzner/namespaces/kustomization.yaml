@@ -3,3 +3,8 @@ kind: Kustomization
 resources:
   - namespace-cert-manager.yaml
   - namespace-infra.yaml
+  - namespace-blog.yaml
+  - namespace-authentik.yaml
+  - namespace-cnpg-system.yaml
+  - namespace-glance.yaml
+  - namespace-paperless.yaml
