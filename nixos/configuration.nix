@@ -20,9 +20,15 @@ in {
     '';
   };
 
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.systemd-boot.configurationLimit = 5;
-  boot.loader.efi.canTouchEfiVariables = true;
+  boot.loader.systemd-boot = lib.mkIf (!(meta.useGrub or false)) {
+    enable = true;
+    configurationLimit = 5;
+  };
+  boot.loader.grub = lib.mkIf (meta.useGrub or false) {
+    enable = true;
+    device = meta.grubDevice;
+  };
+  boot.loader.efi.canTouchEfiVariables = !(meta.useGrub or false);
 
   networking.hostName = meta.hostname;
   networking.networkmanager.enable = true;

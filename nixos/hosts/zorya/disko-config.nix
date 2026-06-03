@@ -8,10 +8,17 @@
         content = {
           type = "gpt";
           partitions = {
-            ESP = {
+            BIOS = {
               priority = 1;
-              name = "ESP";
+              name = "BIOS";
               start = "1M";
+              end = "2M";
+              type = "EF02";
+            };
+            ESP = {
+              priority = 2;
+              name = "ESP";
+              start = "2M";
               end = "1G";
               type = "EF00";
               content = {

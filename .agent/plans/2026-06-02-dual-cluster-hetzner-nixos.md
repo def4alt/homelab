@@ -20,6 +20,7 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 - [x] (2026-06-02 18:39Z) Validate the new NixOS flake and the new cluster overlays locally.
 - [x] (2026-06-02 18:39Z) Document the remaining manual apply steps and the operational limits caused by missing remote credentials in this plan and the README.
 - [x] (2026-06-03 07:55Z) Verify `zorya` from the Hetzner rescue environment, confirm the actual root-disk by-id path, and simplify the disk layout so `nixos-anywhere` does not depend on a missing attached volume.
+- [x] (2026-06-03 08:05Z) Diagnose the failed first boot from the Hetzner console screenshot, confirm the VM is booting with SeaBIOS rather than UEFI, and switch the Hetzner host to a BIOS-safe GRUB + EF02 layout.
 
 ## Surprises & Discoveries
 
@@ -38,6 +39,9 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 - Observation: The live Hetzner rescue environment for `zorya` currently exposes only one writable disk, and its root disk by-id path differs from the placeholder path used in the initial host file.
   Evidence: `ssh root@46.62.137.102 'lsblk -o NAME,MODEL,SIZE,TYPE,FSTYPE,MOUNTPOINTS,SERIAL; ls /dev/disk/by-id'` showed only the 76.3G QEMU root disk as `scsi-0QEMU_QEMU_HARDDISK_119416279` plus the rescue ISO, and no `scsi-0HC_Volume_*` device was present.
 
+- Observation: Hetzner Cloud is presenting `zorya` through SeaBIOS, so a pure `systemd-boot` EFI install hangs forever at "Booting from Hard Disk...".
+  Evidence: the Hetzner console screenshot showed `SeaBIOS (version 1.16.3-...)` immediately before the hang, and the first reinstall produced only an EFI System partition plus Btrfs root with no BIOS boot partition.
+
 ## Decision Log
 
 - Decision: Reuse `zorya` as the Hetzner hostname instead of inventing a new second-site host name.
@@ -54,6 +58,10 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 
 - Decision: Install `zorya` onto the verified root disk only and place `/var/lib/rancher` on a Btrfs subvolume until a dedicated Hetzner volume is actually present.
   Rationale: The rescue environment has no attached `HC_Volume` block device today, so keeping the previous two-disk layout would make `nixos-anywhere` fail before installation even starts.
+  Date/Author: 2026-06-03 / Codex
+
+- Decision: Boot `zorya` with GRUB on GPT + EF02 instead of `systemd-boot`.
+  Rationale: The host currently comes up under SeaBIOS, not UEFI, so BIOS-safe GRUB is the reliable option for this Hetzner VM.
   Date/Author: 2026-06-03 / Codex
 
 ## Outcomes & Retrospective
