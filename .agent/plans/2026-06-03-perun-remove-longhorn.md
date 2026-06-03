@@ -16,7 +16,7 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - [x] (2026-06-03 14:10Z) Identify the repo files that currently force the home cluster to depend on Longhorn.
 - [x] (2026-06-03 14:48Z) Complete the `pi-hole` prototype migration: copy data into local claims, restart on the new claims, validate DNS and the web UI path, and prune the old GitOps-managed Longhorn PVCs.
 - [x] (2026-06-03 14:24Z) Add the replacement storage layer scaffold to the repo and re-enable k3s local-path support in `perun`'s NixOS config.
-- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover (completed: Grafana migrated to a local claim and its old Longhorn PVC is gone; staged local PV/PVC exists for Minecraft; remaining: Home Assistant app state, Prometheus, Minecraft cutover, and all CNPG data PVCs).
+- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover (completed: `pi-hole`, Grafana, and Home Assistant application state are on local claims; staged local PV/PVC exists for Minecraft; remaining: Prometheus, Minecraft cutover, and all CNPG data PVCs).
 - [x] (2026-06-03 14:55Z) Add Barman ObjectStore and ScheduledBackup coverage for `home-assistant-db` and `juicefs-db` so CNPG migrations have a restore path before cutover.
 - [ ] Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
 - [ ] Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
@@ -44,6 +44,9 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - Observation: The live Minecraft release appears intentionally or manually scaled down, even though the repo still says `replicaCount: 1`.
   Evidence: `kubectl -n minecraft get deployment minecraft -o yaml` showed `replicas: 0`, and the live `HelmRelease` data also showed `replicaCount: 0` during inspection.
 
+- Observation: Home Assistant can be cut over safely by switching the chart from `StatefulSet` mode to `Deployment` mode with an `existingClaim`.
+  Evidence: After the repo change, Helm deleted the old StatefulSet, created `deployment.apps/home-assistant`, mounted `home-assistant-config-local`, and `wget http://127.0.0.1:8123/` inside the pod returned `HTTP/1.1 200 OK`.
+
 ## Decision Log
 
 - Decision: Treat this as a staged migration, not an uninstall-first cleanup.
@@ -70,9 +73,13 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
   Rationale: The repo says `replicaCount: 1`, but the live cluster is currently at `replicaCount: 0`; forcing a storage cutover before resolving that drift could accidentally start the server.
   Date/Author: 2026-06-03 / Codex
 
+- Decision: Migrate Home Assistant's application state separately from its PostgreSQL database by switching the chart to `Deployment` mode with `persistence.existingClaim`.
+  Rationale: The app state claim was small and chart-managed, while the CNPG database claim is a separate higher-risk migration. Splitting them reduces scope and proved the chart can run from a local claim without waiting for the database migration strategy to be finalized.
+  Date/Author: 2026-06-03 / Codex
+
 ## Outcomes & Retrospective
 
-Partial outcome on 2026-06-03: the migration method is proven for Deployment-based workloads. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. The plan still has major remaining work: Home Assistant application state, Prometheus, Minecraft, and all CNPG data PVCs are not yet off Longhorn.
+Partial outcome on 2026-06-03: the migration method is proven for multiple workload shapes. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. Home Assistant now runs as a Deployment from `home-assistant-config-local`, and the old Longhorn config PVC has been deleted after being copied. The plan still has major remaining work: Prometheus, Minecraft, and all CNPG data PVCs are not yet off Longhorn.
 
 ## Context and Orientation
 
@@ -114,6 +121,7 @@ Current status update on 2026-06-03:
 
 - `pi-hole` now runs from `pihole-etc-local` and `pihole-dnsmasq-local`; the old Longhorn PVs are retained and released.
 - Grafana now runs from `monitoring-grafana-local`; the old `monitoring-grafana` Longhorn PVC is gone.
+- Home Assistant now runs from `home-assistant-config-local`; the old `home-assistant-home-assistant-0` Longhorn PVC is gone and its PV is retained/released.
 - `minecraft-datadir-local` has been staged but not cut over.
 
 The current non-Longhorn persistent claim that must not be disturbed is:
@@ -153,6 +161,8 @@ Migrate `home-assistant`, `minecraft`, and `monitoring` next. These apps rely on
 Prometheus deserves special care because its claim name is long and its actual data size is currently the largest single Longhorn dataset. Expect the migration copy to take longer. Grafana is low risk because dashboards are mostly GitOps-managed and admin credentials come from an existing secret, but its PVC should still be preserved.
 
 This milestone is complete when `kubectl get pvc -n home-assistant`, `-n minecraft`, and `-n infra` shows no Longhorn-backed PVCs for these workloads, and the apps restart successfully with their existing state.
+
+Status update on 2026-06-03: Grafana and Home Assistant application state have been migrated successfully, while Prometheus and Minecraft still remain on Longhorn or await cutover.
 
 ### Milestone 4: Migrate the CloudNativePG database claims
 
