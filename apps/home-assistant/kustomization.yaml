@@ -5,7 +5,6 @@ resources:
   - helmrepository.yaml
   - pvc-local.yaml
   - helmrelease.yaml
-  - postgres-cluster.yaml
   - postgres-cluster-local.yaml
   - barman-objectstore.yaml
   - scheduled-backup.yaml
