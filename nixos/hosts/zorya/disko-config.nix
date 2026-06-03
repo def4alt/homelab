@@ -12,13 +12,13 @@
               priority = 1;
               name = "BIOS";
               start = "1M";
-              end = "4M";
+              end = "8M";
               type = "EF02";
             };
             ESP = {
               priority = 2;
               name = "ESP";
-              start = "4M";
+              start = "16M";
               end = "1G";
               type = "EF00";
               content = {
