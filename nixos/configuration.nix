@@ -1,7 +1,7 @@
 { lib, pkgs, meta, ... }:
 
 let
-  authorizedKeys = [
+  defaultAuthorizedKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFh6m4qX4U4sYAI+ngMuLACi4pqSz2pNjdPcB8aEzD6k"
   ];
 
@@ -9,7 +9,7 @@ let
     isNormalUser = true;
     extraGroups = meta.userGroups;
     packages = with pkgs; [ tree ];
-    openssh.authorizedKeys.keys = authorizedKeys;
+    openssh.authorizedKeys.keys = meta.authorizedKeys or defaultAuthorizedKeys;
   } // lib.optionalAttrs (meta ? hashedPassword) {
     hashedPassword = meta.hashedPassword;
   };

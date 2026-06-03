@@ -164,3 +164,4 @@ The new host name must be `zorya`, and the second cluster path must be `clusters
 Change note: Initial plan created to add a second NixOS host (`zorya`) and a second Flux cluster tree (`clusters/hetzner`) without yet migrating application placement or performing remote installation.
 Change note: Updated after implementation to record the completed repository refactor, local validation results, and the remaining manual apply steps.
 Change note: Updated after removing the obsolete `hetzner-hermes/` Ubuntu bootstrap so the plan no longer points at deleted files.
+Change note: Updated after regenerating `zorya` hardware config from the live Hetzner installer, switching the disko whole-disk target to `/dev/sda`, and assigning the Hetzner SSH key to `zorya`.
