@@ -21,7 +21,7 @@ The first visible outcome is that `blog` serves from Hetzner without changing th
 - [x] (2026-06-03 08:05Z) Implement Wave 3 by adding `glance` to Hetzner with a Hetzner-specific storage patch that avoids Longhorn.
 - [x] (2026-06-03 08:06Z) Implement Wave 4 by adding `paperless` to Hetzner with Hetzner-specific storage patches that avoid Longhorn while keeping its own Postgres and Redis topology.
 - [x] (2026-06-03 08:06Z) Validate the staged Hetzner deployments on the live cluster: `blog`, `authentik`, `glance`, `paperless`, `cnpg`, and `traefik-auth` all reconcile successfully.
-- [ ] Plan and execute public traffic cutover, then remove Hetzner-owned apps from `clusters/home/overlays/kustomization.yaml`.
+- [x] (2026-06-03 09:08Z) Execute public traffic cutover by routing `def4alt.com`, `auth.def4alt.com`, `dashboard.def4alt.com`, and `papers.def4alt.com` through the existing Cloudflare tunnel to the Hetzner origin, then remove Hetzner-owned apps from `clusters/home/overlays/kustomization.yaml`.
 - [x] (2026-06-03 08:07Z) Update `README.md` so the public-app placement and staged cutover are obvious to a novice operator.
 
 ## Surprises & Discoveries
@@ -43,6 +43,9 @@ The first visible outcome is that `blog` serves from Hetzner without changing th
 
 - Observation: staging `authentik` on Hetzner while the hostname is still owned by the current public path makes the managed `Certificate/authentik-tls` a poor readiness gate.
   Evidence: the Hetzner `authentik` Kustomization stalled on `Certificate/authentik-tls` while `authentik-server`, `authentik-worker`, and `authentik-db` were already healthy; `kubectl describe certificate authentik-tls` showed repeated ACME order errors even though the application itself was up.
+
+- Observation: removing home-cluster `authentik` ownership is not only a hostname move; the remaining home apps still need forward-auth.
+  Evidence: `clusters/home/overlays/apps/home-assistant.yaml`, `pi-hole.yaml`, and `immich.yaml` all depended on `authentik`, and public checks only stayed healthy after the home Traefik middleware was switched to the Hetzner public Authentik endpoint.
 
 ## Decision Log
 
@@ -80,7 +83,9 @@ At plan creation time, the Hetzner cluster already has the minimal edge infrastr
 
 The main lesson from the bootstrap work is that “shared app directory” does not automatically mean “safe for both clusters.” The migration must be explicit about which directories are cluster-neutral and which need Hetzner-specific wrappers.
 
-After the first implementation pass, the repository now contains Hetzner-specific overlay objects for all selected public apps plus Hetzner wrappers for storage and Authentik middleware scope. The live Hetzner cluster now has `blog`, `authentik`, `glance`, `paperless`, `cnpg`, and `traefik-auth` reconciled successfully. The remaining work is public traffic cutover and the later removal of those apps from the home cluster overlays.
+After the first implementation pass, the repository now contains Hetzner-specific overlay objects for all selected public apps plus Hetzner wrappers for storage and Authentik middleware scope. The live Hetzner cluster now has `blog`, `authentik`, `glance`, `paperless`, `cnpg`, and `traefik-auth` reconciled successfully.
+
+The traffic cutover is now complete. Cloudflare keeps the same public proxy layer, but the tunnel now forwards `def4alt.com`, `auth.def4alt.com`, `dashboard.def4alt.com`, and `papers.def4alt.com` to the Hetzner node origin. The home overlay no longer owns `blog`, `authentik`, `glance`, or `paperless`. The remaining notable operational detail is that home-bound apps such as Home Assistant, Pi-hole, and Immich now authenticate against the public Authentik endpoint hosted on Hetzner rather than a home-local Authentik deployment.
 
 ## Context and Orientation
 
@@ -236,3 +241,4 @@ Change note: Initial plan created to move selected public apps (`blog`, `authent
 Change note: Updated after adding the Hetzner app overlay scaffolding and discovering that Cloudflare-proxied public DNS requires staged deployment before removing home-cluster ownership.
 Change note: Updated after the first live Hetzner app rollout to exclude the Authentik certificate from staged reconciliation so application health can converge before public cutover.
 Change note: Updated after the staged Hetzner app set (`blog`, `authentik`, `glance`, `paperless`) reconciled successfully and the README was revised to describe the split and the remaining traffic-cutover step.
+Change note: Updated after Cloudflare cutover and home-overlay pruning completed, with home protected apps switched to the Hetzner Authentik public endpoint.
