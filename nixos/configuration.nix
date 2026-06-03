@@ -95,6 +95,8 @@ in {
   services.k3s = {
     enable = true;
     role = "server";
+    token = meta.k3sToken or "";
+    tokenFile = meta.k3sTokenFile or null;
     extraFlags = toString ([
       "--write-kubeconfig-mode \"0644\""
       "--cluster-init"

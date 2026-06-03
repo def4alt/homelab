@@ -166,3 +166,4 @@ Change note: Updated after implementation to record the completed repository ref
 Change note: Updated after removing the obsolete `hetzner-hermes/` Ubuntu bootstrap so the plan no longer points at deleted files.
 Change note: Updated after regenerating `zorya` hardware config from the live Hetzner installer, switching the disko whole-disk target to `/dev/sda`, and assigning the Hetzner SSH key to `zorya`.
 Change note: Updated `zorya` to use the same hashed password as `perun` and removed the invalid shared `services.k3s.tokenFile` setting so single-node cluster init can complete after install.
+Change note: Updated the shared k3s config to support per-host `token` / `tokenFile`, and temporarily set a literal bootstrap token on `zorya` for installation.

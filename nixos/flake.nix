@@ -65,6 +65,7 @@
             useGrub = true;
             firewallEnable = true;
             firewallTCPPorts = [ 22 80 443 ];
+            k3sToken = "358b19191dd36cf82e31d656b20bbfe8f3698912f042c53a";
             k3sExtraFlags = [ ];
           };
           modules = [
