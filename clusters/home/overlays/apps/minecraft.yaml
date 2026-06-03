@@ -12,7 +12,7 @@ spec:
     name: flux-system
   dependsOn:
     - name: namespaces
-    - name: longhorn
+    - name: local-storage
     - name: metallb-config
   timeout: 10m
   wait: true
