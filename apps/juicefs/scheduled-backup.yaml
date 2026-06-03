@@ -7,7 +7,7 @@ spec:
   schedule: "0 15 20 * * 4"
   backupOwnerReference: self
   cluster:
-    name: juicefs-db
+    name: juicefs-db-local
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
