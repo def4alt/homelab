@@ -14,9 +14,10 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 
 - [x] (2026-06-03 14:10Z) Audit the current Longhorn footprint on `perun`, including storage classes, bound claims, and host disk headroom.
 - [x] (2026-06-03 14:10Z) Identify the repo files that currently force the home cluster to depend on Longhorn.
-- [ ] Prototype one low-risk migration path on `pi-hole` to prove that copying from a mounted Longhorn volume into a host-backed replacement volume survives a pod restart.
+- [x] (2026-06-03 14:48Z) Complete the `pi-hole` prototype migration: copy data into local claims, restart on the new claims, validate DNS and the web UI path, and prune the old GitOps-managed Longhorn PVCs.
 - [x] (2026-06-03 14:24Z) Add the replacement storage layer scaffold to the repo and re-enable k3s local-path support in `perun`'s NixOS config.
-- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover.
+- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover (completed: Grafana migrated to a local claim and its old Longhorn PVC is gone; staged local PV/PVC exists for Minecraft; remaining: Home Assistant app state, Prometheus, Minecraft cutover, and all CNPG data PVCs).
+- [x] (2026-06-03 14:55Z) Add Barman ObjectStore and ScheduledBackup coverage for `home-assistant-db` and `juicefs-db` so CNPG migrations have a restore path before cutover.
 - [ ] Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
 - [ ] Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
 
@@ -37,6 +38,12 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - Observation: The safest first GitOps step is to add replacement PVCs alongside the old ones rather than mutating existing PVCs in place.
   Evidence: Changing `spec.storageClassName` on an existing PVC is immutable, so direct in-place Flux edits would fail; the repo scaffold now adds `apps/pi-hole/pvc-local.yaml` and `apps/local-storage/pv-pihole.yaml` without touching the live Longhorn claims yet.
 
+- Observation: `pi-hole` and Grafana can be migrated with new claim names while the old Longhorn claims remain intact until validation is complete.
+  Evidence: `pi-hole` now runs on `pihole-etc-local` and `pihole-dnsmasq-local`, and `monitoring-grafana` now runs on `monitoring-grafana-local`; both workloads restarted successfully after a copy pod populated the new claims.
+
+- Observation: The live Minecraft release appears intentionally or manually scaled down, even though the repo still says `replicaCount: 1`.
+  Evidence: `kubectl -n minecraft get deployment minecraft -o yaml` showed `replicas: 0`, and the live `HelmRelease` data also showed `replicaCount: 0` during inspection.
+
 ## Decision Log
 
 - Decision: Treat this as a staged migration, not an uninstall-first cleanup.
@@ -55,9 +62,17 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
   Rationale: Static PVs give each migrated dataset a stable host directory and avoid guessing where dynamic provisioners place copied data, while re-enabling local-path keeps the cluster usable after Longhorn is removed.
   Date/Author: 2026-06-03 / Codex
 
+- Decision: For Deployment-based workloads, prefer a new local PVC name over trying to mutate or recycle the original Longhorn PVC in place.
+  Rationale: This avoids immutable PVC fields, lets the old Longhorn claim stay available until validation passes, and works cleanly with both `pi-hole` and Grafana.
+  Date/Author: 2026-06-03 / Codex
+
+- Decision: Do not cut over Minecraft until its desired replica state is understood and preserved.
+  Rationale: The repo says `replicaCount: 1`, but the live cluster is currently at `replicaCount: 0`; forcing a storage cutover before resolving that drift could accidentally start the server.
+  Date/Author: 2026-06-03 / Codex
+
 ## Outcomes & Retrospective
 
-Pending. This section will be updated after the prototype migration and again after the final Longhorn removal.
+Partial outcome on 2026-06-03: the migration method is proven for Deployment-based workloads. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. The plan still has major remaining work: Home Assistant application state, Prometheus, Minecraft, and all CNPG data PVCs are not yet off Longhorn.
 
 ## Context and Orientation
 
@@ -80,9 +95,10 @@ The relevant repository files are:
 - `apps/pi-hole/pvc.yaml` declares two direct Longhorn PVCs.
 - `apps/minecraft/helmrelease.yaml` stores the Minecraft datadir on Longhorn.
 - `apps/monitoring/helmrelease.yaml` stores Grafana and Prometheus data on Longhorn.
+- `apps/local-storage/` now contains the migration-time static PV definitions and the `manual-local` StorageClass.
 - `apps/namespaces/kustomization.yaml` includes `namespace-longhorn-system.yaml`, which will be removed at the end.
 
-The current live Longhorn-backed claims on `perun` are:
+The current live Longhorn-backed claims on `perun` began as:
 
 - `home-assistant/home-assistant-db-1` — 25Gi claim, about 21.6Gi actual Longhorn data.
 - `home-assistant/home-assistant-home-assistant-0` — 10Gi claim, about 0.63Gi actual Longhorn data.
@@ -93,6 +109,12 @@ The current live Longhorn-backed claims on `perun` are:
 - `minecraft/minecraft-datadir` — 20Gi claim, about 1.68Gi actual Longhorn data.
 - `pi-hole/pihole-etc` — 2Gi claim, about 0.60Gi actual Longhorn data.
 - `pi-hole/pihole-dnsmasq` — 1Gi claim, about 0.10Gi actual Longhorn data.
+
+Current status update on 2026-06-03:
+
+- `pi-hole` now runs from `pihole-etc-local` and `pihole-dnsmasq-local`; the old Longhorn PVs are retained and released.
+- Grafana now runs from `monitoring-grafana-local`; the old `monitoring-grafana` Longhorn PVC is gone.
+- `minecraft-datadir-local` has been staged but not cut over.
 
 The current non-Longhorn persistent claim that must not be disturbed is:
 
@@ -186,7 +208,7 @@ All commands run from `/Users/def4alt/source/homelab` unless another directory i
 
    and verify it renders successfully.
 
-   Evidence already captured for the first scaffold round:
+   Evidence already captured for the scaffold and early migrations:
 
     $ kubectl kustomize clusters/home >/tmp/home-kustomize.out && echo OK-home
     OK-home
@@ -194,11 +216,7 @@ All commands run from `/Users/def4alt/source/homelab` unless another directory i
     $ kubectl kustomize apps/pi-hole >/tmp/pihole-kustomize.out && echo OK-pihole
     OK-pihole
 
-5. Before rebuilding `perun`, commit and push the repo revision that contains the new NixOS and GitOps manifests.
-
-    kubectl kustomize clusters/home >/tmp/home-after-edit.yaml
-
-   and verify it renders successfully.
+    $ kubectl kustomize apps/monitoring >/tmp/monitoring-kustomize.out
 
 5. Before rebuilding `perun`, commit and push the repo revision that contains the new NixOS and GitOps manifests.
 

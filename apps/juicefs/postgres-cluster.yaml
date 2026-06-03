@@ -15,3 +15,8 @@ spec:
     size: 10Gi
   monitoring:
     enablePodMonitor: true
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: cnpg-barman-s3
