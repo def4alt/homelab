@@ -3,8 +3,10 @@
     disk = {
       main = {
         type = "disk";
-        # Verified from the 2026-06-03 Hetzner rescue environment on 46.62.137.102.
-        device = "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_119416279";
+        # Verified from the 2026-06-03 Hetzner NixOS installer on 46.62.137.102.
+        # Disko needs a whole-disk target here; labels only exist after partitioning.
+        # Use the single detected install disk and keep mounted partitions referenced by partlabel.
+        device = "/dev/sda";
         content = {
           type = "gpt";
           partitions = {

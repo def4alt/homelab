@@ -36,8 +36,8 @@ The observable proof for the repository work is local: `nix flake show ./nixos` 
 - Observation: The existing Flux bootstrap manifests are generic enough to reuse for a second cluster with only the Git path changed.
   Evidence: Copying `clusters/home/flux-system/gotk-components.yaml` verbatim and changing only `gotk-sync.yaml.spec.path` to `./clusters/hetzner` still allowed `kubectl kustomize clusters/hetzner` to render successfully.
 
-- Observation: The live Hetzner rescue environment for `zorya` currently exposes only one writable disk, and its root disk by-id path differs from the placeholder path used in the initial host file.
-  Evidence: `ssh root@46.62.137.102 'lsblk -o NAME,MODEL,SIZE,TYPE,FSTYPE,MOUNTPOINTS,SERIAL; ls /dev/disk/by-id'` showed only the 76.3G QEMU root disk as `scsi-0QEMU_QEMU_HARDDISK_119416279` plus the rescue ISO, and no `scsi-0HC_Volume_*` device was present.
+- Observation: The live Hetzner installer environment for `zorya` currently exposes only one writable install disk as `sda`, plus the mounted NixOS ISO as `sr0`.
+  Evidence: `ssh nixos@46.62.137.102 'lsblk -o NAME,SIZE,TYPE,FSTYPE,LABEL,PARTLABEL,MOUNTPOINTS; ls -l /dev/disk/by-path'` showed `sda` with `disk-main-BIOS`, `disk-main-ESP`, and `disk-main-root`, and no second writable data disk.
 
 - Observation: Hetzner Cloud is presenting `zorya` through SeaBIOS, so a pure `systemd-boot` EFI install hangs forever at "Booting from Hard Disk...".
   Evidence: the Hetzner console screenshot showed `SeaBIOS (version 1.16.3-...)` immediately before the hang, and the first reinstall produced only an EFI System partition plus Btrfs root with no BIOS boot partition.
