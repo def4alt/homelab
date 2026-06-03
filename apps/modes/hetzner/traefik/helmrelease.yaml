@@ -15,10 +15,8 @@ spec:
   values:
     deployment:
       replicas: 1
-      dnsPolicy: ClusterFirstWithHostNet
     updateStrategy:
       type: Recreate
-    hostNetwork: true
     resources:
       requests:
         cpu: 50m
@@ -26,10 +24,6 @@ spec:
       limits:
         cpu: 500m
         memory: 256Mi
-    securityContext:
-      capabilities:
-        add:
-          - NET_BIND_SERVICE
     service:
       type: ClusterIP
     ports:
