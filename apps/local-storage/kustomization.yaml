@@ -8,3 +8,4 @@ resources:
   - pv-home-assistant-config.yaml
   - pv-juicefs-db-local.yaml
   - pv-home-assistant-db-local.yaml
+  - pv-immich-db-local.yaml

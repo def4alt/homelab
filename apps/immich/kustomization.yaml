@@ -11,6 +11,7 @@ resources:
   - redis-deployment.yaml
   - redis-service.yaml
   - postgres-cluster.yaml
+  - postgres-cluster-local.yaml
   - barman-objectstore.yaml
   - database.yaml
   - scheduled-backup.yaml
