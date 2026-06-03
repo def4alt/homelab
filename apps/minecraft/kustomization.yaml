@@ -3,5 +3,6 @@ kind: Kustomization
 namespace: minecraft
 resources:
   - priorityclass.yaml
+  - pvc-local.yaml
   - helmrepository.yaml
   - helmrelease.yaml
