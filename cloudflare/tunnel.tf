@@ -18,12 +18,12 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
       for_each = local.public_hostnames_sorted
       content {
         hostname = ingress_rule.value
-        service  = var.tunnel_origin_url
+        service  = local.public_origin_by_hostname[ingress_rule.value].service
 
         origin_request {
           http_host_header   = ingress_rule.value
           origin_server_name = ingress_rule.value
-          no_tls_verify      = false
+          no_tls_verify      = local.public_origin_by_hostname[ingress_rule.value].no_tls_verify
         }
       }
     }

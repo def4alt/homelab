@@ -65,6 +65,16 @@ data:
           negate: false
           failure_result: false
 
+      - model: authentik_outposts.kubernetesserviceconnection
+        id: service-connection-local-kubernetes
+        identifiers:
+          name: Local Kubernetes Cluster
+        attrs:
+          name: Local Kubernetes Cluster
+          local: true
+          verify_ssl: true
+          kubeconfig: {}
+
       - model: authentik_outposts.outpost
         id: outpost-traefik-forward-auth
         identifiers:
@@ -72,6 +82,7 @@ data:
         attrs:
           name: Traefik Forward Auth Outpost
           type: proxy
+          service_connection: !KeyOf service-connection-local-kubernetes
           providers:
             - !KeyOf provider-traefik-forward-auth
           config:
