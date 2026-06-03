@@ -41,6 +41,9 @@ The first visible outcome is that `blog` serves from Hetzner without changing th
 - Observation: public DNS for the selected hostnames is still Cloudflare-proxied, so merely adding an app to Hetzner does not guarantee external traffic reaches the Hetzner cluster yet.
   Evidence: `dig +short def4alt.com A` and the related hostnames returned Cloudflare proxy IPs (`104.21.27.250`, `172.67.143.208`), not the Hetzner node IP `46.62.137.102`.
 
+- Observation: staging `authentik` on Hetzner while the hostname is still owned by the current public path makes the managed `Certificate/authentik-tls` a poor readiness gate.
+  Evidence: the Hetzner `authentik` Kustomization stalled on `Certificate/authentik-tls` while `authentik-server`, `authentik-worker`, and `authentik-db` were already healthy; `kubectl describe certificate authentik-tls` showed repeated ACME order errors even though the application itself was up.
+
 ## Decision Log
 
 - Decision: Keep `minecraft` on `perun` during this migration.
@@ -65,6 +68,10 @@ The first visible outcome is that `blog` serves from Hetzner without changing th
 
 - Decision: Stage Hetzner app reconciliation before removing the same apps from the home cluster.
   Rationale: The public hostnames are still fronted by Cloudflare, so repository ownership and live traffic cutover are not the same operation. Running the apps on Hetzner first de-risks the later routing change.
+  Date/Author: 2026-06-03 / Codex
+
+- Decision: Use a Hetzner-specific Authentik wrapper that excludes the managed certificate during the staging phase.
+  Rationale: The cluster still needs the Authentik application and outpost for forward-auth, but the certificate should not block reconciliation before traffic cutover is ready.
   Date/Author: 2026-06-03 / Codex
 
 ## Outcomes & Retrospective
@@ -227,3 +234,4 @@ The migration relies on these repository interfaces:
 
 Change note: Initial plan created to move selected public apps (`blog`, `authentik`, `glance`, `paperless`) to the Hetzner cluster while explicitly keeping `minecraft` on the home cluster.
 Change note: Updated after adding the Hetzner app overlay scaffolding and discovering that Cloudflare-proxied public DNS requires staged deployment before removing home-cluster ownership.
+Change note: Updated after the first live Hetzner app rollout to exclude the Authentik certificate from staged reconciliation so application health can converge before public cutover.

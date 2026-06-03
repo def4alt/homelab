@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./apps/authentik
+  path: ./apps/modes/hetzner/authentik
   prune: true
   sourceRef:
     kind: GitRepository
