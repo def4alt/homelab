@@ -20,6 +20,10 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - [x] (2026-06-03 14:55Z) Add Barman ObjectStore and ScheduledBackup coverage for `home-assistant-db` and `juicefs-db` so CNPG migrations have a restore path before cutover.
 - [ ] Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
 - [ ] Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
+- [x] (2026-06-09 08:55Z) Re-audit the live cluster after the stalled cutover and confirm the remaining Longhorn-backed claims (`minecraft-datadir`, `juicefs-db-1`, `immich-db-1`, and Prometheus) plus the current degraded workloads.
+- [x] (2026-06-09 08:55Z) Capture a machine-local safety backup of the live Minecraft Longhorn claim before changing its Helm storage binding. The backup is stored under `.agent/backups/minecraft-manual-20260609-105148/`.
+- [x] (2026-06-09 08:59Z) Complete the Minecraft cutover by copying the live Longhorn data into `minecraft-datadir-local`, updating the HelmRelease to mount the local PVC, and preserving the live desired replica state of `0` until an explicit restart is requested.
+- [ ] Recover JuiceFS metadata by treating the preserved Longhorn data as the source of truth, restoring it into a clean local CNPG cluster, then repointing the JuiceFS secret and validating that Immich mounts `immich-library-juicefs` again.
 
 ## Surprises & Discoveries
 
@@ -49,6 +53,18 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 
 - Observation: The JuiceFS metadata migration is riskier than the other CNPG cutovers because the mounted filesystem can leave behind stale mount pods and a local CNPG restore can be harder to recover once the metadata service starts flapping.
   Evidence: After switching `juicefs-auth.metaurl` to `juicefs-db-local-rw`, the stale mount pod in `kube-system` blocked remounts, and later `juicefs-db-local-1` entered `CrashLoopBackOff` with `PANIC: could not locate a valid checkpoint record at 0/60002C8`.
+
+- Observation: The Minecraft local PVC scaffold exists and is bound, but it is still empty while the live Longhorn claim contains the real server data.
+  Evidence: A backup reader pod copied about `923M` from `minecraft-datadir` into `.agent/backups/minecraft-manual-20260609-105148/longhorn`, while the mounted `minecraft-datadir-local` claim archived to only about `1.5K`.
+
+- Observation: The local Minecraft PVC now contains the copied server data and matches the live Longhorn dataset closely enough for a stopped-server cutover.
+  Evidence: A migration pod reported `924.6M` on `/mnt/longhorn` and `922.9M` on `/mnt/local` after `cp -a`, and `cmp -s /mnt/longhorn/server.properties /mnt/local/server.properties` succeeded.
+
+- Observation: The live Helm release for Minecraft is intentionally scaled to zero even though the repository still says `replicaCount: 1`.
+  Evidence: `kubectl -n minecraft get helmrelease minecraft -o yaml` showed `spec.values.replicaCount: 0`, while `apps/minecraft/helmrelease.yaml` still declares `replicaCount: 1`.
+
+- Observation: The old Longhorn-backed JuiceFS volume still contains a preserved pre-failure PostgreSQL data directory in addition to the fresh empty initdb directory created during the failed cutover.
+  Evidence: `pg_controldata` on `/mnt/data/pgdata_20260603T164229Z` from the `juicefs-db-1` PVC reported a shut down cluster with system identifier `7630368090983460886`, high checkpoint LSN `14/D0000028`, and transaction counters far beyond the fresh empty `pgdata` directory.
 
 ## Decision Log
 
@@ -84,9 +100,23 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
   Rationale: The attempted local-cluster cutover left `juicefs-db-local` unstable and prevented Immich from mounting the JuiceFS volume reliably. Preserving recoverability is more important than forcing that migration through in one pass.
   Date/Author: 2026-06-03 / Codex
 
+- Decision: Keep Minecraft at `replicaCount: 0` during the storage cutover and only switch the backing claim.
+  Rationale: The live cluster is intentionally stopped. Preserving that state avoids accidental server startup while still finishing the storage migration and making the repo match the live desired state.
+  Date/Author: 2026-06-09 / Codex
+
+- Decision: Use `persistence.dataDir.existingClaim` for Minecraft instead of dynamic provisioning on `manual-local`.
+  Rationale: The local PVC already exists and is pre-bound to a stable hostPath PV. Reusing it matches the migration pattern already proven for other single-node workloads and avoids replacing the chart's PVC name in-place.
+  Date/Author: 2026-06-09 / Codex
+
+- Decision: Recover JuiceFS metadata from the preserved Longhorn data rather than from the partially initialized local CNPG directory.
+  Rationale: The Longhorn claim still contains the last known good metadata directory, while the local copy is the one that later failed recovery and blocked Immich from mounting its media library.
+  Date/Author: 2026-06-09 / Codex
+
 ## Outcomes & Retrospective
 
 Partial outcome on 2026-06-03: the migration method is proven for multiple workload shapes. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. Home Assistant now runs as a Deployment from `home-assistant-config-local`, and both its app-state PVC and database PVC have been moved off Longhorn. The plan still has major remaining work: Prometheus, Minecraft, Immich DB, and a safe JuiceFS metadata migration path.
+
+Update on 2026-06-09: the cluster re-audit narrowed the remaining Longhorn use to four claims: `minecraft-datadir`, `juicefs-db-1`, `immich-db-1`, and the Prometheus data PVC. The Minecraft cutover can proceed safely now that a machine-local backup exists and the live desired state is confirmed to remain scaled down. The highest-risk remaining item is JuiceFS metadata recovery because Immich availability depends on it.
 
 ## Context and Orientation
 

@@ -21,7 +21,7 @@ spec:
     remediation:
       retries: 3
   values:
-    replicaCount: 1
+    replicaCount: 0
     resources:
       requests:
         cpu: 500m
@@ -45,7 +45,7 @@ spec:
         accessModes:
           - ReadWriteOnce
         Size: 20Gi
-        storageClass: longhorn
+        existingClaim: minecraft-datadir-local
     minecraftServer:
       eula: "TRUE"
       type: PAPER
