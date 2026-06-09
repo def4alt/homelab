@@ -12,12 +12,17 @@ After this change, the home cluster has a GitOps-managed Jellyfin deployment tha
 - [x] (2026-06-09) Confirm the Transmission downloads live on `transmission-data-local` in the `transmission` namespace.
 - [x] (2026-06-09) Add Jellyfin manifests, local storage, and Flux overlay wiring.
 - [x] (2026-06-09) Validate the new manifests with Kustomize and record follow-up risks.
+- [x] (2026-06-09) Inspect `perun` and confirm Intel `i915` hardware acceleration is available at `/dev/dri/renderD128`.
+- [ ] (2026-06-09) Add NixOS host support and Jellyfin pod device access for VAAPI transcoding.
+- [ ] (2026-06-09) Reconcile Jellyfin and rebuild `perun`, then verify hardware transcoding visibility live.
 
 ## Surprises & Discoveries
 
 - Kubernetes PVCs are namespace-scoped, so a Jellyfin pod in a separate namespace cannot directly mount `transmission-data-local`.
 - The existing Transmission workload already uses the `transmission` namespace, a `manual-local` PVC, and a hostPath-backed PV under `apps/local-storage/`.
 - The `transmission` Flux Kustomization is currently suspended in repo state, but the namespace and PVC ownership pattern remain valid for a second app.
+- `perun` already exposes `/dev/dri/card1` and `/dev/dri/renderD128`, and the kernel driver in use is Intel `i915`.
+- On `perun`, the relevant host group IDs are `video=26` and `render=303`, so the Jellyfin pod needs those supplemental groups to use the DRM devices safely.
 
 ## Decision Log
 
@@ -37,11 +42,21 @@ After this change, the home cluster has a GitOps-managed Jellyfin deployment tha
   Rationale: This follows the existing home-cluster pattern for protected public UIs while keeping the Jellyfin service itself as `ClusterIP`.
   Date/Author: 2026-06-09 / Codex
 
+- Decision: Use VAAPI through the host `/dev/dri` devices on `perun` instead of CPU-only transcoding.
+  Rationale: The node already has an Intel `i915` render device, which is the cleanest way to move beyond low-bitrate CPU transcodes.
+  Date/Author: 2026-06-09 / Codex
+
+- Decision: Enable Intel media userspace on `perun` via NixOS and mount `/dev/dri` into the Jellyfin pod with host-matching supplemental groups.
+  Rationale: Jellyfin needs both the host driver stack and container device access; doing only one side would leave hardware transcoding unavailable.
+  Date/Author: 2026-06-09 / Codex
+
 ## Outcomes & Retrospective
 
 The repo now contains a Jellyfin app under `apps/jellyfin`, a dedicated local PV for Jellyfin config, an ingress for `tv.def4alt.com`, and a Flux overlay entry under `clusters/home/overlays/apps/jellyfin.yaml`. Local validation succeeded for `apps/jellyfin`, `apps/local-storage`, and `clusters/home/overlays`.
 
 The remaining operational unknown is runtime behavior after Flux applies the change. Jellyfin should be able to read `/media/transmission` from the shared claim, but I have not yet verified the running pod, library scan behavior, or any first-run admin setup flow.
+
+Follow-up on 2026-06-09: `perun` is confirmed to have Intel `i915` graphics hardware exposed at `/dev/dri`. The next step is to wire VAAPI into both the host config and the Jellyfin deployment, then verify that Jellyfin can see the render device and use hardware transcoding.
 
 ## Context and Orientation
 

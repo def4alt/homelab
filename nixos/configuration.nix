@@ -14,6 +14,15 @@ let
     hashedPassword = meta.hashedPassword;
   };
 in {
+  hardware.graphics = lib.mkIf (meta.hostname == "perun") {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-compute-runtime
+      vpl-gpu-rt
+    ];
+  };
+
   nix = {
     extraOptions = ''
       experimental-features = nix-command flakes
@@ -119,6 +128,9 @@ in {
     cifs-utils
     nfs-utils
     git
+  ] ++ lib.optionals (meta.hostname == "perun") [
+    libva-utils
+    intel-gpu-tools
   ];
 
   services.openssh.enable = true;

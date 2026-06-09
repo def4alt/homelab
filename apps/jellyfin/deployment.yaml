@@ -13,6 +13,10 @@ spec:
       labels:
         app: jellyfin
     spec:
+      securityContext:
+        supplementalGroups:
+          - 26
+          - 303
       containers:
         - name: jellyfin
           image: lscr.io/linuxserver/jellyfin:latest
@@ -50,6 +54,8 @@ spec:
             - name: transmission-data
               mountPath: /media/transmission
               readOnly: true
+            - name: dri
+              mountPath: /dev/dri
       volumes:
         - name: jellyfin-config
           persistentVolumeClaim:
@@ -58,3 +64,7 @@ spec:
           persistentVolumeClaim:
             claimName: transmission-data-local
             readOnly: true
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
