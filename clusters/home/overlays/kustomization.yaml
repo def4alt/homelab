@@ -10,6 +10,7 @@ resources:
   - infra/metallb-config.yaml
   - infra/local-storage.yaml
   - infra/cnpg.yaml
+  - infra/traefik-auth.yaml
   - infra/juicefs.yaml
   - infra/monitoring.yaml
   - apps/pi-hole.yaml
