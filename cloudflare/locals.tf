@@ -26,6 +26,8 @@ locals {
 
   tailnet_hostnames = toset([
     "api-photos.${var.base_domain}",
+    "sonarr.${var.base_domain}",
+    "radarr.${var.base_domain}",
     "tv.${var.base_domain}",
   ])
 
@@ -33,6 +35,8 @@ locals {
 
   cname_overrides = {
     "api-photos.${var.base_domain}" = "perun.tail6f3b0.ts.net"
+    "radarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
+    "sonarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "tv.${var.base_domain}"         = "perun.tail6f3b0.ts.net"
   }
 

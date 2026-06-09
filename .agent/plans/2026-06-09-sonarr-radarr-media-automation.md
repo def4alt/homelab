@@ -38,7 +38,7 @@ After this change, the home cluster has GitOps-managed Sonarr and Radarr service
 
 This plan starts before the manifests exist. The expected repo outcome is new `apps/sonarr` and `apps/radarr` directories, two local PV definitions for app config, Flux overlays under `clusters/home/overlays/apps/`, and a small Jellyfin deployment adjustment if needed to make the managed library paths obvious.
 
-Implementation outcome on 2026-06-09: the repo now has `apps/sonarr` and `apps/radarr` with `Deployment`, `Service`, `PVC`, and `kustomization.yaml` files, plus two new local PV definitions under `apps/local-storage/`. Each app mounts its own config PVC at `/config` and the shared media PVC at `/data`. Init containers create `/data/media/tv`, `/data/media/movies`, and the expected download staging directories if they do not exist yet.
+Implementation outcome on 2026-06-09: the repo now has `apps/sonarr` and `apps/radarr` with `Deployment`, `Service`, `Ingress`, `PVC`, and `kustomization.yaml` files, plus two new local PV definitions under `apps/local-storage/`. Each app mounts its own config PVC at `/config` and the shared media PVC at `/data`. Init containers create `/data/media/tv`, `/data/media/movies`, and the expected download staging directories if they do not exist yet.
 
 ## Context and Orientation
 
@@ -53,6 +53,7 @@ Operational path convention for the apps:
 - Sonarr managed TV library target: `/data/media/tv`
 - Radarr managed movie library target: `/data/media/movies`
 - Jellyfin read-only view of the library roots: `/media/transmission/media/tv` and `/media/transmission/media/movies`
+- Private Arr UI hostnames: `sonarr.def4alt.com` and `radarr.def4alt.com`
 
 ## Plan of Work
 
@@ -98,6 +99,7 @@ After Flux reconciles the change, the expected outcomes are:
 - Each app has its own bound config PVC.
 - Each app mounts the shared Transmission PVC read-write at a consistent path.
 - Jellyfin can be pointed at curated library folders on that same PVC.
+- Sonarr and Radarr are reachable through private tailnet-backed hostnames.
 - No change weakens the existing Transmission VPN confinement model.
 
 Follow-up runtime work still needed after apply:
