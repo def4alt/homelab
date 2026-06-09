@@ -12,7 +12,6 @@ spec:
     name: flux-system
   dependsOn:
     - name: namespaces
-    - name: longhorn
   timeout: 15m
   wait: true
   decryption:

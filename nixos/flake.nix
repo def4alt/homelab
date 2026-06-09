@@ -31,8 +31,8 @@
             authorizedKeys = [
               "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFh6m4qX4U4sYAI+ngMuLACi4pqSz2pNjdPcB8aEzD6k"
             ];
-            enableLonghornHostTweaks = true;
-            enableOpeniscsi = true;
+            enableLonghornHostTweaks = false;
+            enableOpeniscsi = false;
             enableTailscalePublicTcp = true;
             enableQemuGuest = false;
             useGrub = false;

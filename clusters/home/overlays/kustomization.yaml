@@ -9,8 +9,6 @@ resources:
   - infra/metallb.yaml
   - infra/metallb-config.yaml
   - infra/local-storage.yaml
-  - infra/longhorn.yaml
-  - infra/longhorn-config.yaml
   - infra/cnpg.yaml
   - infra/juicefs.yaml
   - infra/monitoring.yaml

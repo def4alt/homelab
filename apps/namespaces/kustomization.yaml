@@ -9,7 +9,6 @@ resources:
   - namespace-pi-hole.yaml
   - namespace-paperless.yaml
   - namespace-home-assistant.yaml
-  - namespace-longhorn-system.yaml
   - namespace-immich.yaml
   - namespace-minecraft.yaml
   - namespace-juicefs.yaml
