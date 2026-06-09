@@ -7,6 +7,8 @@ spec:
   forwardAuth:
     address: http://traefik-home-forward-auth-outpost.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
+    addAuthCookiesToResponse:
+      - authentik_proxy_77c4bbb4
     authResponseHeaders:
       - X-authentik-username
       - X-authentik-groups
