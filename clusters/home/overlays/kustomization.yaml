@@ -17,3 +17,4 @@ resources:
   - apps/home-assistant.yaml
   - apps/immich.yaml
   - apps/minecraft.yaml
+  - apps/transmission.yaml

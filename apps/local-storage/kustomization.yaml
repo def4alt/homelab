@@ -10,3 +10,4 @@ resources:
   - pv-home-assistant-db-local.yaml
   - pv-immich-db-local.yaml
   - pv-monitoring-prometheus.yaml
+  - pv-transmission.yaml

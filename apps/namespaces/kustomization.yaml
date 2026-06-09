@@ -14,3 +14,4 @@ resources:
   - namespace-juicefs.yaml
   - namespace-glance.yaml
   - namespace-blog.yaml
+  - namespace-transmission.yaml

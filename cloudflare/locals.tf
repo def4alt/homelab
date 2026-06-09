@@ -9,6 +9,7 @@ locals {
     "pihole.${var.base_domain}",
     "home.${var.base_domain}",
     "projects.${var.base_domain}",
+    "sea.${var.base_domain}",
     var.base_domain,
   ])
 
