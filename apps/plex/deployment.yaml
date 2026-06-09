@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: transmission
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: Europe/Berlin
+            - name: VERSION
+              value: docker
+          ports:
+            - name: web
+              containerPort: 32400
+          readinessProbe:
+            tcpSocket:
+              port: 32400
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 32400
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: 2
+              memory: 2Gi
+          volumeMounts:
+            - name: plex-config
+              mountPath: /config
+            - name: plex-transcode
+              mountPath: /transcode
+            - name: transmission-data
+              mountPath: /media/transmission
+              readOnly: true
+      volumes:
+        - name: plex-config
+          persistentVolumeClaim:
+            claimName: plex-config-local
+        - name: plex-transcode
+          emptyDir: {}
+        - name: transmission-data
+          persistentVolumeClaim:
+            claimName: transmission-data-local
+            readOnly: true
