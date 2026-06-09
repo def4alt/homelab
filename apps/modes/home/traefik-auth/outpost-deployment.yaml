@@ -29,9 +29,27 @@ spec:
             - name: https
               containerPort: 9443
               protocol: TCP
-          envFrom:
-            - secretRef:
-                name: traefik-home-forward-auth-outpost-api
+          env:
+            - name: AUTHENTIK_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: traefik-home-forward-auth-outpost-api
+                  key: authentik_host
+            - name: AUTHENTIK_HOST_BROWSER
+              valueFrom:
+                secretKeyRef:
+                  name: traefik-home-forward-auth-outpost-api
+                  key: authentik_host_browser
+            - name: AUTHENTIK_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: traefik-home-forward-auth-outpost-api
+                  key: token
+            - name: AUTHENTIK_INSECURE
+              valueFrom:
+                secretKeyRef:
+                  name: traefik-home-forward-auth-outpost-api
+                  key: authentik_host_insecure
           resources:
             requests:
               cpu: 25m
