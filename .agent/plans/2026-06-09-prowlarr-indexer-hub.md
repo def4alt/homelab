@@ -9,14 +9,15 @@ After this change, the home cluster has a GitOps-managed Prowlarr deployment tha
 ## Progress
 
 - [x] (2026-06-09) Inspect the current Sonarr/Radarr layout and confirm the existing Arr stack is running in the `transmission` namespace.
-- [ ] (2026-06-09) Add Prowlarr manifests, local config storage, and Flux overlay wiring.
-- [ ] (2026-06-09) Add a private tailnet-style hostname for Prowlarr.
-- [ ] (2026-06-09) Reconcile the live cluster and connect Prowlarr to Sonarr and Radarr.
+- [x] (2026-06-09) Add Prowlarr manifests, local config storage, and Flux overlay wiring.
+- [x] (2026-06-09) Add a private tailnet-style hostname for Prowlarr.
+- [x] (2026-06-09) Reconcile the live cluster and connect Prowlarr to Sonarr and Radarr.
 
 ## Surprises & Discoveries
 
 - Sonarr and Radarr are already live with app API keys generated in their persisted config volumes, so Prowlarr can be linked to them after deployment without adding new secrets to Git.
 - The private hostname pattern already exists for `tv.def4alt.com`, `sonarr.def4alt.com`, and `radarr.def4alt.com`, so Prowlarr should follow the same tailnet-backed CNAME approach.
+- Prowlarr's application API wants Arr-side `baseUrl` values that are resolvable from inside the cluster, so the correct links are `http://sonarr:8989` and `http://radarr:7878` rather than the external hostnames.
 
 ## Decision Log
 
@@ -34,7 +35,9 @@ After this change, the home cluster has a GitOps-managed Prowlarr deployment tha
 
 ## Outcomes & Retrospective
 
-This plan starts before the Prowlarr manifests exist. The expected repo outcome is a new `apps/prowlarr` directory, one local PV definition for config, a Flux overlay under `clusters/home/overlays/apps/`, and a Cloudflare tailnet hostname entry for the private UI.
+The repo now includes a new `apps/prowlarr` app directory, `apps/local-storage/pv-prowlarr-config.yaml`, `clusters/home/overlays/apps/prowlarr.yaml`, and a `prowlarr.${var.base_domain}` private tailnet-style DNS entry in `cloudflare/locals.tf`. The rollout is live in the `transmission` namespace with a bound config PVC, a ready TLS certificate, and a working private hostname at `https://prowlarr.def4alt.com`.
+
+Runtime wiring is also complete: Prowlarr has live application links to Sonarr and Radarr, using cluster-local URLs and the existing Arr API keys stored in their config volumes. Indexers still need to be added in Prowlarr before automatic search or RSS sync can work across the stack.
 
 ## Context and Orientation
 
