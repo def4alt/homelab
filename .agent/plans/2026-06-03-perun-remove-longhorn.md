@@ -16,14 +16,16 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - [x] (2026-06-03 14:10Z) Identify the repo files that currently force the home cluster to depend on Longhorn.
 - [x] (2026-06-03 14:48Z) Complete the `pi-hole` prototype migration: copy data into local claims, restart on the new claims, validate DNS and the web UI path, and prune the old GitOps-managed Longhorn PVCs.
 - [x] (2026-06-03 14:24Z) Add the replacement storage layer scaffold to the repo and re-enable k3s local-path support in `perun`'s NixOS config.
-- [ ] Migrate application data off Longhorn, one workload at a time, with validation after each cutover (completed: `pi-hole`, Grafana, Home Assistant application state, and Home Assistant DB are on local claims; JuiceFS metadata and Immich DB migrations were attempted but not completed cleanly; remaining: Prometheus, Minecraft cutover, Immich DB finalization, and a safe JuiceFS metadata migration path).
+- [x] (2026-06-09 11:00Z) Migrate application data off Longhorn, one workload at a time, with validation after each cutover (`pi-hole`, Grafana, Home Assistant application state, Home Assistant DB, Minecraft, JuiceFS metadata, Immich DB, and Prometheus are now running from local storage or other non-Longhorn storage; preserved Longhorn PVs remain retained for rollback data).
 - [x] (2026-06-03 14:55Z) Add Barman ObjectStore and ScheduledBackup coverage for `home-assistant-db` and `juicefs-db` so CNPG migrations have a restore path before cutover.
 - [ ] Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
 - [ ] Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
 - [x] (2026-06-09 08:55Z) Re-audit the live cluster after the stalled cutover and confirm the remaining Longhorn-backed claims (`minecraft-datadir`, `juicefs-db-1`, `immich-db-1`, and Prometheus) plus the current degraded workloads.
 - [x] (2026-06-09 08:55Z) Capture a machine-local safety backup of the live Minecraft Longhorn claim before changing its Helm storage binding. The backup is stored under `.agent/backups/minecraft-manual-20260609-105148/`.
 - [x] (2026-06-09 08:59Z) Complete the Minecraft cutover by copying the live Longhorn data into `minecraft-datadir-local`, updating the HelmRelease to mount the local PVC, and preserving the live desired replica state of `0` until an explicit restart is requested.
-- [ ] Recover JuiceFS metadata by treating the preserved Longhorn data as the source of truth, restoring it into a clean local CNPG cluster, then repointing the JuiceFS secret and validating that Immich mounts `immich-library-juicefs` again.
+- [x] (2026-06-09 09:14Z) Recover JuiceFS metadata by treating the preserved Longhorn data as the source of truth, restoring it into a clean local CNPG cluster, repointing the JuiceFS secret, and validating that Immich mounts `immich-library-juicefs` again.
+- [x] (2026-06-09 11:00Z) Finalize the Immich local database cutover by promoting `immich-db-local` in GitOps, fixing restored table permissions for the `immich` role, and verifying that the `immich` Service has healthy endpoints again.
+- [x] (2026-06-09 11:00Z) Complete the Prometheus cutover by staging the TSDB into a hostPath, rebinding the operator-managed PVC to a `manual-local` PV, and verifying that Prometheus replays historical blocks from the copied dataset.
 
 ## Surprises & Discoveries
 
@@ -65,6 +67,12 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 
 - Observation: The old Longhorn-backed JuiceFS volume still contains a preserved pre-failure PostgreSQL data directory in addition to the fresh empty initdb directory created during the failed cutover.
   Evidence: `pg_controldata` on `/mnt/data/pgdata_20260603T164229Z` from the `juicefs-db-1` PVC reported a shut down cluster with system identifier `7630368090983460886`, high checkpoint LSN `14/D0000028`, and transaction counters far beyond the fresh empty `pgdata` directory.
+
+- Observation: The local Immich database restore was logically complete but every application table still belonged to the `postgres` role.
+  Evidence: `\dt+ public.*` in `immich-db-local-1` showed `Owner = postgres` for every table, and the restarted Immich server failed with `PostgresError: permission denied for table system_metadata` until the `immich` role was granted schema, table, sequence, and routine privileges.
+
+- Observation: The live Prometheus dataset was much smaller than the Longhorn claim size, and the copied local dataset was usable after a single WAL repair on startup.
+  Evidence: The migration pod reported `2.0G` on `/mnt/old`, not the full 25Gi claim size. After the rebind, Prometheus logs showed healthy historical block replay and `Successfully repaired WAL` for segment `00003636`, then `Server is ready to receive web requests.`
 
 ## Decision Log
 
@@ -112,11 +120,17 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
   Rationale: The Longhorn claim still contains the last known good metadata directory, while the local copy is the one that later failed recovery and blocked Immich from mounting its media library.
   Date/Author: 2026-06-09 / Codex
 
+- Decision: Preserve the retired Longhorn PVs by setting their reclaim policy to `Retain` before deleting the last active PVC bindings.
+  Rationale: The user asked to keep the current Longhorn PVC data. Releasing the claims while keeping the PVs retained satisfies that requirement and removes Longhorn from active workloads without destroying rollback data.
+  Date/Author: 2026-06-09 / Codex
+
 ## Outcomes & Retrospective
 
 Partial outcome on 2026-06-03: the migration method is proven for multiple workload shapes. `pi-hole` now serves from local claims and its old GitOps-managed Longhorn PVCs have been pruned. Grafana now serves from a local claim and still exposes `grafana.db` from the copied dataset. Home Assistant now runs as a Deployment from `home-assistant-config-local`, and both its app-state PVC and database PVC have been moved off Longhorn. The plan still has major remaining work: Prometheus, Minecraft, Immich DB, and a safe JuiceFS metadata migration path.
 
 Update on 2026-06-09: the cluster re-audit narrowed the remaining Longhorn use to four claims: `minecraft-datadir`, `juicefs-db-1`, `immich-db-1`, and the Prometheus data PVC. The Minecraft cutover can proceed safely now that a machine-local backup exists and the live desired state is confirmed to remain scaled down. The highest-risk remaining item is JuiceFS metadata recovery because Immich availability depends on it.
+
+Update on 2026-06-09 11:00Z: the remaining active Longhorn-backed workloads were finished. `juicefs-db-local` is now the only live JuiceFS metadata cluster, `immich-db-local` is the only live Immich database cluster, and Prometheus is running from `perun-monitoring-prometheus-local`. The old Longhorn PVs for JuiceFS metadata, Immich DB, and Prometheus were all left in `Retain` mode and released from their active PVCs so the data remains preserved while the cluster itself no longer depends on Longhorn.
 
 ## Context and Orientation
 
@@ -199,7 +213,7 @@ Prometheus deserves special care because its claim name is long and its actual d
 
 This milestone is complete when `kubectl get pvc -n home-assistant`, `-n minecraft`, and `-n infra` shows no Longhorn-backed PVCs for these workloads, and the apps restart successfully with their existing state.
 
-Status update on 2026-06-03: Grafana and Home Assistant application state have been migrated successfully, while Prometheus and Minecraft still remain on Longhorn or await cutover.
+Status update on 2026-06-09 11:00Z: Grafana, Home Assistant application state, Minecraft, and Prometheus are all running from local storage. The Prometheus cutover used a pre-staged hostPath copy plus a pre-bound manual-local PV for the operator-managed claim name.
 
 ### Milestone 4: Migrate the CloudNativePG database claims
 
