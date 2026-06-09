@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: plex
+  name: jellyfin
   namespace: transmission
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: plex
+      app: jellyfin
   template:
     metadata:
       labels:
-        app: plex
+        app: jellyfin
     spec:
       containers:
-        - name: plex
-          image: lscr.io/linuxserver/plex:latest
+        - name: jellyfin
+          image: lscr.io/linuxserver/jellyfin:latest
           imagePullPolicy: IfNotPresent
           env:
             - name: PUID
@@ -24,19 +24,17 @@ spec:
               value: "1000"
             - name: TZ
               value: Europe/Berlin
-            - name: VERSION
-              value: docker
           ports:
             - name: web
-              containerPort: 32400
+              containerPort: 8096
           readinessProbe:
             tcpSocket:
-              port: 32400
+              port: 8096
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             tcpSocket:
-              port: 32400
+              port: 8096
             initialDelaySeconds: 60
             periodSeconds: 20
           resources:
@@ -47,15 +45,15 @@ spec:
               cpu: 2
               memory: 2Gi
           volumeMounts:
-            - name: plex-config
+            - name: jellyfin-config
               mountPath: /config
             - name: transmission-data
               mountPath: /media/transmission
               readOnly: true
       volumes:
-        - name: plex-config
+        - name: jellyfin-config
           persistentVolumeClaim:
-            claimName: plex-config-local
+            claimName: jellyfin-config-local
         - name: transmission-data
           persistentVolumeClaim:
             claimName: transmission-data-local

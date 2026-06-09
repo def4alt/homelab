@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: plex-config-local
+  name: jellyfin-config-local
   namespace: transmission
 spec:
   accessModes:
@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 25Gi
   storageClassName: manual-local
-  volumeName: perun-plex-config-local
+  volumeName: perun-jellyfin-config-local
