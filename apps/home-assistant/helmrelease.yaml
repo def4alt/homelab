@@ -22,6 +22,7 @@ spec:
   values:
     controller:
       type: Deployment
+    deploymentStrategy: Recreate
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
     nodeSelector:
