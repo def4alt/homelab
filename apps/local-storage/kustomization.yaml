@@ -9,3 +9,4 @@ resources:
   - pv-juicefs-db-local.yaml
   - pv-home-assistant-db-local.yaml
   - pv-immich-db-local.yaml
+  - pv-monitoring-prometheus.yaml

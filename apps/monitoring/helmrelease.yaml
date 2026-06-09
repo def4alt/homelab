@@ -58,12 +58,12 @@ spec:
         storageSpec:
           volumeClaimTemplate:
             spec:
-              storageClassName: longhorn
+              storageClassName: manual-local
               accessModes:
                 - ReadWriteOnce
               resources:
                 requests:
-                  storage: 15Gi
+                  storage: 25Gi
     kubeEtcd:
       enabled: false
     kubeControllerManager:
