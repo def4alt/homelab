@@ -38,8 +38,8 @@ After this change, the home cluster has a GitOps-managed Jellyfin deployment tha
   Rationale: Jellyfin metadata grows independently from downloaded media and should not share lifecycle with the Transmission app state.
   Date/Author: 2026-06-09 / Codex
 
-- Decision: Expose Jellyfin at `tv.def4alt.com` through Traefik, cert-manager, Authentik forward-auth, and Cloudflare-managed DNS.
-  Rationale: This follows the existing home-cluster pattern for protected public UIs while keeping the Jellyfin service itself as `ClusterIP`.
+- Decision: Expose Jellyfin at `tv.def4alt.com` through Traefik and cert-manager, but move the DNS path to the existing Tailscale-backed `api-photos` pattern instead of the Cloudflare tunnel path.
+  Rationale: Media streaming benefits more from a direct tailnet path than from the public Cloudflare tunnel path, and `perun` already forwards tailnet TCP 443 to Traefik.
   Date/Author: 2026-06-09 / Codex
 
 - Decision: Use VAAPI through the host `/dev/dri` devices on `perun` instead of CPU-only transcoding.
@@ -57,6 +57,8 @@ The repo now contains a Jellyfin app under `apps/jellyfin`, a dedicated local PV
 The remaining operational unknown is runtime behavior after Flux applies the change. Jellyfin should be able to read `/media/transmission` from the shared claim, but I have not yet verified the running pod, library scan behavior, or any first-run admin setup flow.
 
 Follow-up on 2026-06-09: `perun` is confirmed to have Intel `i915` graphics hardware exposed at `/dev/dri`. The next step is to wire VAAPI into both the host config and the Jellyfin deployment, then verify that Jellyfin can see the render device and use hardware transcoding.
+
+Follow-up on 2026-06-09: `tv.def4alt.com` has been moved from the Cloudflare public hostname set to the tailnet-only hostname set, using the same unproxied `perun.tail6f3b0.ts.net` pattern as `api-photos.def4alt.com`. This keeps the ingress and TLS in-cluster while moving the transport path off the Cloudflare tunnel.
 
 ## Context and Orientation
 
@@ -103,7 +105,7 @@ After Flux reconciles the change, the expected outcomes are:
 - The Jellyfin config PVC binds successfully.
 - Jellyfin mounts the Transmission data claim read-only and a separate config PVC read-write.
 - The service exposes Jellyfin on port `8096` inside the cluster.
-- `tv.def4alt.com` routes to the Jellyfin ingress through the existing protected public path.
+- `tv.def4alt.com` resolves to the Tailscale hostname for `perun` and reaches the Jellyfin ingress through the existing tailnet TCP 443 forwarding path.
 
 ## Idempotence and Recovery
 
