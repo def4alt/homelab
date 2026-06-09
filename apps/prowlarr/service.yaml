@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+  namespace: transmission
+spec:
+  type: ClusterIP
+  selector:
+    app: prowlarr
+  ports:
+    - name: web
+      port: 9696
+      targetPort: 9696

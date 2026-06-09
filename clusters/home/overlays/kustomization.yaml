@@ -18,6 +18,7 @@ resources:
   - apps/immich.yaml
   - apps/minecraft.yaml
   - apps/jellyfin.yaml
+  - apps/prowlarr.yaml
   - apps/sonarr.yaml
   - apps/radarr.yaml
   - apps/transmission.yaml
