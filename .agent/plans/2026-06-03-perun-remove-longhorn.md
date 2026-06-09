@@ -18,8 +18,8 @@ The change matters because `perun` is a single-node cluster. Longhorn adds extra
 - [x] (2026-06-03 14:24Z) Add the replacement storage layer scaffold to the repo and re-enable k3s local-path support in `perun`'s NixOS config.
 - [x] (2026-06-09 11:00Z) Migrate application data off Longhorn, one workload at a time, with validation after each cutover (`pi-hole`, Grafana, Home Assistant application state, Home Assistant DB, Minecraft, JuiceFS metadata, Immich DB, and Prometheus are now running from local storage or other non-Longhorn storage; preserved Longhorn PVs remain retained for rollback data).
 - [x] (2026-06-03 14:55Z) Add Barman ObjectStore and ScheduledBackup coverage for `home-assistant-db` and `juicefs-db` so CNPG migrations have a restore path before cutover.
-- [ ] Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
-- [ ] Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
+- [x] (2026-06-09 11:35Z) Remove the Flux Longhorn overlays, namespace wiring, and `perun` host tweaks that only exist for Longhorn.
+- [x] (2026-06-09 11:35Z) Reconcile the home cluster to the new revision and verify that no Longhorn custom resources, pods, storage classes, or mounted volumes remain.
 - [x] (2026-06-09 08:55Z) Re-audit the live cluster after the stalled cutover and confirm the remaining Longhorn-backed claims (`minecraft-datadir`, `juicefs-db-1`, `immich-db-1`, and Prometheus) plus the current degraded workloads.
 - [x] (2026-06-09 08:55Z) Capture a machine-local safety backup of the live Minecraft Longhorn claim before changing its Helm storage binding. The backup is stored under `.agent/backups/minecraft-manual-20260609-105148/`.
 - [x] (2026-06-09 08:59Z) Complete the Minecraft cutover by copying the live Longhorn data into `minecraft-datadir-local`, updating the HelmRelease to mount the local PVC, and preserving the live desired replica state of `0` until an explicit restart is requested.
@@ -131,6 +131,8 @@ Partial outcome on 2026-06-03: the migration method is proven for multiple workl
 Update on 2026-06-09: the cluster re-audit narrowed the remaining Longhorn use to four claims: `minecraft-datadir`, `juicefs-db-1`, `immich-db-1`, and the Prometheus data PVC. The Minecraft cutover can proceed safely now that a machine-local backup exists and the live desired state is confirmed to remain scaled down. The highest-risk remaining item is JuiceFS metadata recovery because Immich availability depends on it.
 
 Update on 2026-06-09 11:00Z: the remaining active Longhorn-backed workloads were finished. `juicefs-db-local` is now the only live JuiceFS metadata cluster, `immich-db-local` is the only live Immich database cluster, and Prometheus is running from `perun-monitoring-prometheus-local`. The old Longhorn PVs for JuiceFS metadata, Immich DB, and Prometheus were all left in `Retain` mode and released from their active PVCs so the data remains preserved while the cluster itself no longer depends on Longhorn.
+
+Update on 2026-06-09 11:35Z: the final Longhorn teardown is complete. The `longhorn-system` namespace and all `*.longhorn.io` CRDs are gone, `longhorn` and `longhorn-static` StorageClasses are gone, Flux is green on revision `main@sha1:c6e9c5e501d42ed2dbdb7c459533987cebdb0e04`, and `perun` no longer has the Longhorn-specific iSCSI services. The only remaining Longhorn-shaped records are the released core Kubernetes PV objects that still point at the historical data paths with `Retain` reclaim policy.
 
 ## Context and Orientation
 
