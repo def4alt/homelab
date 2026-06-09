@@ -7,7 +7,6 @@ spec:
   interval: 10m
   path: ./apps/transmission
   prune: true
-  suspend: true
   sourceRef:
     kind: GitRepository
     name: flux-system
