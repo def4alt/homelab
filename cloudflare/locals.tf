@@ -10,6 +10,7 @@ locals {
     "home.${var.base_domain}",
     "projects.${var.base_domain}",
     "sea.${var.base_domain}",
+    "tv.${var.base_domain}",
     var.base_domain,
   ])
 

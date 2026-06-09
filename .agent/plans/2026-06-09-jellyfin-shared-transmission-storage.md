@@ -33,13 +33,13 @@ After this change, the home cluster has a GitOps-managed Jellyfin deployment tha
   Rationale: Jellyfin metadata grows independently from downloaded media and should not share lifecycle with the Transmission app state.
   Date/Author: 2026-06-09 / Codex
 
-- Decision: Keep Jellyfin internal-only for now with a `ClusterIP` service and no ingress.
-  Rationale: The user asked for storage access, not a public hostname, and exposure can be added separately once the library path is verified.
+- Decision: Expose Jellyfin at `tv.def4alt.com` through Traefik, cert-manager, Authentik forward-auth, and Cloudflare-managed DNS.
+  Rationale: This follows the existing home-cluster pattern for protected public UIs while keeping the Jellyfin service itself as `ClusterIP`.
   Date/Author: 2026-06-09 / Codex
 
 ## Outcomes & Retrospective
 
-The repo now contains a minimal Jellyfin app under `apps/jellyfin`, a dedicated local PV for Jellyfin config, and a Flux overlay entry under `clusters/home/overlays/apps/jellyfin.yaml`. Local validation succeeded for `apps/jellyfin`, `apps/local-storage`, and `clusters/home/overlays`.
+The repo now contains a Jellyfin app under `apps/jellyfin`, a dedicated local PV for Jellyfin config, an ingress for `tv.def4alt.com`, and a Flux overlay entry under `clusters/home/overlays/apps/jellyfin.yaml`. Local validation succeeded for `apps/jellyfin`, `apps/local-storage`, and `clusters/home/overlays`.
 
 The remaining operational unknown is runtime behavior after Flux applies the change. Jellyfin should be able to read `/media/transmission` from the shared claim, but I have not yet verified the running pod, library scan behavior, or any first-run admin setup flow.
 
@@ -51,9 +51,9 @@ Transmission currently owns a PVC named `transmission-data-local` in the `transm
 
 ## Plan of Work
 
-Create a new `apps/jellyfin` directory with a `Deployment`, `Service`, `PersistentVolumeClaim`, and `kustomization.yaml`. The deployment should run Jellyfin in the `transmission` namespace, mount a dedicated config PVC at `/config`, and mount the existing `transmission-data-local` claim at a read-only media path.
+Create a new `apps/jellyfin` directory with a `Deployment`, `Service`, `Ingress`, `PersistentVolumeClaim`, and `kustomization.yaml`. The deployment should run Jellyfin in the `transmission` namespace, mount a dedicated config PVC at `/config`, and mount the existing `transmission-data-local` claim at a read-only media path.
 
-Add a new hostPath-backed PV under `apps/local-storage/` for the Jellyfin config volume, then wire the app into `clusters/home/overlays/apps/` with dependencies on `namespaces` and `local-storage`.
+Add a new hostPath-backed PV under `apps/local-storage/` for the Jellyfin config volume, wire the app into `clusters/home/overlays/apps/` with dependencies on `namespaces` and `local-storage`, and add the hostname to `cloudflare/locals.tf`.
 
 ## Concrete Steps
 
@@ -63,6 +63,7 @@ All commands run from `/Users/def4alt/source/homelab`.
    - `apps/jellyfin/kustomization.yaml`
    - `apps/jellyfin/deployment.yaml`
    - `apps/jellyfin/service.yaml`
+   - `apps/jellyfin/ingress.yaml`
    - `apps/jellyfin/pvc.yaml`
 
 2. Add local storage:
@@ -72,6 +73,7 @@ All commands run from `/Users/def4alt/source/homelab`.
 3. Wire Flux for the home cluster:
    - `clusters/home/overlays/apps/jellyfin.yaml`
    - Update `clusters/home/overlays/kustomization.yaml`
+   - Update `cloudflare/locals.tf`
 
 4. Validate:
    - Run `kubectl kustomize apps/jellyfin`
@@ -86,6 +88,7 @@ After Flux reconciles the change, the expected outcomes are:
 - The Jellyfin config PVC binds successfully.
 - Jellyfin mounts the Transmission data claim read-only and a separate config PVC read-write.
 - The service exposes Jellyfin on port `8096` inside the cluster.
+- `tv.def4alt.com` routes to the Jellyfin ingress through the existing protected public path.
 
 ## Idempotence and Recovery
 
