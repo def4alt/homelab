@@ -19,6 +19,7 @@ After this change, the home cluster has GitOps-managed Sonarr and Radarr service
 - Jellyfin already mounts the entire shared PVC read-only, so it can see both current download folders and any future managed library folders on the same claim.
 - The repo already uses local hostPath-backed PVs for app config state, so Sonarr and Radarr should follow that same pattern for `/config`.
 - The current shared PVC layout already allows a clean convention: Arr apps can use `/data/downloads` as the download root and `/data/media/{tv,movies}` as curated library roots, while Transmission continues to use `/downloads` inside its own container.
+- Sonarr and Radarr both rely on Transmission category subdirectories, so the shared PVC layout must include `/data/downloads/complete/tv-sonarr` and `/data/downloads/complete/movies-radarr` up front or Arr validation reports missing remote paths before the first categorized download lands.
 
 ## Decision Log
 
@@ -38,7 +39,7 @@ After this change, the home cluster has GitOps-managed Sonarr and Radarr service
 
 This plan starts before the manifests exist. The expected repo outcome is new `apps/sonarr` and `apps/radarr` directories, two local PV definitions for app config, Flux overlays under `clusters/home/overlays/apps/`, and a small Jellyfin deployment adjustment if needed to make the managed library paths obvious.
 
-Implementation outcome on 2026-06-09: the repo now has `apps/sonarr` and `apps/radarr` with `Deployment`, `Service`, `Ingress`, `PVC`, and `kustomization.yaml` files, plus two new local PV definitions under `apps/local-storage/`. Each app mounts its own config PVC at `/config` and the shared media PVC at `/data`. Init containers create `/data/media/tv`, `/data/media/movies`, and the expected download staging directories if they do not exist yet.
+Implementation outcome on 2026-06-09: the repo now has `apps/sonarr` and `apps/radarr` with `Deployment`, `Service`, `Ingress`, `PVC`, and `kustomization.yaml` files, plus two new local PV definitions under `apps/local-storage/`. Each app mounts its own config PVC at `/config` and the shared media PVC at `/data`. Init containers create `/data/media/tv`, `/data/media/movies`, `/data/downloads/complete/{tv-sonarr,movies-radarr}`, and the expected download staging directories if they do not exist yet.
 
 ## Context and Orientation
 
