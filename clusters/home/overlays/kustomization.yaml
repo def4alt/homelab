@@ -18,5 +18,4 @@ resources:
   - apps/immich.yaml
   - apps/minecraft.yaml
   - apps/jellyfin.yaml
-  - apps/plex.yaml
   - apps/transmission.yaml
