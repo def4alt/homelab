@@ -108,6 +108,7 @@ in {
     tokenFile = meta.k3sTokenFile or null;
     extraFlags = toString ([
       "--write-kubeconfig-mode \"0600\""
+      "--secrets-encryption"
       "--cluster-init"
       "--disable servicelb"
       "--disable traefik"
