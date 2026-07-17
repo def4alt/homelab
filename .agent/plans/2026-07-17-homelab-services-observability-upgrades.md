@@ -6,9 +6,9 @@ This document is maintained in accordance with `.agent/PLANS.md` from the reposi
 
 ## Purpose / Big Picture
 
-After this change, the home cluster provides a bookmark manager at `https://links.def4alt.com`, a Beszel systems dashboard, Uptime Kuma availability monitoring, the existing Grafana instance with Kubernetes logs from Loki, and a Dokploy control plane. All application state survives pod or host restarts. The existing workloads and Helm-managed infrastructure run refreshed images, perun runs the newest tested NixOS generation from the configured `nixos-26.05` channel, and all public UIs are reachable through the existing Cloudflare, Traefik, TLS, and Authentik path.
+After this change, the home cluster provides a bookmark manager at `https://links.def4alt.com`, a Beszel systems dashboard, Uptime Kuma availability monitoring, and the existing Grafana instance with Kubernetes logs from Loki. All application state survives pod or host restarts. The existing workloads and Helm-managed infrastructure run refreshed images, perun runs the newest tested NixOS generation from the configured `nixos-26.05` channel, and all public UIs are reachable through the existing Cloudflare, Traefik, TLS, and Authentik path.
 
-NetBird is explicitly outside this plan because the user removed it from scope.
+NetBird and Dokploy are explicitly outside this plan because the user removed them from scope.
 
 ## Progress
 
@@ -17,10 +17,11 @@ NetBird is explicitly outside this plan because the user removed it from scope.
 - [x] (2026-07-17) Confirm Linkding must use `links.def4alt.com` and remove NetBird from scope.
 - [x] (2026-07-17) Add retained local storage, namespaces, Kubernetes workloads, ingress, and Flux wiring for Linkding, Beszel, and Uptime Kuma.
 - [x] (2026-07-17) Enable the existing Grafana ingress and add monolithic Loki plus Grafana Alloy log collection and a provisioned Grafana data source.
-- [x] (2026-07-17) Add a declarative, port-isolated Dokploy Docker/Swarm host service without taking ports 80 or 443 from k3s Traefik.
+- [x] (2026-07-17) Remove Dokploy from NixOS, Kubernetes, monitoring, and DNS after the user removed it from scope.
 - [x] (2026-07-17) Audit all live image references; update stale JuiceFS and Authentik pins and correct mutable image pull policies while preserving already-current Helm-managed components.
-- [ ] Update the NixOS flake lock, evaluate the configuration, commit and push the GitOps changes, and reconcile application changes in stages (completed: lock updated to nixpkgs `4382ed2`, all local rendering and Nix evaluation pass; remaining: commit, push, and reconcile).
-- [ ] Back up stateful data, build and activate the new perun NixOS generation, reboot if required, and verify node, Flux, applications, logs, and public endpoints.
+- [x] (2026-07-17) Update the NixOS flake lock, evaluate the configuration, commit and push the GitOps changes, and reconcile application changes in stages.
+- [x] (2026-07-17) Back up stateful data, build and activate NixOS `26.05.20260716.4382ed2` with kernel `6.18.38`, and reboot perun.
+- [ ] Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
 - [ ] Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
 
 ## Surprises & Discoveries
@@ -28,8 +29,8 @@ NetBird is explicitly outside this plan because the user removed it from scope.
 - Observation: Grafana is already deployed and healthy as part of `kube-prometheus-stack`, but both Grafana and Prometheus ingress are disabled in `apps/monitoring/helmrelease.yaml` even though their public DNS names are declared.
   Evidence: `monitoring-grafana` reported `3/3 Running`; the Helm values set `grafana.ingress.enabled: false`.
 
-- Observation: perun has no active Docker daemon, while Dokploy officially requires Docker Swarm and normally claims ports 80, 443, and 3000.
-  Evidence: `systemctl is-active docker` returned `inactive`; k3s Traefik already serves the cluster through ports 80 and 443.
+- Observation: A direct `switch-to-configuration` activation does not advance the NixOS system profile; `nixos-rebuild switch --flake` was required before rebooting.
+  Evidence: the first reboot selected generation 21, while the corrected switch advanced `/nix/var/nix/profiles/system` to generation 22 and booted `26.05.20260716.4382ed2` with kernel `6.18.38`.
 
 - Observation: perun has enough immediate capacity for lightweight additions but little completely free memory, so resource limits and single-replica deployments are required.
   Evidence: the host has 166 GiB disk free and about 6.2 GiB available memory, with 9.4 GiB currently used.
@@ -60,11 +61,7 @@ NetBird is explicitly outside this plan because the user removed it from scope.
   Rationale: Grafana recommends monolithic Loki for small meta-monitoring installations; a single-node homelab does not benefit from the operational cost of microservices mode.
   Date/Author: 2026-07-17 / Codex
 
-- Decision: Keep Dokploy on perun's host Docker/Swarm runtime but bind its admin and managed ingress to dedicated non-conflicting ports. Route the Dokploy admin hostname through k3s Traefik to the host endpoint.
-  Rationale: Dokploy requires Docker Swarm and its own Docker socket; installing its default layout would collide with k3s Traefik on ports 80 and 443. Isolation preserves both orchestrators and makes rollback possible by stopping Docker.
-  Date/Author: 2026-07-17 / Codex
-
-- Decision: Use `links.def4alt.com`, `beszel.def4alt.com`, `uptime.def4alt.com`, and `dokploy.def4alt.com` as public UI hostnames. Loki remains cluster-internal and is queried through Grafana.
+- Decision: Use `links.def4alt.com`, `beszel.def4alt.com`, and `uptime.def4alt.com` as public UI hostnames. Loki remains cluster-internal and is queried through Grafana.
   Rationale: These names are concise and consistent with existing service hostnames, while exposing Loki directly provides no user benefit.
   Date/Author: 2026-07-17 / Codex
 
@@ -82,7 +79,7 @@ Flux is the in-cluster controller that continuously applies Git manifests from t
 
 The monitoring stack lives in the `infra` namespace under `apps/monitoring`. It is a `kube-prometheus-stack` Helm release with persistent Prometheus and Grafana volumes. Loki is a log database, not a metrics database. Grafana Alloy is the node-level collector that reads Kubernetes container log files and sends them to Loki.
 
-Perun is a single-node NixOS k3s server. Its declarative host configuration is `nixos/flake.nix` plus `nixos/configuration.nix`, and its exact package snapshot is recorded in `nixos/flake.lock`. Docker is currently disabled. Dokploy is not a Kubernetes application: it manages Docker Swarm services and generates configuration for its own Traefik. Therefore the Dokploy runtime belongs in NixOS configuration and must use ports that do not conflict with the k3s Traefik service.
+Perun is a single-node NixOS k3s server. Its declarative host configuration is `nixos/flake.nix` plus `nixos/configuration.nix`, and its exact package snapshot is recorded in `nixos/flake.lock`.
 
 ## Plan of Work
 
@@ -90,9 +87,7 @@ First, add namespaces and retained local volumes for Linkding, Beszel, Uptime Ku
 
 Second, extend `apps/monitoring` with the supported Loki Helm chart in monolithic mode, filesystem persistence, short homelab retention, and conservative resources. Add Grafana Alloy to collect `/var/log/pods` and provision Loki as a Grafana data source. Enable Grafana's existing ingress at `grafana.def4alt.com`; keep Prometheus protected and unchanged unless validation shows its existing DNS entry should also be enabled.
 
-Third, add NixOS options that enable Docker only on perun and define a systemd-managed Dokploy bootstrap/update service. The service must use pinned upstream images, persistent data below `/var/lib/dokploy`, a dedicated Swarm address pool that does not overlap the k3s pod or service networks, an admin port reachable only through the cluster ingress path, and alternate Docker Traefik ports. Kubernetes will receive a Service without a selector plus explicit Endpoints or EndpointSlice pointing at perun's LAN address, and an authenticated ingress for the Dokploy admin UI. The design must not publish Docker's API or socket over the network.
-
-Fourth, inventory the actual running images and Helm releases, compare them with current stable upstream releases, and update direct version pins and chart versions. Mutable tags such as `latest` or `release` must be restarted deliberately so new digests are pulled. Stateful upgrades are applied one workload at a time, with database and retained-volume backups before any documented migration boundary.
+Third, inventory the actual running images and Helm releases, compare them with current stable upstream releases, and update direct version pins and chart versions. Mutable tags such as `latest` or `release` must be restarted deliberately so new digests are pulled. Stateful upgrades are applied one workload at a time, with database and retained-volume backups before any documented migration boundary.
 
 Finally, update `nixos/flake.lock`, run local rendering and flake evaluation, commit and push, and let Flux reconcile in stages. After application checks pass, build the NixOS closure on perun, preserve the current system generation as rollback, activate the new generation, reboot if the kernel or foundational services changed, and verify every Flux object and public endpoint again.
 
@@ -125,15 +120,13 @@ Before activating NixOS, create an etcd snapshot and filesystem archives for the
 
 Grafana must load at `https://grafana.def4alt.com`. Its data sources must include Prometheus and Loki, and an Explore query such as `{namespace="infra"}` must return recent Kubernetes log lines. Loki and Alloy pods must remain within their configured memory limits.
 
-Dokploy's authenticated admin UI must load at `https://dokploy.def4alt.com`. `ss -lntup` on perun must show that k3s continues to own the existing ingress path and Dokploy uses only its assigned alternate ports. Docker must not listen on a TCP API port. Creating a minimal test service in Dokploy and reaching it through the documented alternate ingress path proves the control plane is operational.
-
-After the NixOS activation and reboot, `nixos-version` must report the updated revision, `k3s kubectl get nodes` must show perun Ready, every Flux Kustomization must be Ready, Docker and Dokploy must be active, and all old and new public endpoints must return their expected HTTP or authentication responses.
+After the NixOS activation and reboot, `nixos-version` must report the updated revision, `k3s kubectl get nodes` must show perun Ready, every Flux Kustomization must be Ready, and all old and new public endpoints must return their expected HTTP or authentication responses.
 
 ## Idempotence and Recovery
 
 Flux resources, systemd units, Docker networks, and Swarm initialization must be written as create-if-absent operations so reconciliation and host rebuilds can be repeated safely. Persistent volumes use `Retain`, so removing a Deployment does not delete application data.
 
-If a Kubernetes application fails, revert its Git commit or suspend only its Flux Kustomization while preserving the volume. If Loki overloads the node, suspend Loki and Alloy without touching Grafana or Prometheus. If Dokploy interferes with networking, stop and disable its systemd unit and Docker; k3s must remain independent. If the NixOS generation fails, select the previous boot generation or run `sudo nixos-rebuild switch --rollback`. Do not garbage-collect old NixOS generations or delete backups until the complete acceptance check passes.
+If a Kubernetes application fails, revert its Git commit or suspend only its Flux Kustomization while preserving the volume. If Loki overloads the node, suspend Loki and Alloy without touching Grafana or Prometheus. If the NixOS generation fails, select a retained boot generation or run `sudo nixos-rebuild switch --rollback` before the requested generation cleanup is performed.
 
 ## Artifacts and Notes
 
@@ -153,8 +146,8 @@ Linkding uses `ghcr.io/sissbruecker/linkding` and listens on port 9090 with stat
 
 Loki uses the Grafana Community Loki Helm chart in monolithic mode. Grafana Alloy uses the official Grafana Helm chart or manifests supported by Grafana and sends logs to Loki's in-cluster HTTP endpoint. Grafana receives a provisioned Loki data source through the existing Helm release.
 
-Dokploy uses its official Docker images and Docker Swarm. Its host service must never take perun ports 80 or 443, must not expose `/var/run/docker.sock` beyond the Dokploy and Docker Traefik containers that require it, and must use a non-overlapping Swarm address pool.
-
 Change note: Created the plan after repository and live-cluster discovery; incorporated the requested Linkding hostname, the existing Grafana deployment, the later request to upgrade all images and NixOS, and the explicit removal of NetBird from scope.
 
 Change note: Recorded completion of the declarative manifests, image audit, NixOS lock update, and successful local render/evaluation checks before the first deployment commit.
+
+Change note: Removed Dokploy from the implementation and acceptance criteria after the user explicitly removed it from scope.

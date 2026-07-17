@@ -29,4 +29,3 @@ resources:
   - apps/linkding.yaml
   - apps/beszel.yaml
   - apps/uptime-kuma.yaml
-  - apps/dokploy.yaml

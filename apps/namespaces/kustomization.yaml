@@ -18,4 +18,3 @@ resources:
   - namespace-linkding.yaml
   - namespace-beszel.yaml
   - namespace-uptime-kuma.yaml
-  - namespace-dokploy.yaml
