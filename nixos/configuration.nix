@@ -107,7 +107,7 @@ in {
     token = meta.k3sToken or "";
     tokenFile = meta.k3sTokenFile or null;
     extraFlags = toString ([
-      "--write-kubeconfig-mode \"0644\""
+      "--write-kubeconfig-mode \"0600\""
       "--cluster-init"
       "--disable servicelb"
       "--disable traefik"
@@ -133,7 +133,14 @@ in {
     intel-gpu-tools
   ];
 
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    settings = {
+      KbdInteractiveAuthentication = false;
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
 
   system.stateVersion = "25.11";
 }
