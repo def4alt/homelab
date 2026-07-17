@@ -19,42 +19,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: perun-beszel-data-local
-spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual-local
-  claimRef:
-    namespace: beszel
-    name: beszel-data
-  hostPath:
-    path: /var/lib/k8s-local-storage/beszel/data
-    type: DirectoryOrCreate
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: perun-uptime-kuma-data-local
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual-local
-  claimRef:
-    namespace: uptime-kuma
-    name: uptime-kuma-data
-  hostPath:
-    path: /var/lib/k8s-local-storage/uptime-kuma/data
-    type: DirectoryOrCreate
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
   name: perun-loki-data-local
 spec:
   capacity:

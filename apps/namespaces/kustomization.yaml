@@ -16,5 +16,3 @@ resources:
   - namespace-blog.yaml
   - namespace-transmission.yaml
   - namespace-linkding.yaml
-  - namespace-beszel.yaml
-  - namespace-uptime-kuma.yaml

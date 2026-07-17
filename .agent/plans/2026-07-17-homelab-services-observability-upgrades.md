@@ -24,6 +24,7 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - [x] (2026-07-17) Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
 - [x] (2026-07-17) Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
 - [x] (2026-07-17) Connect Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, Beszel, and Uptime Kuma into one validated observability workflow.
+- [ ] (2026-07-17) Remove Beszel and Uptime Kuma after selecting the lean Prometheus, Grafana, Alertmanager, Loki, Alloy, and blackbox architecture.
 
 ## Surprises & Discoveries
 
@@ -74,6 +75,10 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - Decision: Keep Prometheus and Alertmanager as the single metrics and alerting control plane, and treat Beszel and Uptime Kuma as focused user interfaces rather than parallel telemetry pipelines.
   Rationale: Duplicating collection and alert routing would create inconsistent health states. Prometheus can centrally observe both specialist applications through blackbox probes while Grafana correlates cluster metrics and Loki logs.
   Date/Author: 2026-07-17 / Codex
+
+- Decision: Remove Beszel and Uptime Kuma and keep kube-prometheus-stack, Grafana, Prometheus, Alertmanager, monolithic Loki, Alloy, and blackbox exporter as the complete observability stack.
+  Rationale: The specialist UIs duplicate host and availability functionality already covered by node exporter, Grafana, Prometheus, Alertmanager, and blackbox exporter. Removing them reduces stateful services, public routes, certificates, and upgrade surface without losing telemetry.
+  Date/Author: 2026-07-17 / User and Codex
 
 - Decision: Use `links.def4alt.com`, `beszel.def4alt.com`, and `uptime.def4alt.com` as public UI hostnames. Loki remains cluster-internal and is queried through Grafana.
   Rationale: These names are concise and consistent with existing service hostnames, while exposing Loki directly provides no user benefit.

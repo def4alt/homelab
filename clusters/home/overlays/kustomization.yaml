@@ -27,5 +27,3 @@ resources:
   - apps/radarr.yaml
   - apps/transmission.yaml
   - apps/linkding.yaml
-  - apps/beszel.yaml
-  - apps/uptime-kuma.yaml

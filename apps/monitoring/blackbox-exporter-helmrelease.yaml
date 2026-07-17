@@ -73,12 +73,6 @@ spec:
         - name: linkding
           url: https://links.def4alt.com/
           hostname: links.def4alt.com
-        - name: beszel
-          url: https://beszel.def4alt.com/
-          hostname: beszel.def4alt.com
-        - name: uptime-kuma
-          url: https://uptime.def4alt.com/
-          hostname: uptime.def4alt.com
         - name: grafana
           url: https://grafana.def4alt.com/
           hostname: grafana.def4alt.com
@@ -90,10 +84,6 @@ spec:
           hostname: sea.def4alt.com
         - name: internal-linkding
           url: http://linkding.linkding.svc.cluster.local/
-        - name: internal-beszel
-          url: http://beszel.beszel.svc.cluster.local/
-        - name: internal-uptime-kuma
-          url: http://uptime-kuma.uptime-kuma.svc.cluster.local/
         - name: internal-grafana
           url: http://monitoring-grafana.infra.svc.cluster.local/api/health
         - name: internal-prometheus

@@ -10,8 +10,6 @@ locals {
     "home.${var.base_domain}",
     "projects.${var.base_domain}",
     "links.${var.base_domain}",
-    "beszel.${var.base_domain}",
-    "uptime.${var.base_domain}",
     "sea.${var.base_domain}",
     var.base_domain,
   ])

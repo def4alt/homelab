@@ -27,8 +27,6 @@ data:
       "graphTooltip": 1,
       "id": null,
       "links": [
-        {"icon": "external link", "includeVars": false, "keepTime": false, "tags": [], "targetBlank": true, "title": "Uptime Kuma", "type": "link", "url": "https://uptime.def4alt.com/"},
-        {"icon": "external link", "includeVars": false, "keepTime": false, "tags": [], "targetBlank": true, "title": "Beszel", "type": "link", "url": "https://beszel.def4alt.com/"},
         {"icon": "doc", "includeVars": true, "keepTime": true, "tags": [], "targetBlank": false, "title": "Explore logs", "type": "link", "url": "/explore?left={\"datasource\":\"$DS_LOKI\",\"queries\":[{\"expr\":\"{namespace=~\\\"$namespace\\\"}\"}]}"}
       ],
       "panels": [
