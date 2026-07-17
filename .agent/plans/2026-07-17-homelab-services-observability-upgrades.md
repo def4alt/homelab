@@ -6,7 +6,7 @@ This document is maintained in accordance with `.agent/PLANS.md` from the reposi
 
 ## Purpose / Big Picture
 
-After this change, the home cluster provides a bookmark manager at `https://links.def4alt.com`, a Beszel systems dashboard, Uptime Kuma availability monitoring, and the existing Grafana instance with Kubernetes logs from Loki. All application state survives pod or host restarts. The existing workloads and Helm-managed infrastructure run refreshed images, perun runs the newest tested NixOS generation from the configured `nixos-26.05` channel, and all public UIs are reachable through the existing Cloudflare, Traefik, TLS, and Authentik path.
+After this change, the home cluster provides a bookmark manager at `https://links.def4alt.com` and a lean observability stack built from kube-prometheus-stack, Grafana, Prometheus, Alertmanager, monolithic Loki, Alloy, and blackbox exporter. The existing workloads and Helm-managed infrastructure run refreshed images, perun runs the newest tested NixOS generation from the configured `nixos-26.05` channel, and public UIs are reachable through the existing Cloudflare, Traefik, TLS, and Authentik path.
 
 NetBird and Dokploy are explicitly outside this plan because the user removed them from scope.
 
@@ -24,7 +24,7 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - [x] (2026-07-17) Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
 - [x] (2026-07-17) Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
 - [x] (2026-07-17) Connect Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, Beszel, and Uptime Kuma into one validated observability workflow.
-- [ ] (2026-07-17) Remove Beszel and Uptime Kuma after selecting the lean Prometheus, Grafana, Alertmanager, Loki, Alloy, and blackbox architecture.
+- [x] (2026-07-17) Remove Beszel and Uptime Kuma after selecting the lean Prometheus, Grafana, Alertmanager, Loki, Alloy, and blackbox architecture.
 
 ## Surprises & Discoveries
 
@@ -94,7 +94,7 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 
 ## Outcomes & Retrospective
 
-Linkding `1.45.0`, Beszel Hub `0.18.7`, and Uptime Kuma `2.4.0` are running with retained local storage and authenticated public routes. Grafana is public through the same Authentik path, Loki `3.7.2` reports ready and returns Kubernetes labels, and Alloy `1.16.1` is forwarding logs without recent errors. All Flux Kustomizations and all certificates are ready at Git revision `8a5383c`.
+The initial rollout brought up Linkding `1.45.0`, Beszel Hub `0.18.7`, and Uptime Kuma `2.4.0`. The final architecture subsequently removed Beszel and Uptime Kuma as redundant, while Grafana remains public through Authentik, Loki `3.7.2` provides Kubernetes logs, and Alloy `1.16.1` forwards and enriches them.
 
 Perun now runs NixOS `26.05.20260716.4382ed2`, Linux `6.18.38`, k3s `v1.35.6+k3s1`, and containerd `2.2.5-k3s2`. Generation cleanup retained only generation 23 and removed 15,965 unreferenced store paths, freeing 11.5 GiB. Dokploy's Kubernetes, NixOS, Cloudflare, Docker, and host-state artifacts were removed.
 
@@ -103,6 +103,8 @@ Backups retained on perun include the pre-upgrade k3s etcd snapshot, `/var/lib/k
 The observability stack is now connected around one control plane. Prometheus scrapes Loki and Alloy in addition to the existing Kubernetes, node, database, and blackbox targets; Alertmanager sends the resulting warning and critical alerts to Telegram; Alloy enriches logs with `cluster` and `workload` labels before sending them to Loki; and Grafana provisions the `Homelab Observability` dashboard with service availability, node capacity, workload health, log ingestion, restarts, and recent error logs. Internal probes distinguish service failures from ingress, DNS, and TLS failures, while public probes include the requested applications plus Jellyfin and Transmission.
 
 Validation at Git revision `3be9c9b` showed Loki and Alloy scrape targets at `up=1`, 21 of 21 blackbox probes successful, internal and external availability both at 100%, all six custom alert rules loaded, enriched Loki labels available, and the dashboard retrievable through Grafana's API.
+
+The lean-stack removal at revision `ea61ce7` pruned both Flux Kustomizations, namespaces, PVCs, PVs, certificates, probes, dashboard links, DNS records, and Cloudflare Tunnel routes. The remaining 17 fresh blackbox probes reported 17 successes and 100% internal and external availability. Removed application data was archived at `/var/lib/k8s-backups/20260717T201336Z/removed-beszel-uptime-kuma.tgz` before the active host directories were deleted.
 
 ## Context and Orientation
 
@@ -129,8 +131,6 @@ Run all repository commands from `/Users/def4alt/source/homelab`.
 Render each new application and the complete cluster overlay:
 
     kubectl kustomize apps/linkding
-    kubectl kustomize apps/beszel
-    kubectl kustomize apps/uptime-kuma
     kubectl kustomize apps/monitoring
     kubectl kustomize clusters/home/overlays
 
@@ -147,7 +147,7 @@ Before activating NixOS, create an etcd snapshot and filesystem archives for the
 
 `kubectl kustomize clusters/home/overlays` must render without errors. All Flux Kustomizations must report Ready at the pushed Git revision, all pods must become Ready, and no existing application may regress.
 
-`https://links.def4alt.com` must pass through Authentik and render Linkding's initial login/setup UI. Creating a test bookmark, restarting its pod, and retrieving the bookmark proves persistence. Beszel and Uptime Kuma must similarly render setup pages through their chosen hostnames and retain initial configuration across pod restarts.
+`https://links.def4alt.com` must pass through Authentik and render Linkding's initial login/setup UI. Creating a test bookmark, restarting its pod, and retrieving the bookmark proves persistence.
 
 Grafana must load at `https://grafana.def4alt.com`. Its data sources must include Prometheus and Loki, and an Explore query such as `{namespace="infra"}` must return recent Kubernetes log lines. Loki and Alloy pods must remain within their configured memory limits.
 
@@ -173,7 +173,7 @@ Initial live inventory on 2026-07-17:
 
 ## Interfaces and Dependencies
 
-Linkding uses `ghcr.io/sissbruecker/linkding:1.45.0` and listens on port 9090 with state in `/etc/linkding/data`. Beszel uses `henrygd/beszel:0.18.7` and listens on port 8090. Uptime Kuma uses `louislam/uptime-kuma:2.4.0`, listens on port 3001, and persists `/app/data`.
+Linkding uses `ghcr.io/sissbruecker/linkding:1.45.0` and listens on port 9090 with state in `/etc/linkding/data`. Beszel and Uptime Kuma are no longer deployed.
 
 Loki uses `grafana/loki:3.7.2` in monolithic mode. Grafana Alloy uses `grafana/alloy:v1.16.1` and sends logs to Loki's in-cluster HTTP endpoint. Grafana receives a provisioned Loki data source through the existing Helm release.
 
@@ -186,3 +186,5 @@ Change note: Removed Dokploy from the implementation and acceptance criteria aft
 Change note: Recorded the completed rollout, NixOS and garbage-collection results, certificate rotation, Immich ownership migration, backup paths, and final validation evidence.
 
 Change note: Added and validated the unified observability workflow, including component self-monitoring, internal service probes, external endpoint probes, actionable alert rules, enriched log labels, and a correlated Grafana dashboard.
+
+Change note: Simplified the final architecture by removing Beszel and Uptime Kuma, their state and public routes, and the corresponding duplicate monitoring configuration.
