@@ -28,9 +28,9 @@ This change has three staged controls with independent verification and rollback
 
 - [x] (2026-07-17) Inventory interfaces, listeners, LoadBalancer/NodePort services, existing policies, and encryption status.
 - [x] (2026-07-17) Add `--secrets-encryption`; the NixOS flake evaluation passes. A full local build is unavailable because the operator workstation is `aarch64-darwin`, so build on perun before activation.
-- [ ] Rebuild perun and verify k3s, Flux, applications, and key-only SSH recover.
-- [ ] Re-encrypt existing Kubernetes Secrets and verify encryption status.
-- [ ] Add and validate the declarative NixOS firewall configuration.
+- [x] (2026-07-17) Build and activate the encryption configuration on perun; verify fresh key-only SSH, k3s, the Ready node, and all Flux Kustomizations recover.
+- [x] (2026-07-17) Run dynamic key rotation/re-encryption. Status is enabled at `reencrypt_finished`, all server hashes match, and the new AES-CBC key is active.
+- [x] (2026-07-17) Add the declarative NixOS firewall configuration and validate the evaluated interface/port sets.
 - [ ] Rebuild perun and verify allowed and denied network paths.
 - [ ] Add the first incremental NetworkPolicy set for Blog, Glance, and Paperless.
 - [ ] Reconcile and test every isolated namespace.

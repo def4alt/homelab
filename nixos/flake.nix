@@ -36,8 +36,14 @@
             enableTailscalePublicTcp = true;
             enableQemuGuest = false;
             useGrub = false;
-            firewallEnable = false;
+            firewallEnable = true;
             firewallTCPPorts = [ ];
+            firewallUDPPorts = [ 41641 ];
+            firewallTrustedInterfaces = [ "cni0" "flannel.1" "tailscale0" ];
+            firewallInterfaces.eno1 = {
+              allowedTCPPorts = [ 22 53 80 443 6443 8123 18555 21064 25565 ];
+              allowedUDPPorts = [ 53 8472 1900 5353 ];
+            };
             enableK3s = true;
             k3sExtraFlags = [ ];
           };

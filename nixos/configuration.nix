@@ -40,8 +40,13 @@ in {
 
   networking.hostName = meta.hostname;
   networking.networkmanager.enable = true;
-  networking.firewall.enable = meta.firewallEnable;
-  networking.firewall.allowedTCPPorts = meta.firewallTCPPorts;
+  networking.firewall = {
+    enable = meta.firewallEnable;
+    allowedTCPPorts = meta.firewallTCPPorts;
+    allowedUDPPorts = meta.firewallUDPPorts or [ ];
+    trustedInterfaces = meta.firewallTrustedInterfaces or [ ];
+    interfaces = meta.firewallInterfaces or { };
+  };
 
   time.timeZone = "Europe/Berlin";
 
@@ -136,6 +141,7 @@ in {
 
   services.openssh = {
     enable = true;
+    openFirewall = false;
     settings = {
       KbdInteractiveAuthentication = false;
       PasswordAuthentication = false;
