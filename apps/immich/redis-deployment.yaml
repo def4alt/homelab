@@ -16,6 +16,7 @@ spec:
       containers:
         - name: redis
           image: docker.io/valkey/valkey:8
+          imagePullPolicy: Always
           args:
             - redis-server
             - --requirepass

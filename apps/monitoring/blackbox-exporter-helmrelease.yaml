@@ -70,6 +70,21 @@ spec:
         - name: paperless
           url: https://papers.def4alt.com/
           hostname: papers.def4alt.com
+        - name: linkding
+          url: https://links.def4alt.com/
+          hostname: links.def4alt.com
+        - name: beszel
+          url: https://beszel.def4alt.com/
+          hostname: beszel.def4alt.com
+        - name: uptime-kuma
+          url: https://uptime.def4alt.com/
+          hostname: uptime.def4alt.com
+        - name: grafana
+          url: https://grafana.def4alt.com/
+          hostname: grafana.def4alt.com
+        - name: dokploy
+          url: https://dokploy.def4alt.com/
+          hostname: dokploy.def4alt.com
         - name: pihole-dns
           url: 192.168.88.192:53
           module: dns_udp

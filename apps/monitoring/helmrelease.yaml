@@ -20,12 +20,31 @@ spec:
     grafana:
       admin:
         existingSecret: monitoring-grafana
+      additionalDataSources:
+        - name: Loki
+          type: loki
+          access: proxy
+          url: http://loki.infra.svc.cluster.local:3100
+          isDefault: false
+          editable: false
       sidecar:
         dashboards:
           enabled: true
           label: grafana_dashboard
       ingress:
-        enabled: false
+        enabled: true
+        ingressClassName: traefik
+        annotations:
+          traefik.ingress.kubernetes.io/router.entrypoints: websecure
+          traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
+          cert-manager.io/cluster-issuer: letsencrypt-prod
+        hosts:
+          - grafana.def4alt.com
+        path: /
+        tls:
+          - secretName: grafana-tls
+            hosts:
+              - grafana.def4alt.com
       persistence:
         enabled: true
         existingClaim: monitoring-grafana-local

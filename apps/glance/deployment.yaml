@@ -16,7 +16,7 @@ spec:
       containers:
         - name: glance
           image: glanceapp/glance:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: http

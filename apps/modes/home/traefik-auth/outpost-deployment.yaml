@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: proxy
-          image: ghcr.io/goauthentik/proxy:2026.5.2
+          image: ghcr.io/goauthentik/proxy:2026.5.5
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

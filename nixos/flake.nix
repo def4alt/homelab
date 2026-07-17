@@ -35,6 +35,7 @@
             enableOpeniscsi = false;
             enableTailscalePublicTcp = true;
             enableQemuGuest = false;
+            enableDokploy = true;
             useGrub = false;
             firewallEnable = true;
             firewallTCPPorts = [ ];
@@ -67,6 +68,7 @@
             enableOpeniscsi = false;
             enableTailscalePublicTcp = false;
             enableQemuGuest = true;
+            enableDokploy = false;
             useGrub = true;
             firewallEnable = true;
             firewallTCPPorts = [ 22 ];

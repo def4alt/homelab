@@ -16,3 +16,4 @@ resources:
   - pv-radarr-config.yaml
   - pv-transmission.yaml
   - pv-zorya-migrated-apps.yaml
+  - pv-homelab-tools.yaml

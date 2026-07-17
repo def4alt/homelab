@@ -60,7 +60,30 @@ in {
     "L+ /usr/local/bin - - - - /run/current-system/sw/bin/"
   ];
 
-  virtualisation.docker.logDriver = lib.mkIf meta.enableLonghornHostTweaks "json-file";
+  virtualisation.docker = {
+    enable = meta.enableDokploy or false;
+    logDriver = "local";
+    autoPrune = lib.mkIf (meta.enableDokploy or false) {
+      enable = true;
+      dates = "weekly";
+      flags = [ "--filter=until=168h" ];
+    };
+  };
+
+  systemd.services.dokploy-bootstrap = lib.mkIf (meta.enableDokploy or false) {
+    description = "Initialize and update the isolated Dokploy Docker Swarm";
+    after = [ "docker.service" "network-online.target" ];
+    requires = [ "docker.service" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = with pkgs; [ bash coreutils docker gnugrep openssl ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.bash}/bin/bash ${./dokploy-bootstrap.sh}";
+      TimeoutStartSec = "10min";
+    };
+  };
 
   services.openiscsi = lib.mkIf meta.enableOpeniscsi {
     enable = true;

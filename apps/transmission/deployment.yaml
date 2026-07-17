@@ -19,7 +19,7 @@ spec:
       containers:
         - name: gluetun
           image: qmcgaw/gluetun:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             capabilities:
               add:
@@ -74,7 +74,7 @@ spec:
               memory: 256Mi
         - name: transmission
           image: lscr.io/linuxserver/transmission:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: PUID
               value: "1000"
