@@ -13,13 +13,6 @@ locals {
     var.base_domain,
   ])
 
-  hetzner_public_hostnames = toset([
-    "auth.${var.base_domain}",
-    "papers.${var.base_domain}",
-    "dashboard.${var.base_domain}",
-    var.base_domain,
-  ])
-
   minecraft_hostname   = "minecraft.${var.base_domain}"
   minecraft_tailnet_ip = "100.119.240.70"
   shell_hostname       = "shell.${var.base_domain}"
@@ -29,7 +22,6 @@ locals {
     "prowlarr.${var.base_domain}",
     "sonarr.${var.base_domain}",
     "radarr.${var.base_domain}",
-    "tv.${var.base_domain}",
   ])
 
   all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames, toset([local.minecraft_hostname, local.shell_hostname]))
@@ -39,15 +31,14 @@ locals {
     "prowlarr.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
     "radarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "sonarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
-    "tv.${var.base_domain}"         = "perun.tail6f3b0.ts.net"
   }
 
   unproxied_hostnames = local.tailnet_hostnames
 
   public_origin_by_hostname = {
     for hostname in local.public_hostnames : hostname => {
-      service       = contains(local.hetzner_public_hostnames, hostname) ? "https://46.62.137.102:443" : var.tunnel_origin_url
-      no_tls_verify = contains(local.hetzner_public_hostnames, hostname)
+      service       = var.tunnel_origin_url
+      no_tls_verify = false
     }
   }
 
