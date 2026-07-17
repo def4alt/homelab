@@ -23,7 +23,7 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - [x] (2026-07-17) Back up stateful data, build and activate NixOS `26.05.20260716.4382ed2` with kernel `6.18.38`, and reboot perun.
 - [x] (2026-07-17) Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
 - [x] (2026-07-17) Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
-- [ ] (2026-07-17) Connect Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, Beszel, and Uptime Kuma into one validated observability workflow.
+- [x] (2026-07-17) Connect Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, Beszel, and Uptime Kuma into one validated observability workflow.
 
 ## Surprises & Discoveries
 
@@ -94,6 +94,10 @@ Linkding `1.45.0`, Beszel Hub `0.18.7`, and Uptime Kuma `2.4.0` are running with
 Perun now runs NixOS `26.05.20260716.4382ed2`, Linux `6.18.38`, k3s `v1.35.6+k3s1`, and containerd `2.2.5-k3s2`. Generation cleanup retained only generation 23 and removed 15,965 unreferenced store paths, freeing 11.5 GiB. Dokploy's Kubernetes, NixOS, Cloudflare, Docker, and host-state artifacts were removed.
 
 Backups retained on perun include the pre-upgrade k3s etcd snapshot, `/var/lib/k8s-backups/20260717T160437Z/new-services.tgz`, and `/var/lib/k8s-backups/20260717T160437Z/immich-pre-v3-owner-fix.sql.gz`. Beszel host-agent enrollment remains a first-login action because the hub generates its agent key only after an administrator initializes the UI.
+
+The observability stack is now connected around one control plane. Prometheus scrapes Loki and Alloy in addition to the existing Kubernetes, node, database, and blackbox targets; Alertmanager sends the resulting warning and critical alerts to Telegram; Alloy enriches logs with `cluster` and `workload` labels before sending them to Loki; and Grafana provisions the `Homelab Observability` dashboard with service availability, node capacity, workload health, log ingestion, restarts, and recent error logs. Internal probes distinguish service failures from ingress, DNS, and TLS failures, while public probes include the requested applications plus Jellyfin and Transmission.
+
+Validation at Git revision `3be9c9b` showed Loki and Alloy scrape targets at `up=1`, 21 of 21 blackbox probes successful, internal and external availability both at 100%, all six custom alert rules loaded, enriched Loki labels available, and the dashboard retrievable through Grafana's API.
 
 ## Context and Orientation
 
@@ -175,3 +179,5 @@ Change note: Recorded completion of the declarative manifests, image audit, NixO
 Change note: Removed Dokploy from the implementation and acceptance criteria after the user explicitly removed it from scope.
 
 Change note: Recorded the completed rollout, NixOS and garbage-collection results, certificate rotation, Immich ownership migration, backup paths, and final validation evidence.
+
+Change note: Added and validated the unified observability workflow, including component self-monitoring, internal service probes, external endpoint probes, actionable alert rules, enriched log labels, and a correlated Grafana dashboard.
