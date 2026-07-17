@@ -19,8 +19,7 @@ spec:
           - 303
       containers:
         - name: jellyfin
-          image: lscr.io/linuxserver/jellyfin:latest
-          imagePullPolicy: Always
+          image: lscr.io/linuxserver/jellyfin@sha256:32aa0d4565c633db95af29a58e8a5dc9becdfa58564a3aea68436623fd45f5a1
           env:
             - name: PUID
               value: "1000"

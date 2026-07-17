@@ -3,13 +3,9 @@ kind: PersistentVolumeClaim
 metadata:
   name: glance-data
   namespace: glance
-  labels:
-    recurring-job.longhorn.io/source: enabled
-    recurring-job-group.longhorn.io/glance: enabled
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: longhorn
   resources:
     requests:
       storage: 2Gi

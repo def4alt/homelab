@@ -3,16 +3,3 @@ kind: Kustomization
 namespace: paperless
 resources:
   - ../../../paperless
-patches:
-  - target:
-      version: v1
-      kind: PersistentVolumeClaim
-      name: paperless-storage
-      namespace: paperless
-    patch: |-
-      - op: remove
-        path: /spec/storageClassName
-      - op: remove
-        path: /metadata/labels/recurring-job.longhorn.io~1source
-      - op: remove
-        path: /metadata/labels/recurring-job-group.longhorn.io~1paperless

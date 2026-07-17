@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
         - name: server
-          image: ghcr.io/immich-app/immich-server:release
-          imagePullPolicy: Always
+          image: ghcr.io/immich-app/immich-server@sha256:c716dc20f957aafd89fa9d284a2ec63e25c9e2d8d8e87c6197d540a3dce237db
           env:
             - name: TZ
               value: "Europe/Berlin"

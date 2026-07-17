@@ -9,13 +9,9 @@ patches:
       name: glance-data
       namespace: glance
     patch: |-
-      - op: replace
+      - op: add
         path: /spec/storageClassName
         value: manual-local
       - op: add
         path: /spec/volumeName
         value: perun-glance-data-local
-      - op: remove
-        path: /metadata/labels/recurring-job.longhorn.io~1source
-      - op: remove
-        path: /metadata/labels/recurring-job-group.longhorn.io~1glance

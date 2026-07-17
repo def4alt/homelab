@@ -69,7 +69,6 @@ Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate t
 - `apps/cert-manager-issuers/secrets/cloudflare-dns.sops.yaml` – Cloudflare API token for DNS-01 challenges.
 - `apps/tailscale/secrets/auth.sops.yaml` – Tailscale pre-auth key for the daemonset.
 - `apps/pi-hole/secrets/web-password.sops.yaml` – Pi-hole admin password.
-- `apps/longhorn/secrets/backup-target-credentials.sops.yaml` – S3-compatible credentials for Longhorn backups.
 - `apps/paperless/secrets/postgres-auth.sops.yaml` – Paperless Postgres user/password.
 - `apps/paperless/secrets/redis-auth.sops.yaml` – Paperless Redis authentication.
 - `apps/paperless/secrets/paperless-secrets.sops.yaml` – Paperless application secrets.

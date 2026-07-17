@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
         - name: blog
-          image: ghcr.io/def4alt/blog:latest
-          imagePullPolicy: Always
+          image: ghcr.io/def4alt/blog@sha256:21aece5d7253227077577a90054adc0cc5d470a307704825a20436eb1a534959
           ports:
             - containerPort: 8080
               name: http

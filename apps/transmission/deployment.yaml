@@ -18,8 +18,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: gluetun
-          image: qmcgaw/gluetun:latest
-          imagePullPolicy: Always
+          image: qmcgaw/gluetun@sha256:b0ee2135e6ba52ad3f102aae9663707cd1c9531485117067a380d3b2b6dd991d
           securityContext:
             capabilities:
               add:
@@ -73,8 +72,7 @@ spec:
               cpu: 500m
               memory: 256Mi
         - name: transmission
-          image: lscr.io/linuxserver/transmission:latest
-          imagePullPolicy: Always
+          image: lscr.io/linuxserver/transmission@sha256:0913501f5d05c019f5e3555a3299df1d8de420fdf882c92a8857787f9fbf999d
           env:
             - name: PUID
               value: "1000"
