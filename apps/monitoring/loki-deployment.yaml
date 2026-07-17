@@ -17,6 +17,18 @@ spec:
     spec:
       securityContext:
         fsGroup: 10001
+      initContainers:
+        - name: prepare-data
+          image: busybox:1.38.0
+          command:
+            - sh
+            - -lc
+            - chown -R 10001:10001 /var/lib/loki
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/loki
       containers:
         - name: loki
           image: grafana/loki:3.7.2

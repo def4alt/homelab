@@ -40,6 +40,12 @@ NetBird is explicitly outside this plan because the user removed it from scope.
 - Observation: Most Helm-managed images were already current because their Helm releases track current chart versions; stale behavior was concentrated in hand-written Deployments using mutable tags with `IfNotPresent` and the vendored JuiceFS manifest.
   Evidence: the live inventory included Grafana 13.1.0, Traefik 3.7.6, cert-manager 1.21.0, Prometheus 3.13.1, Authentik 2026.5.5, and Home Assistant 2026.7.2, while JuiceFS remained at 0.31.3.
 
+- Observation: Loki's first start could not create its rules directory because the retained hostPath was root-owned; Kubernetes did not apply the pod `fsGroup` to the hostPath-backed volume.
+  Evidence: Loki exited with `mkdir /var/lib/loki/rules: permission denied`; the fix is a root init container that changes ownership to Loki UID/GID 10001 before the main container starts.
+
+- Observation: Creating four certificates simultaneously triggered Cloudflare DNS API throttling rather than a cert-manager resource error.
+  Evidence: challenge reasons returned Cloudflare errors `971: Please wait and consider throttling your request speed` and `10502: Too many authentication failures. Please try again later`.
+
 ## Decision Log
 
 - Decision: Deploy Linkding, Beszel hub, Uptime Kuma, Loki, and the log collector through k3s and Flux, each with retained host-backed storage where state is required.
