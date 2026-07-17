@@ -13,3 +13,16 @@ patches:
       - op: add
         path: /spec/storage/storageClass
         value: manual-local
+  - target:
+      group: helm.toolkit.fluxcd.io
+      version: v2
+      kind: HelmRelease
+      name: authentik
+      namespace: authentik
+    patch: |-
+      - op: replace
+        path: /spec/values/server/replicas
+        value: 0
+      - op: replace
+        path: /spec/values/worker/replicas
+        value: 0
