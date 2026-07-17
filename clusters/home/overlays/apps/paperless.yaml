@@ -5,16 +5,17 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./apps/paperless
+  path: ./apps/modes/home/paperless
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
+    - name: namespaces
+    - name: local-storage
     - name: cnpg
-    - name: cert-manager
+    - name: cert-manager-issuers
     - name: authentik
-    - name: longhorn
     - name: traefik
   timeout: 10m
   wait: true

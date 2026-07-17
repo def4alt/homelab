@@ -15,3 +15,4 @@ resources:
   - pv-sonarr-config.yaml
   - pv-radarr-config.yaml
   - pv-transmission.yaml
+  - pv-zorya-migrated-apps.yaml

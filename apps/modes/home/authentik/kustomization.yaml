@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../../authentik
+patches:
+  - target:
+      group: postgresql.cnpg.io
+      version: v1
+      kind: Cluster
+      name: authentik-db
+      namespace: authentik
+    patch: |-
+      - op: add
+        path: /spec/storage/storageClass
+        value: manual-local

@@ -5,14 +5,15 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./apps/glance
+  path: ./apps/modes/home/glance
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: cert-manager
-    - name: longhorn
+    - name: namespaces
+    - name: local-storage
+    - name: cert-manager-issuers
     - name: traefik
     - name: authentik
   timeout: 10m

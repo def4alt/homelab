@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-authentik-db-local
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: authentik
+    name: authentik-db-1
+  hostPath:
+    path: /var/lib/k8s-local-storage/authentik/authentik-db
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-glance-data-local
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: glance
+    name: glance-data
+  hostPath:
+    path: /var/lib/k8s-local-storage/glance/data
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-paperless-db-local
+spec:
+  capacity:
+    storage: 25Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: paperless
+    name: paperless-db-1
+  hostPath:
+    path: /var/lib/k8s-local-storage/paperless/database
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: perun-paperless-storage-local
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: paperless
+    name: paperless-storage
+  hostPath:
+    path: /var/lib/k8s-local-storage/paperless/storage
+    type: DirectoryOrCreate

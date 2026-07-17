@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./apps/authentik
+  path: ./apps/modes/home/authentik
   prune: true
   sourceRef:
     kind: GitRepository
@@ -15,6 +15,7 @@ spec:
     - name: traefik
     - name: cert-manager-issuers
     - name: cnpg
+    - name: local-storage
   timeout: 10m
   wait: true
   decryption:
