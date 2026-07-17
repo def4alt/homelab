@@ -18,6 +18,9 @@ that relying on chart defaults does not also mean accepting unreviewed upgrades.
 - Validate all affected Kustomize overlays before Flux reconciliation.
 - Inventory runtime leftovers separately; delete only clearly temporary debug
   resources, not retained application data or backups without explicit review.
+- Normalize manifest filenames by removing redundant kind, host, storage, and
+  migration qualifiers without changing live Kubernetes object names.
+- Remove the unused `zorya` NixOS configuration and expose only Perun.
 
 ## Non-Goals
 
@@ -35,8 +38,10 @@ that relying on chart defaults does not also mean accepting unreviewed upgrades.
 - [x] Remove obsolete or proven-redundant Helm values.
 - [x] Pin active Helm charts and mutable application images.
 - [x] Build all affected Kustomize overlays and run repository checks.
-- [ ] Commit and push the GitOps changes, reconcile Flux, and verify workloads.
+- [x] Commit and push the GitOps changes, reconcile Flux, and verify workloads.
 - [x] Audit runtime leftovers and clean only unambiguously temporary resources.
+- [x] Normalize Kubernetes manifest filenames and references.
+- [x] Remove the second NixOS host and validate the Perun-only flake.
 
 ## Decisions
 
@@ -72,3 +77,7 @@ that relying on chart defaults does not also mean accepting unreviewed upgrades.
   probes healthy, but exposed a pre-existing invalid Telegram message template.
   Replaced the unsupported conditional and validated the decrypted configuration
   successfully with `amtool check-config`.
+- 2026-07-17: Renamed manifests to directory-local Kubernetes conventions while
+  preserving all live object names. Removed the Zorya NixOS modules, simplified
+  the flake to one direct Perun output, rebuilt every active Kustomize path, and
+  confirmed `nix flake check` passes with only `nixosConfigurations.perun`.

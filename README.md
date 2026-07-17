@@ -4,28 +4,14 @@
 
 ### NixOS baseline
 
-This repo now represents two independent NixOS sites:
-
-- `perun` — the home host that runs the `clusters/home` k3s + Flux stack
-- `zorya` — the retired Hetzner edge host; its k3s service is disabled
-
-The flake in `nixos/flake.nix` exposes both hosts. To install either machine, boot the target with a NixOS installer or rescue image and run `nixos-anywhere` against the desired flake output.
-
-Home host example:
+The NixOS flake defines `perun`, the home host that runs the `clusters/home` k3s and Flux stack. To install it, boot the target with a NixOS installer or rescue image and run:
 
 ```sh
 nix run github:nix-community/nixos-anywhere -- --flake '.#perun' \
   --target-host nixos@<installer-ip> --build-on-remote
 ```
 
-Hetzner host example:
-
-```sh
-nix run github:nix-community/nixos-anywhere -- --flake '.#zorya' \
-  --target-host root@46.62.137.102 --build-on-remote
-```
-
-Before running either command, review `nixos/configuration.nix` plus the host-specific hardware and disk files. `perun` uses `nixos/hardware-configuration.nix` and `nixos/disko-config.nix`. `zorya` uses `nixos/hosts/zorya/hardware-configuration.nix` and `nixos/hosts/zorya/disko-config.nix`. The flake also pulls in `disko` so the installed partitioning matches the source-controlled layout.
+Before running the command, review `nixos/configuration.nix`, `nixos/hardware-configuration.nix`, and `nixos/disko-config.nix`. The flake includes `disko` so the installed partitioning matches the source-controlled layout.
 
 ### Cloudflare tunnels
 

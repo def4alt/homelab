@@ -3,7 +3,7 @@ kind: Kustomization
 namespace: juicefs
 resources:
   - juicefs-csi-driver.yaml
-  - postgres-cluster-local.yaml
+  - postgres-cluster.yaml
   - barman-objectstore.yaml
   - scheduled-backup.yaml
   - storageclass.yaml

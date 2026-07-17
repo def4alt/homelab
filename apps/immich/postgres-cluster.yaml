@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: immich-db
+  name: immich-db-local
   namespace: immich
 spec:
   instances: 1
@@ -13,6 +13,7 @@ spec:
         name: immich-db-auth
   storage:
     size: 20Gi
+    storageClass: manual-local
   monitoring:
     enablePodMonitor: true
   plugins:

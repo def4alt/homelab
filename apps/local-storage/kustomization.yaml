@@ -2,18 +2,18 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - storageclass.yaml
-  - pv-pihole.yaml
-  - pv-minecraft.yaml
-  - pv-monitoring-grafana.yaml
-  - pv-home-assistant-config.yaml
-  - pv-juicefs-db-local.yaml
-  - pv-home-assistant-db-local.yaml
-  - pv-immich-db-local.yaml
-  - pv-monitoring-prometheus.yaml
-  - pv-jellyfin-config.yaml
-  - pv-prowlarr-config.yaml
-  - pv-sonarr-config.yaml
-  - pv-radarr-config.yaml
-  - pv-transmission.yaml
-  - pv-zorya-migrated-apps.yaml
-  - pv-homelab-tools.yaml
+  - pi-hole.yaml
+  - minecraft.yaml
+  - monitoring-grafana.yaml
+  - home-assistant-config.yaml
+  - juicefs-db.yaml
+  - home-assistant-db.yaml
+  - immich-db.yaml
+  - monitoring-prometheus.yaml
+  - jellyfin-config.yaml
+  - prowlarr-config.yaml
+  - sonarr-config.yaml
+  - radarr-config.yaml
+  - transmission.yaml
+  - application-data.yaml
+  - homelab-tools.yaml

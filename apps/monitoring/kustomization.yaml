@@ -3,12 +3,12 @@ kind: Kustomization
 resources:
   - helmrepository.yaml
   - secrets/alertmanager.sops.yaml
-  - pvc-local.yaml
+  - pvc.yaml
   - helmrelease.yaml
   - blackbox-exporter-helmrelease.yaml
   - prometheusrules.yaml
-  - grafana-dashboard-cnpg-backups.yaml
-  - grafana-dashboard-homelab-observability.yaml
+  - cnpg-backups.yaml
+  - homelab-observability.yaml
   - secrets/grafana-admin.sops.yaml
   - loki-configmap.yaml
   - loki-pvc.yaml

@@ -1,10 +1,10 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - namespace-cert-manager.yaml
-  - namespace-infra.yaml
-  - namespace-blog.yaml
-  - namespace-authentik.yaml
-  - namespace-cnpg-system.yaml
-  - namespace-glance.yaml
-  - namespace-paperless.yaml
+  - cert-manager.yaml
+  - infra.yaml
+  - blog.yaml
+  - authentik.yaml
+  - cnpg-system.yaml
+  - glance.yaml
+  - paperless.yaml
