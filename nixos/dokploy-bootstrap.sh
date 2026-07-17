@@ -8,6 +8,7 @@ traefik_image="traefik:v3.6.7"
 if [[ "$(docker info --format '{{.Swarm.LocalNodeState}}')" != "active" ]]; then
   docker swarm init \
     --advertise-addr 192.168.88.189 \
+    --data-path-addr 192.168.88.189 \
     --default-addr-pool 172.30.0.0/16 \
     --default-addr-pool-mask-length 24
 fi
