@@ -21,8 +21,8 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - [x] (2026-07-17) Audit all live image references; update stale JuiceFS and Authentik pins and correct mutable image pull policies while preserving already-current Helm-managed components.
 - [x] (2026-07-17) Update the NixOS flake lock, evaluate the configuration, commit and push the GitOps changes, and reconcile application changes in stages.
 - [x] (2026-07-17) Back up stateful data, build and activate NixOS `26.05.20260716.4382ed2` with kernel `6.18.38`, and reboot perun.
-- [ ] Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
-- [ ] Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
+- [x] (2026-07-17) Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
+- [x] (2026-07-17) Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
 
 ## Surprises & Discoveries
 
@@ -47,6 +47,15 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - Observation: Creating four certificates simultaneously triggered Cloudflare DNS API throttling rather than a cert-manager resource error.
   Evidence: challenge reasons returned Cloudflare errors `971: Please wait and consider throttling your request speed` and `10502: Too many authentication failures. Please try again later`.
 
+- Observation: perun's DHCP-provided resolver at `192.168.88.1` stopped answering after reboot, and CoreDNS retained that resolver until its pod restarted.
+  Evidence: host IP connectivity remained healthy while CoreDNS logged upstream UDP timeouts; temporarily using `1.1.1.1` and restarting CoreDNS restored Flux, ACME, and Helm repository resolution.
+
+- Observation: The encrypted cert-manager Cloudflare token could no longer list zones, while the credential used by OpenTofu still had working zone access.
+  Evidence: replacing only the SOPS-encrypted `cloudflare-dns` value and recreating the stale challenges resulted in all four new certificates becoming `Ready=True`.
+
+- Observation: Pulling Immich `v3.0.3` exposed that restored application tables were owned by `postgres`, preventing the new migration from altering `asset`.
+  Evidence: an immediate 21 MiB `pg_dump` was taken, ownership of public non-extension objects was transferred to `immich`, and the server then completed migrations and remained `Running` with zero restarts.
+
 ## Decision Log
 
 - Decision: Deploy Linkding, Beszel hub, Uptime Kuma, Loki, and the log collector through k3s and Flux, each with retained host-backed storage where state is required.
@@ -69,9 +78,17 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
   Rationale: Separating application and operating-system changes narrows rollback scope and ensures the node reboot is not mixed with untested data migrations.
   Date/Author: 2026-07-17 / Codex
 
+- Decision: Declare Cloudflare's resolvers on perun instead of returning to the unresponsive DHCP-provided router resolver.
+  Rationale: Flux, CoreDNS, ACME, image pulls, and Nix downloads all require a working recursive resolver across reboots; leaving the recovery edit only in `/etc/resolv.conf` would create configuration drift.
+  Date/Author: 2026-07-17 / Codex
+
 ## Outcomes & Retrospective
 
-Repository implementation and local validation are complete. No workload or host changes have been applied yet.
+Linkding `1.45.0`, Beszel Hub `0.18.7`, and Uptime Kuma `2.4.0` are running with retained local storage and authenticated public routes. Grafana is public through the same Authentik path, Loki `3.7.2` reports ready and returns Kubernetes labels, and Alloy `1.16.1` is forwarding logs without recent errors. All Flux Kustomizations and all certificates are ready at Git revision `8a5383c`.
+
+Perun now runs NixOS `26.05.20260716.4382ed2`, Linux `6.18.38`, k3s `v1.35.6+k3s1`, and containerd `2.2.5-k3s2`. Generation cleanup retained only generation 23 and removed 15,965 unreferenced store paths, freeing 11.5 GiB. Dokploy's Kubernetes, NixOS, Cloudflare, Docker, and host-state artifacts were removed.
+
+Backups retained on perun include the pre-upgrade k3s etcd snapshot, `/var/lib/k8s-backups/20260717T160437Z/new-services.tgz`, and `/var/lib/k8s-backups/20260717T160437Z/immich-pre-v3-owner-fix.sql.gz`. Beszel host-agent enrollment remains a first-login action because the hub generates its agent key only after an administrator initializes the UI.
 
 ## Context and Orientation
 
@@ -85,7 +102,7 @@ Perun is a single-node NixOS k3s server. Its declarative host configuration is `
 
 First, add namespaces and retained local volumes for Linkding, Beszel, Uptime Kuma, and Loki. Each application directory will contain a minimal Deployment, Service, Ingress, persistent-volume claim, and Kustomization. Linkding will use its supported SQLite storage path. Beszel will persist its hub database; its perun agent will be added only through a least-privilege mechanism that can observe the host without mounting the k3s container runtime socket read-write. Uptime Kuma will persist `/app/data`. Each UI will use Traefik, cert-manager, and the existing Authentik forward-auth middleware.
 
-Second, extend `apps/monitoring` with the supported Loki Helm chart in monolithic mode, filesystem persistence, short homelab retention, and conservative resources. Add Grafana Alloy to collect `/var/log/pods` and provision Loki as a Grafana data source. Enable Grafana's existing ingress at `grafana.def4alt.com`; keep Prometheus protected and unchanged unless validation shows its existing DNS entry should also be enabled.
+Second, extend `apps/monitoring` with a pinned monolithic Loki deployment, filesystem persistence, short homelab retention, and conservative resources. Add Grafana Alloy to collect `/var/log/pods` and provision Loki as a Grafana data source. Enable Grafana's existing ingress at `grafana.def4alt.com`; keep Prometheus protected and unchanged unless validation shows its existing DNS entry should also be enabled.
 
 Third, inventory the actual running images and Helm releases, compare them with current stable upstream releases, and update direct version pins and chart versions. Mutable tags such as `latest` or `release` must be restarted deliberately so new digests are pulled. Stateful upgrades are applied one workload at a time, with database and retained-volume backups before any documented migration boundary.
 
@@ -124,7 +141,7 @@ After the NixOS activation and reboot, `nixos-version` must report the updated r
 
 ## Idempotence and Recovery
 
-Flux resources, systemd units, Docker networks, and Swarm initialization must be written as create-if-absent operations so reconciliation and host rebuilds can be repeated safely. Persistent volumes use `Retain`, so removing a Deployment does not delete application data.
+Flux resources and persistent directories are declarative so reconciliation and host rebuilds can be repeated safely. Persistent volumes use `Retain`, so removing a Deployment does not delete application data.
 
 If a Kubernetes application fails, revert its Git commit or suspend only its Flux Kustomization while preserving the volume. If Loki overloads the node, suspend Loki and Alloy without touching Grafana or Prometheus. If the NixOS generation fails, select a retained boot generation or run `sudo nixos-rebuild switch --rollback` before the requested generation cleanup is performed.
 
@@ -142,12 +159,14 @@ Initial live inventory on 2026-07-17:
 
 ## Interfaces and Dependencies
 
-Linkding uses `ghcr.io/sissbruecker/linkding` and listens on port 9090 with state in `/etc/linkding/data`. Beszel uses the official `henrygd/beszel` hub and `henrygd/beszel-agent` images and listens on port 8090. Uptime Kuma uses `louislam/uptime-kuma:2`, listens on port 3001, and persists `/app/data`.
+Linkding uses `ghcr.io/sissbruecker/linkding:1.45.0` and listens on port 9090 with state in `/etc/linkding/data`. Beszel uses `henrygd/beszel:0.18.7` and listens on port 8090. Uptime Kuma uses `louislam/uptime-kuma:2.4.0`, listens on port 3001, and persists `/app/data`.
 
-Loki uses the Grafana Community Loki Helm chart in monolithic mode. Grafana Alloy uses the official Grafana Helm chart or manifests supported by Grafana and sends logs to Loki's in-cluster HTTP endpoint. Grafana receives a provisioned Loki data source through the existing Helm release.
+Loki uses `grafana/loki:3.7.2` in monolithic mode. Grafana Alloy uses `grafana/alloy:v1.16.1` and sends logs to Loki's in-cluster HTTP endpoint. Grafana receives a provisioned Loki data source through the existing Helm release.
 
 Change note: Created the plan after repository and live-cluster discovery; incorporated the requested Linkding hostname, the existing Grafana deployment, the later request to upgrade all images and NixOS, and the explicit removal of NetBird from scope.
 
 Change note: Recorded completion of the declarative manifests, image audit, NixOS lock update, and successful local render/evaluation checks before the first deployment commit.
 
 Change note: Removed Dokploy from the implementation and acceptance criteria after the user explicitly removed it from scope.
+
+Change note: Recorded the completed rollout, NixOS and garbage-collection results, certificate rotation, Immich ownership migration, backup paths, and final validation evidence.
