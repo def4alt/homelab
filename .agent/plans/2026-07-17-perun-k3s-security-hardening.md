@@ -31,8 +31,8 @@ This change has three staged controls with independent verification and rollback
 - [x] (2026-07-17) Build and activate the encryption configuration on perun; verify fresh key-only SSH, k3s, the Ready node, and all Flux Kustomizations recover.
 - [x] (2026-07-17) Run dynamic key rotation/re-encryption. Status is enabled at `reencrypt_finished`, all server hashes match, and the new AES-CBC key is active.
 - [x] (2026-07-17) Add the declarative NixOS firewall configuration and validate the evaluated interface/port sets.
-- [ ] Rebuild perun and verify allowed and denied network paths.
-- [ ] Add the first incremental NetworkPolicy set for Blog, Glance, and Paperless.
+- [x] (2026-07-17) Activate the firewall and verify fresh LAN/Tailscale SSH, API access, LAN DNS/ingress/Home Assistant, public endpoints, pod health, and denial of LAN etcd, kubelet, and node-exporter access. Activation reported a pre-existing D-Bus reload timeout, but the new generation and firewall are active and D-Bus remains healthy.
+- [x] (2026-07-17) Add the first incremental NetworkPolicy set for Blog, Glance, and Paperless.
 - [ ] Reconcile and test every isolated namespace.
 - [ ] Document results, limitations, and the next policy rollout.
 
@@ -48,8 +48,8 @@ This change has three staged controls with independent verification and rollback
 ## NetworkPolicy design
 
 - Use namespace labels (`kubernetes.io/metadata.name`) rather than mutable custom labels.
-- Blog: default deny ingress and egress; permit ingress from `infra` to TCP `80`, and DNS egress to kube-dns.
-- Glance: default deny ingress; permit ingress from `infra` to TCP `80`. Preserve egress initially because Glance aggregates external and internal services.
+- Blog: default deny ingress and egress; permit ingress from `infra` to the pod's TCP `8080`, and DNS egress to kube-dns.
+- Glance: default deny ingress; permit ingress from `infra` to the pod's TCP `8080`. Preserve egress initially because Glance aggregates external and internal services.
 - Paperless: default deny ingress; permit ingress from `infra` to TCP `8000`, same-namespace application/database traffic, and CNPG operator traffic. Preserve egress initially for backups and integrations.
 - Do not broadly apply policies to infrastructure, privileged storage, monitoring, or home-automation namespaces until their flows are separately inventoried.
 

@@ -15,6 +15,7 @@ resources:
   - postgres-cluster.yaml
   - barman-objectstore.yaml
   - scheduled-backup.yaml
+  - network-policies.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/redis-auth.sops.yaml
   - secrets/paperless-secrets.sops.yaml
