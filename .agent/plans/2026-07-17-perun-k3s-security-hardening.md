@@ -33,8 +33,8 @@ This change has three staged controls with independent verification and rollback
 - [x] (2026-07-17) Add the declarative NixOS firewall configuration and validate the evaluated interface/port sets.
 - [x] (2026-07-17) Activate the firewall and verify fresh LAN/Tailscale SSH, API access, LAN DNS/ingress/Home Assistant, public endpoints, pod health, and denial of LAN etcd, kubelet, and node-exporter access. Activation reported a pre-existing D-Bus reload timeout, but the new generation and firewall are active and D-Bus remains healthy.
 - [x] (2026-07-17) Add the first incremental NetworkPolicy set for Blog, Glance, and Paperless.
-- [ ] Reconcile and test every isolated namespace.
-- [ ] Document results, limitations, and the next policy rollout.
+- [x] (2026-07-17) Reconcile and test every isolated namespace. Infra-to-app probes succeed, default-namespace probes are denied, Blog DNS succeeds while internet egress is denied, workloads remain Ready, and all CNPG clusters are healthy.
+- [x] (2026-07-17) Document results, limitations, and the next policy rollout.
 
 ## Firewall design
 
@@ -63,6 +63,16 @@ This change has three staged controls with independent verification and rollback
 - `def4alt.com`, Authentik, Dashboard, and Papers return expected responses.
 - Pi-hole DNS, Minecraft, Home Assistant, Cloudflare Tunnel, CNPG clusters, and backup resources remain healthy.
 - Blog, Glance, and Paperless remain reachable after policy reconciliation; denied cross-namespace probes fail.
+
+## Results and next rollout
+
+- K3s Secret encryption is enabled and all existing resources were re-encrypted through dynamic key rotation. Status is `reencrypt_finished` with matching server hashes.
+- The firewall permits the API from the LAN and tailnet while LAN probes to etcd `2379/2380`, kubelet `10250`, and node-exporter `9100` are denied. LAN/Tailscale SSH, Pi-hole DNS, Traefik, Home Assistant, and public application endpoints remain available.
+- Blog now has full ingress/egress isolation with only Traefik ingress and kube-dns egress. Glance and Paperless have ingress isolation while preserving egress during this first rollout.
+- Paperless permits same-namespace traffic, `infra` ingress for Traefik/Prometheus, and CNPG operator ingress. Its database remains healthy.
+- Glance initially failed reconciliation because its base Kustomization does not inject a namespace; explicit namespaces corrected this in `485d3cd` before any policy was applied.
+- Minecraft's LoadBalancer had no endpoints during validation, independent of the firewall; its Tailscale listener remains open. Validate the LAN VIP when the Minecraft workload is next started.
+- Next, inventory and isolate Authentik, transmission/media, Immich, and other application namespaces one at a time. Handle infrastructure, monitoring, Home Assistant, MetalLB, and JuiceFS last because they require broad or host-level flows.
 
 ## Rollback
 
