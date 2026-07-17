@@ -68,3 +68,7 @@ that relying on chart defaults does not also mean accepting unreviewed upgrades.
 - 2026-07-17: After explicit approval, removed seven Released Longhorn PVs and 55
   GiB of retired replica data. No Bound Longhorn PVs or other non-running pods
   existed; the node remained Ready and disk utilization fell from 83% to 77%.
+- 2026-07-17: Post-reconciliation observability checks found all targets and 17
+  probes healthy, but exposed a pre-existing invalid Telegram message template.
+  Replaced the unsupported conditional and validated the decrypted configuration
+  successfully with `amtool check-config`.
