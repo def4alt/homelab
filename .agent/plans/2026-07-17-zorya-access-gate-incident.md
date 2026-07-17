@@ -16,9 +16,11 @@ Contain unauthorized scanning from zorya, preserve evidence, determine the acces
 - [x] (2026-07-17) Confirm the user does not recognize the successful public login source or Access Gate deployment.
 - [x] (2026-07-17) Power off zorya.
 - [x] (2026-07-17) Check perun for Access Gate, suspicious outbound SSH, and accepted logins from zorya; none were found.
-- [ ] Disable password SSH and world-readable k3s kubeconfig on all source-controlled hosts.
-- [ ] Rotate/revoke every credential that was readable from zorya, beginning with Tailscale, GitHub/Flux, SOPS, Cloudflare, backup storage, and Authentik.
-- [ ] Audit perun cluster RBAC, workloads, secrets, and persistence for evidence of lateral movement.
+- [x] (2026-07-17) Disable password/keyboard-interactive/root SSH and change the k3s administrator kubeconfig from `0644` to `0600` on source-controlled hosts; rebuild and verify perun.
+- [x] (2026-07-17) Replace Flux's compromised HTTPS PAT dependency with a repository-scoped, read-only SSH deploy key (`208c847`).
+- [x] (2026-07-17) Generate a new SOPS Age identity, re-encrypt and verify all 18 SOPS files, deploy the new identity to Flux, and remove the old identities from perun and the operator workstation (`e7a939a`).
+- [ ] Rotate/revoke every remaining credential that was readable from zorya, beginning with Tailscale, the old GitHub PAT, Cloudflare, backup storage, Authentik, application secrets, and the shared password.
+- [x] (2026-07-17) Audit perun host authentication, processes, files, persistence, connections, Kubernetes RBAC, recent pods/secrets, and privileged/host-mounted workloads; no evidence of lateral movement was found. Remove five stale node-debugger pods after review.
 - [ ] Reinstall or delete zorya; do not trust or return the existing filesystem to service.
 - [ ] Submit a concise incident response to Hetzner with containment time and root cause.
 
@@ -43,8 +45,8 @@ Contain unauthorized scanning from zorya, preserve evidence, determine the acces
 ## Required rotations
 
 1. Revoke zorya in the Tailscale admin console and expire any reusable auth keys.
-2. Replace the GitHub credential used by Flux and inspect account/repository audit logs.
-3. Create a new SOPS Age key for Flux and encrypt all future secret revisions to it.
+2. **Partially complete:** Flux now uses a new read-only SSH deploy key. Revoke the old GitHub PAT and inspect account/repository audit logs in GitHub.
+3. **Complete:** Flux and all current encrypted files now use only the new SOPS Age identity.
 4. Rotate the Cloudflare API token, tunnel token, and any origin credentials.
 5. Rotate B2/S3/CNPG/Restic credentials and inspect provider access logs.
 6. Rotate Authentik secret material, outpost tokens, recovery/session credentials, and admin password; invalidate sessions.
@@ -54,3 +56,7 @@ Contain unauthorized scanning from zorya, preserve evidence, determine the acces
 ## Hetzner response evidence
 
 State that an unauthorized process under the compromised `def4alt` account initiated SSH scanning, the process was stopped and preserved, outbound SSH was blocked, public SSH was closed, all zorya workloads were terminated, and the server was powered off on 2026-07-17. State that zorya will not return to service without reinstall/replacement and affected credentials are being rotated.
+
+Suggested response:
+
+> We investigated the reported outbound TCP/22 activity from `46.62.137.102` and confirmed that an unauthorized process running under a compromised user account initiated SSH scanning. We stopped and preserved the process and supporting logs, blocked outbound SSH, closed public SSH access, terminated the server's workloads, and powered the server off on 17 July 2026. The affected server will not be returned to service from its current installation; it will be replaced or reinstalled from trusted media. We have also disabled password-based SSH and are rotating all credentials that may have been accessible from the host. The reported activity has been contained.
