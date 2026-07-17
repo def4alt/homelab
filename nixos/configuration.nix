@@ -102,7 +102,7 @@ in {
   users.users.${meta.primaryUser} = primaryUser;
 
   services.k3s = {
-    enable = true;
+    enable = meta.enableK3s or true;
     role = "server";
     token = meta.k3sToken or "";
     tokenFile = meta.k3sTokenFile or null;

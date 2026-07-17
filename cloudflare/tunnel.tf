@@ -5,10 +5,6 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "homelab" {
   tunnel_id  = var.tunnel_id
 
   config {
-    warp_routing {
-      enabled = false
-    }
-
     ingress_rule {
       hostname = local.shell_hostname
       service  = "ssh://shell.shell.svc.cluster.local:22"

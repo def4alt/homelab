@@ -7,7 +7,7 @@
 This repo now represents two independent NixOS sites:
 
 - `perun` — the home host that runs the `clusters/home` k3s + Flux stack
-- `zorya` — the Hetzner host that is intended to run the `clusters/hetzner` k3s + Flux stack
+- `zorya` — the retired Hetzner edge host; its k3s service is disabled
 
 The flake in `nixos/flake.nix` exposes both hosts. To install either machine, boot the target with a NixOS installer or rescue image and run `nixos-anywhere` against the desired flake output.
 
@@ -35,14 +35,9 @@ Before running either command, review `nixos/configuration.nix` plus the host-sp
 
 ### k3s + Flux
 
-k3s runs on both NixOS hosts, but each host is its own independent single-node cluster. FluxCD reconciles the home cluster from `clusters/home` and the Hetzner cluster from `clusters/hetzner`. The `apps/` directory remains the canonical source of Traefik, Cert-Manager, infra helpers, and the applications themselves; each cluster chooses which app directories to reconcile through its own Flux overlays.
+k3s runs on `perun` as a single-node cluster, and FluxCD reconciles it from `clusters/home`. The `apps/` directory remains the canonical source of Traefik, Cert-Manager, infrastructure helpers, and applications. The retained `clusters/hetzner` bootstrap contains no workload overlays and exists only as a safe decommissioned configuration.
 
-The current split is:
-
-- `clusters/home` keeps the home-bound and storage-heavy workloads such as Home Assistant, Immich, Pi-hole, Minecraft, Longhorn, JuiceFS, and monitoring.
-- `clusters/hetzner` owns the public edge stack and the public app set: Blog, Authentik, Glance, and Paperless, plus its own Traefik, Cert-Manager, and CloudNativePG operator.
-
-Cloudflare still fronts the public hostnames, but `def4alt.com`, `auth.def4alt.com`, `dashboard.def4alt.com`, and `papers.def4alt.com` now terminate on the Hetzner origin. The remaining protected home apps use that public Authentik endpoint for forward-auth rather than a home-local Authentik deployment.
+The home cluster owns both home-bound workloads and the public app set: Blog, Authentik, Glance, and Paperless. Cloudflare fronts the public hostnames and sends tunnel traffic to Traefik on `perun`. Protected home apps use the Authentik deployment in the same cluster for forward-auth.
 
 All infra overlays set `spec.decryption.provider: sops`, so Flux decrypts the secrets stored under `apps/*/secrets/*.sops.yaml` using a dedicated Age key. The cluster must contain the namespace-scoped secret `flux-system/sops-age` that holds the private key to decrypt those secrets.
 
@@ -61,7 +56,7 @@ kubectl -n flux-system create secret generic sops-age \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Once that secret exists, Flux can reconcile the overlays under whichever cluster path you bootstrap (`clusters/home/overlays` or `clusters/hetzner/overlays`) without further manual steps.
+Once that secret exists, Flux can reconcile the overlays under `clusters/home` without further manual steps.
 
 ## Secrets to set
 
@@ -90,9 +85,9 @@ Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files 
 
 ## Services
 
-- **Home infrastructure**: Traefik (+ CRDs), MetalLB (+ config), Longhorn (+ recurring backup jobs), JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, and monitoring helpers.
-- **Shared or per-cluster infrastructure**: Cert-Manager (and Issuers) and CloudNativePG clusters.
-- **Public app set on Hetzner**: Blog on `def4alt.com`, Authentik SSO, Glance dashboard, and Paperless.
+- **Home infrastructure**: Traefik (+ CRDs), MetalLB (+ config), local storage, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, and monitoring helpers.
+- **Cluster infrastructure**: Cert-Manager (and Issuers) and CloudNativePG clusters.
+- **Public app set on perun**: Blog on `def4alt.com`, Authentik SSO, Glance dashboard, and Paperless.
 - **Home app set**: Home Assistant, Immich, Pi-hole, and Minecraft.
 - **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the shared CNPG Barman AWS key.
 

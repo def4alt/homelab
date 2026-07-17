@@ -38,6 +38,7 @@
             useGrub = false;
             firewallEnable = false;
             firewallTCPPorts = [ ];
+            enableK3s = true;
             k3sExtraFlags = [ ];
           };
           modules = [
@@ -62,7 +63,8 @@
             enableQemuGuest = true;
             useGrub = true;
             firewallEnable = true;
-            firewallTCPPorts = [ 22 80 443 ];
+            firewallTCPPorts = [ 22 ];
+            enableK3s = false;
             k3sTokenFile = "/var/lib/rancher/k3s/server/token";
             k3sExtraFlags = [ ];
           };
