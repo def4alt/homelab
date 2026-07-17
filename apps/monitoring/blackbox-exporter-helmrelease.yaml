@@ -82,6 +82,26 @@ spec:
         - name: grafana
           url: https://grafana.def4alt.com/
           hostname: grafana.def4alt.com
+        - name: jellyfin
+          url: https://tv.def4alt.com/
+          hostname: tv.def4alt.com
+        - name: transmission
+          url: https://sea.def4alt.com/
+          hostname: sea.def4alt.com
+        - name: internal-linkding
+          url: http://linkding.linkding.svc.cluster.local/
+        - name: internal-beszel
+          url: http://beszel.beszel.svc.cluster.local/
+        - name: internal-uptime-kuma
+          url: http://uptime-kuma.uptime-kuma.svc.cluster.local/
+        - name: internal-grafana
+          url: http://monitoring-grafana.infra.svc.cluster.local/api/health
+        - name: internal-prometheus
+          url: http://monitoring-kube-prometheus-prometheus.infra.svc.cluster.local:9090/-/ready
+        - name: internal-loki
+          url: http://loki.infra.svc.cluster.local:3100/ready
+        - name: internal-alloy
+          url: http://alloy.infra.svc.cluster.local:12345/-/ready
         - name: pihole-dns
           url: 192.168.88.192:53
           module: dns_udp

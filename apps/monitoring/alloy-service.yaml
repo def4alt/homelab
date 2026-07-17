@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: loki
+  name: alloy
   namespace: infra
   labels:
-    app: loki
+    app: alloy
 spec:
   selector:
-    app: loki
+    app: alloy
   ports:
     - name: http
-      port: 3100
-      targetPort: 3100
+      port: 12345
+      targetPort: http

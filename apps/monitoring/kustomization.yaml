@@ -8,11 +8,14 @@ resources:
   - blackbox-exporter-helmrelease.yaml
   - prometheusrules.yaml
   - grafana-dashboard-cnpg-backups.yaml
+  - grafana-dashboard-homelab-observability.yaml
   - secrets/grafana-admin.sops.yaml
   - loki-configmap.yaml
   - loki-pvc.yaml
   - loki-deployment.yaml
   - loki-service.yaml
+  - alloy-service.yaml
+  - observability-servicemonitors.yaml
   - alloy-configmap.yaml
   - alloy-rbac.yaml
   - alloy-daemonset.yaml

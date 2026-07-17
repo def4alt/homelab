@@ -8,10 +8,56 @@ spec:
     - name: monitoring.endpoints
       rules:
         - alert: ExternalEndpointDown
-          expr: probe_success == 0
+          expr: >-
+            probe_success{instance!~"http://.*\\.svc\\.cluster\\.local.*"} == 0
           for: 5m
           labels:
             severity: critical
           annotations:
             summary: "Endpoint {{ $labels.instance }} is down"
-            description: "Blackbox probe {{ $labels.job }} failed for {{ $labels.instance }} for more than 5 minutes."
+            description: "The external blackbox probe has failed for more than 5 minutes."
+        - alert: InternalEndpointDown
+          expr: >-
+            probe_success{instance=~"http://.*\\.svc\\.cluster\\.local.*"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Internal service {{ $labels.instance }} is unavailable"
+            description: "The in-cluster blackbox probe has failed for more than 5 minutes, independently of ingress and external DNS."
+        - alert: EndpointCertificateExpiringSoon
+          expr: probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 60 * 60
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: "TLS certificate for {{ $labels.instance }} expires within 14 days"
+            description: "The externally observed certificate needs renewal before its expiry timestamp."
+        - alert: EndpointProbeSlow
+          expr: >-
+            probe_duration_seconds{instance!~"http://.*\\.svc\\.cluster\\.local.*"} > 5
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Endpoint {{ $labels.instance }} is responding slowly"
+            description: "The external blackbox probe has taken more than 5 seconds for 15 minutes."
+    - name: monitoring.pipeline
+      rules:
+        - alert: ObservabilityTargetDown
+          expr: >-
+            up{namespace="infra", service=~"loki|alloy"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.service }} metrics target is down"
+            description: "Prometheus cannot scrape the {{ $labels.service }} observability component for more than 5 minutes."
+        - alert: LokiRejectedLogs
+          expr: sum(rate(loki_discarded_samples_total[10m])) > 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Loki is rejecting log entries"
+            description: "Loki has continuously discarded log entries during the last 10 minutes."

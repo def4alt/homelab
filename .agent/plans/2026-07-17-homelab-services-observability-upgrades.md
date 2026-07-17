@@ -23,6 +23,7 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 - [x] (2026-07-17) Back up stateful data, build and activate NixOS `26.05.20260716.4382ed2` with kernel `6.18.38`, and reboot perun.
 - [x] (2026-07-17) Verify node, Flux, applications, logs, certificates, and public endpoints; remove old NixOS generations and garbage collect the store.
 - [x] (2026-07-17) Record exact versions, validation evidence, rollback artifacts, and outcomes in this plan.
+- [ ] (2026-07-17) Connect Prometheus, Alertmanager, Grafana, Loki, Alloy, blackbox exporter, Beszel, and Uptime Kuma into one validated observability workflow.
 
 ## Surprises & Discoveries
 
@@ -68,6 +69,10 @@ NetBird and Dokploy are explicitly outside this plan because the user removed th
 
 - Decision: Run Loki in monolithic mode with filesystem storage and one replica, and use Grafana Alloy as a DaemonSet-style Kubernetes log collector.
   Rationale: Grafana recommends monolithic Loki for small meta-monitoring installations; a single-node homelab does not benefit from the operational cost of microservices mode.
+  Date/Author: 2026-07-17 / Codex
+
+- Decision: Keep Prometheus and Alertmanager as the single metrics and alerting control plane, and treat Beszel and Uptime Kuma as focused user interfaces rather than parallel telemetry pipelines.
+  Rationale: Duplicating collection and alert routing would create inconsistent health states. Prometheus can centrally observe both specialist applications through blackbox probes while Grafana correlates cluster metrics and Loki logs.
   Date/Author: 2026-07-17 / Codex
 
 - Decision: Use `links.def4alt.com`, `beszel.def4alt.com`, and `uptime.def4alt.com` as public UI hostnames. Loki remains cluster-internal and is queried through Grafana.
