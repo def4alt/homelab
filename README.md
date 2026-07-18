@@ -1,79 +1,77 @@
 # Homelab
 
-## Installation
+Single-node NixOS and k3s homelab running on `perun`, reconciled by FluxCD from
+`clusters/home`.
 
-### NixOS baseline
+## NixOS
 
-The NixOS flake defines `perun`, the home host that runs the `clusters/home` k3s and Flux stack. To install it, boot the target with a NixOS installer or rescue image and run:
+The flake exposes only `nixosConfigurations.perun`. To install from a NixOS
+installer or rescue environment:
 
 ```sh
 nix run github:nix-community/nixos-anywhere -- --flake '.#perun' \
   --target-host nixos@<installer-ip> --build-on-remote
 ```
 
-Before running the command, review `nixos/configuration.nix`, `nixos/hardware-configuration.nix`, and `nixos/disko-config.nix`. The flake includes `disko` so the installed partitioning matches the source-controlled layout.
+Review `nixos/configuration.nix`, `nixos/hardware-configuration.nix`, and
+`nixos/disko-config.nix` before installation.
 
-### Cloudflare tunnels
+## Kubernetes
 
-`cloudflare/` is a small Terraform project that can own the Cloudflare Tunnel and optional DNS records forwarding to Traefik. Toggle the `manage_tunnel_config` and `manage_dns` flags in `terraform.tfvars` to choose how much Terraform should manage, fill in `account_id`, `zone_id`, `tunnel_id`, and optionally `base_domain`, then run `terraform init && terraform apply` from `cloudflare/`.
+`apps/` contains application and infrastructure manifests. `clusters/home`
+contains the active Flux configuration. The inactive `clusters/hetzner` root
+includes only its Flux bootstrap; its dormant overlays are not reconciled.
 
-## Kubernetes stack
+The cluster includes:
 
-### k3s + Flux
+- Infrastructure: Traefik, MetalLB, cert-manager, CloudNativePG, Cloudflared,
+  local storage, and JuiceFS.
+- Observability: Prometheus, Alertmanager, Grafana, Loki, Alloy, and Blackbox
+  Exporter.
+- Applications: Authentik, Blog, Glance, Home Assistant, Immich, Linkding,
+  Minecraft, Paperless, Pi-hole, Transmission, Jellyfin, Prowlarr, Radarr, and
+  Sonarr.
 
-k3s runs on `perun` as a single-node cluster, and FluxCD reconciles it from `clusters/home`. The `apps/` directory remains the canonical source of Traefik, Cert-Manager, infrastructure helpers, and applications. The retained `clusters/hetzner` bootstrap contains no workload overlays and exists only as a safe decommissioned configuration.
+Persistent hostPath volumes are declared under `apps/local-storage`. Workloads
+that require shared storage use JuiceFS.
 
-The home cluster owns both home-bound workloads and the public app set: Blog, Authentik, Glance, and Paperless. Cloudflare fronts the public hostnames and sends tunnel traffic to Traefik on `perun`. Protected home apps use the Authentik deployment in the same cluster for forward-auth.
+## Secrets
 
-All infra overlays set `spec.decryption.provider: sops`, so Flux decrypts the secrets stored under `apps/*/secrets/*.sops.yaml` using a dedicated Age key. The cluster must contain the namespace-scoped secret `flux-system/sops-age` that holds the private key to decrypt those secrets.
-
-Create the key pair (if you do not already have one) with:
-
-```sh
-mkdir -p ~/.config/sops/age
-age-keygen -o ~/.config/sops/age/keys.txt
-```
-
-Add the public key (seen in `.sops.yaml` as `age1843v8f2y…94q24x8cz`) to the list Flux should trust, encrypt secrets with `sops --age <your-key-id> ...`, then give Flux the private half:
+Flux Kustomizations containing encrypted manifests use SOPS with the Age
+recipient declared in `.sops.yaml`. Install the matching private key as:
 
 ```sh
 kubectl -n flux-system create secret generic sops-age \
-  --from-file=age.key=~/.config/sops/age/keys.txt \
+  --from-file=age.agekey=~/.config/sops/age/keys.txt \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
 
-Once that secret exists, Flux can reconcile the overlays under `clusters/home` without further manual steps.
+Sensitive configuration is stored in SOPS-encrypted manifests:
 
-## Secrets to set
+- Application credentials under the relevant `apps/<name>/secrets` directory.
+- Grafana and Alertmanager configuration under `apps/monitoring/secrets`.
+- Shared CNPG backup credentials under `apps/secrets`.
+- Home Authentik outpost credentials under `apps/modes/home/traefik-auth/secrets`.
 
-Every mutable piece of data lives under `apps/*/secrets/*.sops.yaml`. Populate these files with values encrypted by the same Age key before Flux can bring up the associated services:
+Never commit decrypted secret material.
 
-- `apps/restic/secrets/restic-credentials.sops.yaml` – restic credentials for remote/Backblaze B2 uploads.
-- `apps/cloudflared/secrets/tunnel-token.sops.yaml` – Cloudflare Tunnel token for `cloudflared`.
-- `apps/home-assistant/secrets/postgres-auth.sops.yaml` – Home Assistant Postgres user/password.
-- `apps/home-assistant/secrets/home-assistant-secrets.sops.yaml` – Home Assistant-wide secrets (API tokens, webhook secrets, etc.).
-- `apps/cert-manager-issuers/secrets/cloudflare-dns.sops.yaml` – Cloudflare API token for DNS-01 challenges.
-- `apps/tailscale/secrets/auth.sops.yaml` – Tailscale pre-auth key for the daemonset.
-- `apps/pi-hole/secrets/web-password.sops.yaml` – Pi-hole admin password.
-- `apps/paperless/secrets/postgres-auth.sops.yaml` – Paperless Postgres user/password.
-- `apps/paperless/secrets/redis-auth.sops.yaml` – Paperless Redis authentication.
-- `apps/paperless/secrets/paperless-secrets.sops.yaml` – Paperless application secrets.
-- `apps/secrets/cnpg-barman-s3.sops.yaml` – shared CNPG backup AWS credentials.
-- `apps/juicefs/secrets/juicefs-auth.sops.yaml` – JuiceFS metadata DB credentials and B2 access settings.
-- `apps/immich/secrets/postgres-auth.sops.yaml` – Immich Postgres credentials.
-- `apps/immich/secrets/redis-auth.sops.yaml` – Immich Redis credentials.
-- `apps/authentik/secrets/postgres-auth.sops.yaml` – Authentik Postgres credentials.
-- `apps/authentik/secrets/authentik-config.sops.yaml` – Authentik config (emails, webhooks, etc.).
-- `apps/shell/secrets/ssh-authorized-keys.sops.yaml` – SSH public keys for shell access.
+## Cloudflare
 
-Encrypt them with `sops --age <key-id> ...` and commit only the encrypted files so Flux can decrypt them when the `sops-age` secret matches the key pair you used.
+`cloudflare/` is an OpenTofu project for optional Tunnel ingress and DNS
+management. Configure `terraform.tfvars`, then run:
 
-## Services
+```sh
+tofu -chdir=cloudflare init
+tofu -chdir=cloudflare plan
+tofu -chdir=cloudflare apply
+```
 
-- **Home infrastructure**: Traefik (+ CRDs), MetalLB (+ config), local storage, JuiceFS CSI driver + metadata DB, Cloudflared tunnel ingress, and monitoring helpers.
-- **Cluster infrastructure**: Cert-Manager (and Issuers) and CloudNativePG clusters.
-- **Public app set on perun**: Blog on `def4alt.com`, Authentik SSO, Glance dashboard, and Paperless.
-- **Home app set**: Home Assistant, Immich, Pi-hole, and Minecraft.
-- **Helpers**: `apps/namespaces` ensures consistent namespaces, `apps/cnpg` contains shared Postgres helpers, and `apps/secrets` holds supporting credentials such as the shared CNPG Barman AWS key.
+See `cloudflare/README.md` for routing details.
 
-Keeping the cluster overlays aligned with `apps/` lets Flux keep each site in sync once the secrets are in place.
+## Operations
+
+- Switch between application and Minecraft modes with
+  `./scripts/switch-mode <apps|minecraft>` and commit the resulting change.
+- See `docs/operations/home-modes.md` for mode behavior and CNPG caveats.
+- Prefer GitOps changes, validate affected Kustomize paths, run
+  `git diff --check`, then reconcile and verify Flux, pods, and volumes.

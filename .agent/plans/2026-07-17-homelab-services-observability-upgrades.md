@@ -98,7 +98,7 @@ The initial rollout brought up Linkding `1.45.0`, Beszel Hub `0.18.7`, and Uptim
 
 Perun now runs NixOS `26.05.20260716.4382ed2`, Linux `6.18.38`, k3s `v1.35.6+k3s1`, and containerd `2.2.5-k3s2`. Generation cleanup retained only generation 23 and removed 15,965 unreferenced store paths, freeing 11.5 GiB. Dokploy's Kubernetes, NixOS, Cloudflare, Docker, and host-state artifacts were removed.
 
-Backups retained on perun include the pre-upgrade k3s etcd snapshot, `/var/lib/k8s-backups/20260717T160437Z/new-services.tgz`, and `/var/lib/k8s-backups/20260717T160437Z/immich-pre-v3-owner-fix.sql.gz`. Beszel host-agent enrollment remains a first-login action because the hub generates its agent key only after an administrator initializes the UI.
+Backups retained on perun include the pre-upgrade k3s etcd snapshot, `/var/lib/k8s-backups/20260717T160437Z/new-services.tgz`, and `/var/lib/k8s-backups/20260717T160437Z/immich-pre-v3-owner-fix.sql.gz`.
 
 The observability stack is now connected around one control plane. Prometheus scrapes Loki and Alloy in addition to the existing Kubernetes, node, database, and blackbox targets; Alertmanager sends the resulting warning and critical alerts to Telegram; Alloy enriches logs with `cluster` and `workload` labels before sending them to Loki; and Grafana provisions the `Homelab Observability` dashboard with service availability, node capacity, workload health, log ingestion, restarts, and recent error logs. Internal probes distinguish service failures from ingress, DNS, and TLS failures, while public probes include the requested applications plus Jellyfin and Transmission.
 

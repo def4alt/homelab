@@ -43,8 +43,9 @@ Optional flags:
 
 - `manage_tunnel_config = true` will manage tunnel ingress rules for the public HTTP hostnames, forwarding to Traefik at `https://traefik.infra.svc.cluster.local:443` and setting both Host header and TLS SNI to the requested hostname.
 - `manage_dns = true` will create `CNAME` records for the HTTP hostnames and an `A` record for `minecraft.def4alt.com` pointing at the Tailscale IP for `perun`.
-- `api-photos.def4alt.com` and `minecraft.def4alt.com` are intentionally kept on the Tailscale path and are not part of the Cloudflare tunnel ingress set.
+- `api-photos.def4alt.com`, `prowlarr.def4alt.com`, `radarr.def4alt.com`, `sonarr.def4alt.com`, and `minecraft.def4alt.com` are intentionally kept on the Tailscale path and are not part of the Cloudflare tunnel ingress set.
 - `minecraft.def4alt.com` resolves to `100.119.240.70`, and Tailscale Serve on the host forwards TCP 25565 to the Minecraft service.
+- `shell.def4alt.com` is DNS-managed but is not part of the tunnel ingress set.
 
 ## Operational notes
 

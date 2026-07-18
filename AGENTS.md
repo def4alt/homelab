@@ -76,7 +76,7 @@ Examples:
 
 - `docs: correct spelling of CHANGELOG`
 - `fix(backup): scope prune to tag`
-- `feat(longhorn): add recurring jobs`
+- `feat(storage): add recurring jobs`
 - `chore!: drop support for Node 6` + `BREAKING CHANGE: ...`
 
 ## Access & GitOps

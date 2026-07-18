@@ -45,7 +45,7 @@ Implementation outcome on 2026-06-09: the repo now has `apps/sonarr` and `apps/r
 
 This repository uses Flux `Kustomization` objects under `clusters/home/overlays/` that point to app directories under `apps/`. Local state uses `manual-local` PVCs backed by explicit hostPath PVs under `apps/local-storage/`.
 
-Transmission currently owns the shared PVC `transmission-data-local` in the `transmission` namespace. That PVC already holds Transmission config and download data. Sonarr and Radarr should treat that claim as the shared media filesystem, while Jellyfin remains the read-only consumer.
+Transmission currently owns the shared PVC `transmission-data` in the `transmission` namespace. That PVC already holds Transmission config and download data. Sonarr and Radarr should treat that claim as the shared media filesystem, while Jellyfin remains the read-only consumer.
 
 Operational path convention for the apps:
 
