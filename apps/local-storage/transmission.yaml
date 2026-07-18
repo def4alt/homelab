@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: perun-transmission-data-local
+  name: transmission-data
 spec:
   capacity:
     storage: 200Gi
@@ -11,7 +11,7 @@ spec:
   storageClassName: manual-local
   claimRef:
     namespace: transmission
-    name: transmission-data-local
+    name: transmission-data
   hostPath:
     path: /var/lib/k8s-local-storage/transmission/transmission-data
     type: DirectoryOrCreate

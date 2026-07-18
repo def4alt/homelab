@@ -1,16 +1,13 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: home-assistant-db-local
+  name: home-assistant-db
   namespace: home-assistant
 spec:
   instances: 1
   bootstrap:
-    initdb:
-      database: homeassistant
-      owner: homeassistant
-      secret:
-        name: home-assistant-db-auth
+    recovery:
+      source: pre-rename
   storage:
     size: 25Gi
     storageClass: manual-local
@@ -21,3 +18,10 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: cnpg-barman-s3
+  externalClusters:
+    - name: pre-rename
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: cnpg-barman-s3
+          serverName: home-assistant-db-local

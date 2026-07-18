@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: perun-radarr-config-local
+  name: radarr-config
 spec:
   capacity:
     storage: 5Gi
@@ -11,7 +11,7 @@ spec:
   storageClassName: manual-local
   claimRef:
     namespace: transmission
-    name: radarr-config-local
+    name: radarr-config
   hostPath:
     path: /var/lib/k8s-local-storage/transmission/radarr-config
     type: DirectoryOrCreate

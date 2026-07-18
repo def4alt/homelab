@@ -48,7 +48,7 @@ spec:
               - grafana.def4alt.com
       persistence:
         enabled: true
-        existingClaim: monitoring-grafana-local
+        existingClaim: monitoring-grafana
     prometheus:
       prometheusSpec:
         retention: 3d

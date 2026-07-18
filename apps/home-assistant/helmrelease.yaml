@@ -42,7 +42,7 @@ spec:
       enabled: true
       accessMode: ReadWriteOnce
       size: 10Gi
-      existingClaim: home-assistant-config-local
+      existingClaim: home-assistant-config
     ingress:
       enabled: true
       className: traefik

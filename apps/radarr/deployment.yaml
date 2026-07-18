@@ -68,7 +68,7 @@ spec:
       volumes:
         - name: radarr-config
           persistentVolumeClaim:
-            claimName: radarr-config-local
+            claimName: radarr-config
         - name: transmission-data
           persistentVolumeClaim:
-            claimName: transmission-data-local
+            claimName: transmission-data

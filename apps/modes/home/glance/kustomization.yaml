@@ -14,4 +14,4 @@ patches:
         value: manual-local
       - op: add
         path: /spec/volumeName
-        value: perun-glance-data-local
+        value: glance-data

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: monitoring-grafana-local
+  name: monitoring-grafana
   namespace: infra
 spec:
   accessModes:
@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: manual-local
-  volumeName: perun-monitoring-grafana-local
+  volumeName: monitoring-grafana

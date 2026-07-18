@@ -58,10 +58,10 @@ spec:
       volumes:
         - name: jellyfin-config
           persistentVolumeClaim:
-            claimName: jellyfin-config-local
+            claimName: jellyfin-config
         - name: transmission-data
           persistentVolumeClaim:
-            claimName: transmission-data-local
+            claimName: transmission-data
             readOnly: true
         - name: dri
           hostPath:

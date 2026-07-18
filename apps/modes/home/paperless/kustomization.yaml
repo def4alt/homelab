@@ -15,7 +15,7 @@ patches:
         value: manual-local
       - op: add
         path: /spec/volumeName
-        value: perun-paperless-storage-local
+        value: paperless-storage
   - target:
       group: postgresql.cnpg.io
       version: v1

@@ -24,7 +24,7 @@ spec:
             - name: IMMICH_PORT
               value: "2283"
             - name: DB_HOSTNAME
-              value: "immich-db-local-rw.immich.svc.cluster.local"
+              value: "immich-db-rw.immich.svc.cluster.local"
             - name: DB_PORT
               value: "5432"
             - name: DB_USERNAME

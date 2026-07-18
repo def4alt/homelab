@@ -7,7 +7,7 @@ spec:
   schedule: "0 15 21 * * 4"
   backupOwnerReference: self
   cluster:
-    name: home-assistant-db-local
+    name: home-assistant-db
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io

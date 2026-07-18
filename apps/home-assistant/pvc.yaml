@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: home-assistant-config-local
+  name: home-assistant-config
   namespace: home-assistant
 spec:
   accessModes:
@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 10Gi
   storageClassName: manual-local
-  volumeName: perun-home-assistant-config-local
+  volumeName: home-assistant-config

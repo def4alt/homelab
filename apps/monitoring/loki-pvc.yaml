@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 20Gi
   storageClassName: manual-local
-  volumeName: perun-loki-data-local
+  volumeName: loki-data

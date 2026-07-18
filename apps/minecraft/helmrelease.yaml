@@ -45,7 +45,7 @@ spec:
         accessModes:
           - ReadWriteOnce
         Size: 20Gi
-        existingClaim: minecraft-datadir-local
+        existingClaim: minecraft-datadir
     minecraftServer:
       eula: "TRUE"
       type: PAPER

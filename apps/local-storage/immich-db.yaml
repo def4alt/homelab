@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: perun-immich-db-local
+  name: immich-db
 spec:
   capacity:
     storage: 20Gi
@@ -11,7 +11,7 @@ spec:
   storageClassName: manual-local
   claimRef:
     namespace: immich
-    name: immich-db-local-1
+    name: immich-db-1
   hostPath:
-    path: /var/lib/k8s-local-storage/immich/immich-db-local
+    path: /var/lib/k8s-local-storage/immich/immich-db
     type: DirectoryOrCreate

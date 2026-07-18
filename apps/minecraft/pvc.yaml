@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: minecraft-datadir-local
+  name: minecraft-datadir
   namespace: minecraft
 spec:
   accessModes:
@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 20Gi
   storageClassName: manual-local
-  volumeName: perun-minecraft-datadir-local
+  volumeName: minecraft-datadir

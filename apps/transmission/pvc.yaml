@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: transmission-data-local
+  name: transmission-data
   namespace: transmission
 spec:
   accessModes:
@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 200Gi
   storageClassName: manual-local
-  volumeName: perun-transmission-data-local
+  volumeName: transmission-data

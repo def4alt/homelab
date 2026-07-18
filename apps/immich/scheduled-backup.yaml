@@ -7,7 +7,7 @@ spec:
   schedule: "0 15 22 * * 4"
   backupOwnerReference: self
   cluster:
-    name: immich-db-local
+    name: immich-db
   method: plugin
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io

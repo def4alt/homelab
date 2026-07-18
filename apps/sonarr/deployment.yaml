@@ -68,7 +68,7 @@ spec:
       volumes:
         - name: sonarr-config
           persistentVolumeClaim:
-            claimName: sonarr-config-local
+            claimName: sonarr-config
         - name: transmission-data
           persistentVolumeClaim:
-            claimName: transmission-data-local
+            claimName: transmission-data

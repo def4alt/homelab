@@ -10,4 +10,4 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: manual-local
-  volumeName: perun-linkding-data-local
+  volumeName: linkding-data
