@@ -24,13 +24,13 @@ names.
 - [x] Inventory all live PV, PVC, CloudNativePG, workload, and Flux states.
 - [x] Create and verify fresh plugin backups for the three renamed databases.
 - [x] Update manifests, application references, and encrypted connection URLs.
-- [ ] Build every affected Kustomize path and review the rendered object map.
-- [ ] Commit and push the GitOps changes after operator approval.
-- [ ] Suspend affected Flux reconciliation and quiesce database clients.
-- [ ] Preserve old database directories, then reconcile the canonical resources.
-- [ ] Wait for database recovery and all dependent workload rollouts.
-- [ ] Remove released legacy PVs and verify no legacy live object names remain.
-- [ ] Verify Flux, pods, volumes, database backups, monitoring, and service probes.
+- [x] Build every affected Kustomize path and review the rendered object map.
+- [x] Commit and push the GitOps changes after operator approval.
+- [x] Suspend affected Flux reconciliation and quiesce database clients.
+- [x] Preserve old database directories, then reconcile the canonical resources.
+- [x] Wait for database recovery and all dependent workload rollouts.
+- [x] Remove released legacy PVs and verify no legacy live object names remain.
+- [x] Verify Flux, pods, volumes, database backups, monitoring, and service probes.
 
 ## Decisions
 
@@ -57,3 +57,20 @@ names.
 - Fresh post-rename backups complete for Home Assistant, Immich, and JuiceFS
 - Prometheus has no down targets and all Blackbox Exporter probes succeed
 - No active Kubernetes object name contains retired `perun-` or `-local` qualifiers
+
+## Progress Notes
+
+- 2026-07-18: Created fresh pre-migration backups for Home Assistant, Immich, and
+  JuiceFS before changing any storage object.
+- 2026-07-18: Suspended Flux, quiesced storage consumers, hibernated CNPG, and
+  rebound every retained hostPath through canonical PV and PVC names.
+- 2026-07-18: Recovered the three renamed databases from their verified backups.
+  New hostPath directories required ownership `26:26` before Barman could restore.
+- 2026-07-18: Recreated the unchanged Authentik and Paperless Cluster control
+  objects so they could adopt their rebound CNPG PVCs and existing data.
+- 2026-07-18: Updated pgvector as the Immich database superuser after recovery,
+  then confirmed the Immich server returned Ready without restarts.
+- 2026-07-18: Fresh post-rename backups completed for all three recovered clusters.
+  All Flux Kustomizations and HelmReleases are Ready at revision `3e65b10`, all
+  pods and PVs are healthy, Prometheus has zero down targets, all 17 blackbox
+  probes succeed, Loki is ready, and Alertmanager has no recent delivery errors.
