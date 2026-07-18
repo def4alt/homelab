@@ -18,6 +18,7 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: cnpg-barman-s3
+        serverName: immich-db-20260718
   externalClusters:
     - name: pre-rename
       plugin:

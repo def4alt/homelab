@@ -43,6 +43,8 @@ names.
   paths are unchanged and all PVs use the `Retain` reclaim policy.
 - Recovery sources retain the former Barman server names because those are backup
   catalog identifiers, not active Kubernetes object names.
+- New clusters use dated Barman archive server identifiers because older backup
+  catalogs already occupy the canonical server names and must remain untouched.
 
 ## Validation
 
