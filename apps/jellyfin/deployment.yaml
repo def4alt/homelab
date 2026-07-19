@@ -53,6 +53,9 @@ spec:
             - name: transmission-data
               mountPath: /media/transmission
               readOnly: true
+            - name: youtube-media
+              mountPath: /media/youtube
+              readOnly: true
             - name: dri
               mountPath: /dev/dri
       volumes:
@@ -62,6 +65,10 @@ spec:
         - name: transmission-data
           persistentVolumeClaim:
             claimName: transmission-data
+            readOnly: true
+        - name: youtube-media
+          persistentVolumeClaim:
+            claimName: youtube-media
             readOnly: true
         - name: dri
           hostPath:

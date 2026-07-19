@@ -29,8 +29,8 @@ The cluster includes:
 - Observability: Prometheus, Alertmanager, Grafana, Loki, Alloy, and Blackbox
   Exporter.
 - Applications: Authentik, Blog, Glance, Home Assistant, Immich, Linkding,
-  Minecraft, Paperless, Pi-hole, Transmission, Jellyfin, Prowlarr, Radarr, and
-  Sonarr.
+  Minecraft, Paperless, Pi-hole, Pinchflat, Transmission, Jellyfin, Prowlarr,
+  Radarr, and Sonarr.
 
 Persistent hostPath volumes are declared under `apps/local-storage`. Workloads
 that require shared storage use JuiceFS.
