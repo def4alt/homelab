@@ -11,10 +11,11 @@ After this change, the user can manage YouTube channel and playlist downloads at
 - [x] (2026-07-19 15:50Z) Inspected the existing Flux, local-storage, Jellyfin, Traefik, Authentik, and Cloudflare patterns.
 - [x] (2026-07-19 15:50Z) Selected Pinchflat and recorded storage, access, security, and hostname decisions.
 - [x] (2026-07-19 15:58Z) Added the Pinchflat application, retained storage, Authentik-protected ingress, and Flux wiring.
-- [ ] Mount downloaded media read-only in Jellyfin and add the Jellyfin library (completed: declarative mount; remaining: live rollout and library API configuration).
-- [ ] Add Cloudflare DNS and Tunnel routing for `yt.def4alt.com` (completed: configuration and exact plan; remaining: apply).
-- [x] (2026-07-19 16:00Z) Validated rendered manifests with client and server dry-runs and validated the OpenTofu configuration; the Cloudflare plan is exactly one add and one in-place change.
-- [ ] Commit, push, reconcile Flux, and verify the live service, storage, ingress, and Jellyfin mount.
+- [x] (2026-07-19 16:05Z) Mounted downloaded media read-only in Jellyfin and created its `YouTube` TV Shows library at `/media/youtube/shows`.
+- [x] (2026-07-19 15:53Z) Applied Cloudflare DNS and Tunnel routing for `yt.def4alt.com`; OpenTofu reported one addition, one in-place change, and no destruction.
+- [x] (2026-07-19 16:00Z) Validated rendered manifests with client and server dry-runs and validated the OpenTofu configuration; the Cloudflare plan was exactly one add and one in-place change.
+- [x] (2026-07-19 16:06Z) Committed and pushed revision `5f163d3`, reconciled Flux, and verified the live service, storage, ingress, certificate, health endpoint, and Jellyfin mount.
+- [x] (2026-07-19 16:01Z) Created Pinchflat's `TV Shows` profile from its Media Center preset without adding sources that could unexpectedly fill the disk.
 
 ## Surprises & Discoveries
 
@@ -22,6 +23,10 @@ After this change, the user can manage YouTube channel and playlist downloads at
   Evidence: `kubectl exec -n transmission deploy/jellyfin -- df -h /media/transmission` reported 183 GiB available. Kubernetes hostPath capacities are declarations and do not enforce quotas.
 - Observation: Pinchflat has a native `/healthcheck` endpoint and recommends a Media Center profile for Jellyfin, but does not directly configure Jellyfin.
   Evidence: The upstream container Dockerfile uses `/healthcheck`; its FAQ says media-center integration is file naming and metadata rather than an application API integration.
+- Observation: The home Authentik provider deliberately uses `photos.def4alt.com` as its callback host for all protected home domains.
+  Evidence: An anonymous request to `yt.def4alt.com` returned HTTP 302 with the final target preserved as `yt.def4alt.com` in state and `redirect_uri` set to the existing home outpost callback at `photos.def4alt.com`; this matches the documented home callback topology.
+- Observation: The Kubernetes API briefly refused a verification request while the node remained pingable, then recovered without intervention.
+  Evidence: One `kubectl get` returned connection refused; three seconds later the node was Ready and all three affected Flux Kustomizations were Ready at revision `5f163d3`.
 
 ## Decision Log
 
@@ -43,7 +48,9 @@ After this change, the user can manage YouTube channel and playlist downloads at
 
 ## Outcomes & Retrospective
 
-Implementation is in progress. Declarative resources are complete and static validation passes. Live deployment, Cloudflare application, and Jellyfin library creation remain.
+Pinchflat is deployed and healthy at the Authentik-protected `https://yt.def4alt.com`. Configuration and media are retained on dedicated hostPath volumes, Pinchflat runs as UID/GID 1000 with one download worker, and its `TV Shows` profile uses the upstream Media Center preset at 1080p while excluding Shorts and livestreams. No source was added, intentionally preventing an unbounded historical download.
+
+Jellyfin has the shared volume mounted read-only and a `YouTube` TV Shows library configured at `/media/youtube/shows`. A live write test succeeded from Pinchflat and failed from Jellyfin as intended. The in-cluster Pinchflat health check returned HTTP 200, the public endpoint redirected to Authentik, the TLS certificate became Ready, and Flux applied revision `5f163d3` for local storage, Pinchflat, and Jellyfin. The only remaining user choice is which channels or playlists to add and what per-source historical cutoff or retention to use.
 
 ## Context and Orientation
 
@@ -134,3 +141,5 @@ The shared storage interface is the `youtube-media` claim in namespace `transmis
 Revision note (2026-07-19): Created the initial plan after repository and live-cluster discovery; selected conservative storage and one-worker defaults because only about 183 GiB is currently free.
 
 Revision note (2026-07-19 16:00Z): Recorded completion of declarative implementation and static validation. The server accepted all resources in dry-run, and OpenTofu planned one DNS record addition plus one Tunnel configuration update with no destruction.
+
+Revision note (2026-07-19 16:06Z): Recorded final live outcomes: Flux convergence, healthy Pinchflat, writable/read-only storage roles, ready TLS and public Authentik routing, the Media Center profile, and the Jellyfin library. Sources remain intentionally unconfigured to avoid an uncontrolled historical download.
