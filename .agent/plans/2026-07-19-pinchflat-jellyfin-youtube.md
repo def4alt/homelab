@@ -16,6 +16,7 @@ After this change, the user can manage YouTube channel and playlist downloads at
 - [x] (2026-07-19 16:00Z) Validated rendered manifests with client and server dry-runs and validated the OpenTofu configuration; the Cloudflare plan was exactly one add and one in-place change.
 - [x] (2026-07-19 16:06Z) Committed and pushed revision `5f163d3`, reconciled Flux, and verified the live service, storage, ingress, certificate, health endpoint, and Jellyfin mount.
 - [x] (2026-07-19 16:01Z) Created Pinchflat's `TV Shows` profile from its Media Center preset without adding sources that could unexpectedly fill the disk.
+- [x] (2026-07-19 16:20Z) Exported current Google/YouTube cookies from Helium's `You` (`Default`) profile into Pinchflat's cookie jar with mode 0600 and verified authenticated subscription extraction with yt-dlp.
 
 ## Surprises & Discoveries
 
@@ -27,6 +28,8 @@ After this change, the user can manage YouTube channel and playlist downloads at
   Evidence: An anonymous request to `yt.def4alt.com` returned HTTP 302 with the final target preserved as `yt.def4alt.com` in state and `redirect_uri` set to the existing home outpost callback at `photos.def4alt.com`; this matches the documented home callback topology.
 - Observation: The Kubernetes API briefly refused a verification request while the node remained pingable, then recovered without intervention.
   Evidence: One `kubectl get` returned connection refused; three seconds later the node was Ready and all three affected Flux Kustomizations were Ready at revision `5f163d3`.
+- Observation: Helium stores cookies with Chromium's macOS `v10` encryption using a Keychain item named `Helium Storage Key`; the cookie database schema is version 24 and prefixes decrypted values with a SHA-256 digest of the cookie host.
+  Evidence: The exporter decrypted 88 non-expired Google/YouTube cookies with zero failures, wrote a Netscape-format jar without logging values, and yt-dlp successfully accessed the authenticated subscriptions feed.
 
 ## Decision Log
 
@@ -50,7 +53,9 @@ After this change, the user can manage YouTube channel and playlist downloads at
 
 Pinchflat is deployed and healthy at the Authentik-protected `https://yt.def4alt.com`. Configuration and media are retained on dedicated hostPath volumes, Pinchflat runs as UID/GID 1000 with one download worker, and its `TV Shows` profile uses the upstream Media Center preset at 1080p while excluding Shorts and livestreams. No source was added, intentionally preventing an unbounded historical download.
 
-Jellyfin has the shared volume mounted read-only and a `YouTube` TV Shows library configured at `/media/youtube/shows`. A live write test succeeded from Pinchflat and failed from Jellyfin as intended. The in-cluster Pinchflat health check returned HTTP 200, the public endpoint redirected to Authentik, the TLS certificate became Ready, and Flux applied revision `5f163d3` for local storage, Pinchflat, and Jellyfin. The only remaining user choice is which channels or playlists to add and what per-source historical cutoff or retention to use.
+Jellyfin has the shared volume mounted read-only and a `YouTube` TV Shows library configured at `/media/youtube/shows`. A live write test succeeded from Pinchflat and failed from Jellyfin as intended. The in-cluster Pinchflat health check returned HTTP 200, the public endpoint redirected to Authentik, the TLS certificate became Ready, and Flux applied revision `5f163d3` for local storage, Pinchflat, and Jellyfin.
+
+Pinchflat's `/config/extras/cookies.txt` now contains an encrypted-at-source export from Helium's `You` profile in Netscape cookie format. The deployed file is owned by UID/GID 1000 with mode 0600, no cookie values were written to Git or terminal output, and an authenticated yt-dlp subscriptions-feed check passed. Cookies are runtime credentials and will eventually expire; they must be re-exported after the Helium Google session changes. The only remaining user choice is which channels or playlists to add, whether each source should use cookies for all operations, and what per-source historical cutoff or retention to use.
 
 ## Context and Orientation
 
@@ -143,3 +148,5 @@ Revision note (2026-07-19): Created the initial plan after repository and live-c
 Revision note (2026-07-19 16:00Z): Recorded completion of declarative implementation and static validation. The server accepted all resources in dry-run, and OpenTofu planned one DNS record addition plus one Tunnel configuration update with no destruction.
 
 Revision note (2026-07-19 16:06Z): Recorded final live outcomes: Flux convergence, healthy Pinchflat, writable/read-only storage roles, ready TLS and public Authentik routing, the Media Center profile, and the Jellyfin library. Sources remain intentionally unconfigured to avoid an uncontrolled historical download.
+
+Revision note (2026-07-19 16:20Z): Recorded the requested secure cookie export from Helium's `You` profile, including file permissions, decryption behavior, authenticated validation, expiration expectations, and the fact that source-level cookie use remains a choice when sources are created.
