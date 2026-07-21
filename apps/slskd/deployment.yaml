@@ -94,9 +94,9 @@ spec:
             - name: SLSKD_APP_DIR
               value: /app
             - name: SLSKD_DOWNLOADS_DIR
-              value: /data/downloads/slskd
+              value: /data/
             - name: SLSKD_INCOMPLETE_DIR
-              value: /data/downloads/slskd/.incomplete
+              value: /data/.incomplete
             - name: SLSKD_SHARE_DIR
               value: /music
             - name: TZ
