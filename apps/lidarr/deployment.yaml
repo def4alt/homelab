@@ -32,7 +32,7 @@ spec:
               mountPath: /data
       containers:
         - name: lidarr
-          image: lscr.io/linuxserver/lidarr:latest
+          image: lscr.io/linuxserver/lidarr:nightly
           env:
             - name: PUID
               value: "1000"
