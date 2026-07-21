@@ -29,8 +29,6 @@ spec:
               value: "false"
             - name: ND_LISTENBRAINZ_ENABLED
               value: "true"
-            - name: ND_LISTENBRAINZ_BASEURL
-              value: https://api.listenbrainz.org
             - name: ND_PLUGINS_ENABLED
               value: "true"
             - name: ND_PLUGINSFOLDER
