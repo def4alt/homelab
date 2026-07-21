@@ -31,18 +31,6 @@ spec:
           volumeMounts:
             - name: transmission-data
               mountPath: /data
-        - name: install-ffmpeg
-          image: alpine:3.21
-          command:
-            - sh
-            - -c
-            - |
-              apk add --no-cache ffmpeg &&
-              cp /usr/bin/ffmpeg /usr/bin/ffprobe /tools/ &&
-              chmod 755 /tools/ffmpeg /tools/ffprobe
-          volumeMounts:
-            - name: tools
-              mountPath: /tools
       containers:
         - name: lidarr
           image: lscr.io/linuxserver/lidarr:nightly
