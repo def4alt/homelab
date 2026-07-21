@@ -29,3 +29,5 @@ resources:
   - apps/transmission.yaml
   - apps/linkding.yaml
   - apps/navidrome.yaml
+  - apps/slskd.yaml
+  - apps/lidarr.yaml

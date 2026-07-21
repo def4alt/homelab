@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slskd
+  namespace: transmission
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: slskd
+  template:
+    metadata:
+      labels:
+        app: slskd
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: gluetun
+          image: qmcgaw/gluetun@sha256:b0ee2135e6ba52ad3f102aae9663707cd1c9531485117067a380d3b2b6dd991d
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: VPN_SERVICE_PROVIDER
+              value: custom
+            - name: VPN_TYPE
+              value: wireguard
+            - name: WIREGUARD_MTU
+              value: "1440"
+            - name: FIREWALL_INPUT_PORTS
+              value: "5030"
+            - name: HEALTH_TARGET_ADDRESSES
+              value: "1.1.1.1:443,1.0.0.1:443"
+            - name: HEALTH_ICMP_TARGET_IPS
+              value: "1.1.1.1,1.0.0.1"
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: transmission-wireguard
+                  key: wireguard-private-key
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: transmission-wireguard
+                  key: wireguard-addresses
+            - name: WIREGUARD_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: transmission-wireguard
+                  key: wireguard-public-key
+            - name: WIREGUARD_ENDPOINT_IP
+              valueFrom:
+                secretKeyRef:
+                  name: transmission-wireguard
+                  key: wireguard-endpoint-ip
+            - name: WIREGUARD_ENDPOINT_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: transmission-wireguard
+                  key: wireguard-endpoint-port
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+        - name: slskd
+          image: slskd/slskd:0.22.4
+          env:
+            - name: SLSKD_REMOTE_CONFIGURATION
+              value: "true"
+            - name: SLSKD_HTTP_PORT
+              value: "5030"
+            - name: SLSKD_HTTPS_PORT
+              value: "5031"
+            - name: SLSKD_APP_DIR
+              value: /app
+            - name: SLSKD_DOWNLOADS_DIR
+              value: /downloads
+            - name: SLSKD_INCOMPLETE_DIR
+              value: /downloads/.incomplete
+            - name: SLSKD_SHARE_DIR
+              value: /music
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: web
+              containerPort: 5030
+          readinessProbe:
+            tcpSocket:
+              port: 5030
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 5030
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1
+              memory: 1Gi
+          volumeMounts:
+            - name: slskd-config
+              mountPath: /app
+            - name: music
+              mountPath: /music
+            - name: transmission-data
+              mountPath: /downloads
+              subPath: downloads/slskd
+      volumes:
+        - name: slskd-config
+          persistentVolumeClaim:
+            claimName: slskd-config
+        - name: music
+          hostPath:
+            path: /var/lib/k8s-local-storage/navidrome/music
+            type: DirectoryOrCreate
+        - name: transmission-data
+          persistentVolumeClaim:
+            claimName: transmission-data

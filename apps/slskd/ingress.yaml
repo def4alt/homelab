@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slskd
+  namespace: transmission
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+    - host: soulseek.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: slskd
+                port:
+                  number: 5030
+  tls:
+    - secretName: slskd-tls
+      hosts:
+        - soulseek.def4alt.com

@@ -1,0 +1,19 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: slskd
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./apps/slskd
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: namespaces
+    - name: local-storage
+    - name: cert-manager-issuers
+    - name: traefik
+  timeout: 10m
+  wait: true
