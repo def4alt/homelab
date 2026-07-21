@@ -18,3 +18,5 @@ resources:
   - pinchflat.yaml
   - application-data.yaml
   - homelab-tools.yaml
+  - navidrome-music.yaml
+  - navidrome-data.yaml

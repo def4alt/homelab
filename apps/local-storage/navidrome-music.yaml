@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: navidrome-music
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: navidrome
+    name: navidrome-music
+  hostPath:
+    path: /var/lib/k8s-local-storage/navidrome/music
+    type: DirectoryOrCreate
