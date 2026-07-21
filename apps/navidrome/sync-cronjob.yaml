@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: listenbrainz-sync
+  namespace: navidrome
+spec:
+  schedule: "0 2 * * 1"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 600
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: sync
+              image: python:3.12-alpine
+              command:
+                - /bin/sh
+                - -c
+                - pip install -q requests && python /scripts/sync.py
+              env:
+                - name: LISTENBRAINZ_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: navidrome-sync
+                      key: listenbrainz-token
+                - name: LISTENBRAINZ_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: navidrome-sync
+                      key: listenbrainz-username
+                - name: NAVIDROME_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: navidrome-sync
+                      key: navidrome-username
+                - name: NAVIDROME_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: navidrome-sync
+                      key: navidrome-password
+                - name: NAVIDROME_URL
+                  value: http://navidrome.navidrome.svc.cluster.local:4533
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+          volumes:
+            - name: script
+              configMap:
+                name: listenbrainz-sync-script

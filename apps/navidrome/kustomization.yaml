@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: navidrome
+resources:
+  - pvc-music.yaml
+  - pvc-data.yaml
+  - service.yaml
+  - ingress.yaml
+  - deployment.yaml
+  - sync-configmap.yaml
+  - sync-cronjob.yaml
+  - secrets/navidrome-sync.sops.yaml

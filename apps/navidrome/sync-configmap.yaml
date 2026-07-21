@@ -1,0 +1,204 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: listenbrainz-sync-script
+  namespace: navidrome
+data:
+  sync.py: |
+    import os
+    import hashlib
+    import random
+    import time
+    import json
+
+    import requests
+
+    LISTENBRAINZ_TOKEN = os.environ["LISTENBRAINZ_TOKEN"]
+    LISTENBRAINZ_USERNAME = os.environ["LISTENBRAINZ_USERNAME"]
+    NAV_USER = os.environ["NAVIDROME_USERNAME"]
+    NAV_PASSWORD = os.environ["NAVIDROME_PASSWORD"]
+    NAV_URL = os.environ.get("NAVIDROME_URL", "http://navidrome.navidrome.svc.cluster.local:4533")
+
+    LB_API = "https://api.listenbrainz.org/1"
+
+
+    def subsonic_params():
+        salt = str(random.randint(100000, 999999))
+        token = hashlib.md5(f"{NAV_PASSWORD}{salt}".encode()).hexdigest()
+        return {
+            "u": NAV_USER,
+            "t": token,
+            "s": salt,
+            "v": "1.16.1",
+            "c": "lb-sync",
+            "f": "json",
+        }
+
+
+    def lb_headers():
+        return {"Authorization": f"Token {LISTENBRAINZ_TOKEN}"}
+
+
+    def get_recommendations():
+        url = f"{LB_API}/cf/recommendation/user/{LISTENBRAINZ_USERNAME}/recording"
+        resp = requests.get(url, headers=lb_headers(), params={"count": 50})
+        resp.raise_for_status()
+        tracks = []
+        for entity in resp.json().get("payload", {}).get("mbids", []):
+            rec = entity.get("recording_mbid", {})
+            artist = rec.get("artist_name", "")
+            title = rec.get("recording_name", "")
+            if artist and title:
+                tracks.append({"artist": artist, "title": title})
+        return tracks
+
+
+    def get_user_playlists():
+        url = f"{LB_API}/user/{LISTENBRAINZ_USERNAME}/playlists"
+        resp = requests.get(url, headers=lb_headers(), params={"count": 10})
+        resp.raise_for_status()
+        playlists = []
+        for pl in resp.json().get("playlists", []):
+            info = pl.get("playlist", {})
+            pl_id = info.get("identifier", "").rsplit("/", 1)[-1]
+            playlists.append({
+                "mbid": pl_id,
+                "title": info.get("title", "Unknown"),
+            })
+        return playlists
+
+
+    def get_playlist_tracks(pl_mbid):
+        url = f"{LB_API}/playlist/{pl_mbid}"
+        resp = requests.get(url, headers=lb_headers())
+        resp.raise_for_status()
+        tracks = []
+        for t in resp.json().get("playlist", {}).get("track", []):
+            artist = t.get("creator", "")
+            title = t.get("title", "")
+            if artist and title:
+                tracks.append({"artist": artist, "title": title})
+        return tracks
+
+
+    def search_navidrome(query):
+        params = subsonic_params()
+        params["query"] = query
+        params["songCount"] = 3
+        try:
+            resp = requests.get(f"{NAV_URL}/rest/search2.view", params=params, timeout=10)
+            if resp.status_code != 200:
+                return []
+            data = resp.json()
+            sr = data.get("subsonic-response", {})
+            if sr.get("status") != "ok":
+                return []
+            songs = sr.get("searchResult2", {}).get("song", [])
+            return songs if songs else []
+        except Exception:
+            return []
+
+
+    def get_navidrome_playlists():
+        params = subsonic_params()
+        try:
+            resp = requests.get(f"{NAV_URL}/rest/getPlaylists.view", params=params, timeout=10)
+            if resp.status_code != 200:
+                return {}
+            data = resp.json()
+            sr = data.get("subsonic-response", {})
+            if sr.get("status") != "ok":
+                return {}
+            playlists = sr.get("playlists", {}).get("playlist", [])
+            return {p["name"]: p["id"] for p in playlists}
+        except Exception:
+            return {}
+
+
+    def create_playlist(name, song_ids):
+        params = subsonic_params()
+        params["name"] = name
+        if song_ids:
+            params["songId"] = ",".join(song_ids)
+        resp = requests.post(f"{NAV_URL}/rest/createPlaylist.view", params=params, timeout=10)
+        if resp.status_code != 200:
+            print(f"Failed to create playlist {name}: {resp.status_code}")
+            return
+        data = resp.json()
+        pl_id = data.get("subsonic-response", {}).get("playlist", {}).get("id")
+        print(f"Created playlist: {name} ({len(song_ids)} tracks, id={pl_id})")
+
+
+    def update_playlist(pl_id, name, song_ids_to_add):
+        params = subsonic_params()
+        params["playlistId"] = pl_id
+        params["songIdToAdd"] = ",".join(song_ids_to_add)
+        resp = requests.post(f"{NAV_URL}/rest/updatePlaylist.view", params=params, timeout=10)
+        if resp.status_code == 200:
+            print(f"Updated playlist: {name} (added {len(song_ids_to_add)} tracks)")
+        else:
+            print(f"Failed to update playlist {name}: {resp.status_code}")
+
+
+    def find_matches(tracks):
+        song_ids = []
+        matched = 0
+        total = len(tracks)
+        for track in tracks:
+            artist = track["artist"]
+            title = track["title"]
+            query = f"{artist} {title}"
+            songs = search_navidrome(query)
+            if songs:
+                song_ids.append(songs[0]["id"])
+                matched += 1
+            if query:
+                songs2 = search_navidrome(title)
+                if songs2 and songs2[0]["id"] not in song_ids:
+                    song_ids.append(songs2[0]["id"])
+                    matched += 1
+        print(f"  Matched {matched}/{total} tracks from ListenBrainz to Navidrome library")
+        return song_ids
+
+
+    def main():
+        print(f"=== ListenBrainz → Navidrome sync ({time.strftime('%Y-%m-%d %H:%M')}) ===")
+
+        existing = get_navidrome_playlists()
+        print(f"Existing Navidrome playlists: {len(existing)}")
+
+        print("Fetching ListenBrainz recommendations...")
+        recs = get_recommendations()
+        print(f"Got {len(recs)} recommended tracks")
+
+        if recs:
+            song_ids = find_matches(recs[:50])
+            pl_name = "LB: Discover Weekly"
+            if pl_name in existing:
+                update_playlist(existing[pl_name], pl_name, song_ids)
+            elif song_ids:
+                create_playlist(pl_name, song_ids)
+
+        print("Fetching ListenBrainz playlists...")
+        lb_playlists = get_user_playlists()
+        print(f"Got {len(lb_playlists)} playlists")
+
+        for pl in lb_playlists:
+            pl_title = pl["title"]
+            pl_name = f"LB: {pl_title}"
+            print(f"Processing: {pl_name}")
+            tracks = get_playlist_tracks(pl["mbid"])
+            if not tracks:
+                print(f"  No tracks found, skipping")
+                continue
+            song_ids = find_matches(tracks[:50])
+            if pl_name in existing:
+                update_playlist(existing[pl_name], pl_name, song_ids)
+            elif song_ids:
+                create_playlist(pl_name, song_ids)
+
+        print("Sync complete.")
+
+
+    if __name__ == "__main__":
+        main()

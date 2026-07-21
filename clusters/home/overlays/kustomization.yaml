@@ -28,3 +28,4 @@ resources:
   - apps/radarr.yaml
   - apps/transmission.yaml
   - apps/linkding.yaml
+  - apps/navidrome.yaml
