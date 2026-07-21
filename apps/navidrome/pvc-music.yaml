@@ -8,6 +8,6 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
+      storage: 50Gi
   storageClassName: manual-local
   volumeName: navidrome-music
