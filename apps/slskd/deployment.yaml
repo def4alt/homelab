@@ -16,6 +16,17 @@ spec:
         app: slskd
     spec:
       terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: prepare-dirs
+          image: busybox:1.38.0
+          command:
+            - sh
+            - -c
+            - mkdir -p /downloads/.incomplete /downloads/complete
+          volumeMounts:
+            - name: transmission-data
+              mountPath: /downloads
+              subPath: downloads/slskd
       containers:
         - name: gluetun
           image: qmcgaw/gluetun@sha256:b0ee2135e6ba52ad3f102aae9663707cd1c9531485117067a380d3b2b6dd991d
