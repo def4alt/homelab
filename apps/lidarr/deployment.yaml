@@ -24,6 +24,7 @@ spec:
                 /data/media/music \
                 /data/downloads/complete \
                 /data/downloads/complete/slskd \
+                /data/downloads/complete/youtube \
                 /data/downloads/incomplete &&
               chown -R 1000:1000 /data/media /data/downloads &&
               chmod -R ug+rwX /data/media /data/downloads
