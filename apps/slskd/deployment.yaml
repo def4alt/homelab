@@ -22,10 +22,10 @@ spec:
           command:
             - sh
             - -c
-            - mkdir -p /downloads/.incomplete /downloads/complete
+            - mkdir -p /data/downloads/slskd/.incomplete /data/downloads/slskd
           volumeMounts:
             - name: transmission-data
-              mountPath: /downloads
+              mountPath: /data
               subPath: downloads/slskd
       containers:
         - name: gluetun
@@ -94,9 +94,9 @@ spec:
             - name: SLSKD_APP_DIR
               value: /app
             - name: SLSKD_DOWNLOADS_DIR
-              value: /downloads
+              value: /data/downloads/slskd
             - name: SLSKD_INCOMPLETE_DIR
-              value: /downloads/.incomplete
+              value: /data/downloads/slskd/.incomplete
             - name: SLSKD_SHARE_DIR
               value: /music
             - name: TZ
@@ -127,7 +127,7 @@ spec:
             - name: music
               mountPath: /music
             - name: transmission-data
-              mountPath: /downloads
+              mountPath: /data
               subPath: downloads/slskd
       volumes:
         - name: slskd-config
