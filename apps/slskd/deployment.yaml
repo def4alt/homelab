@@ -21,6 +21,9 @@ spec:
       initContainers:
         - name: prepare-dirs
           image: busybox:1.38.0
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           command:
             - sh
             - -c
@@ -85,6 +88,9 @@ spec:
               memory: 256Mi
         - name: slskd
           image: slskd/slskd:latest
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
           env:
             - name: SLSKD_REMOTE_CONFIGURATION
               value: "true"
