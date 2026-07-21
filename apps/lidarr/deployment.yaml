@@ -32,11 +32,14 @@ spec:
             - name: transmission-data
               mountPath: /data
         - name: install-ffmpeg
-          image: mwader/static-ffmpeg:7.1
+          image: alpine:3.21
           command:
             - sh
             - -c
-            - cp /ffmpeg /ffprobe /tools/ && chmod 755 /tools/ffmpeg /tools/ffprobe
+            - |
+              apk add --no-cache ffmpeg &&
+              cp /usr/bin/ffmpeg /usr/bin/ffprobe /tools/ &&
+              chmod 755 /tools/ffmpeg /tools/ffprobe
           volumeMounts:
             - name: tools
               mountPath: /tools
