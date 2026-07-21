@@ -31,6 +31,15 @@ spec:
           volumeMounts:
             - name: transmission-data
               mountPath: /data
+        - name: install-ffmpeg
+          image: mwader/static-ffmpeg:7.1
+          command:
+            - sh
+            - -c
+            - cp /ffmpeg /ffprobe /tools/ && chmod 755 /tools/ffmpeg /tools/ffprobe
+          volumeMounts:
+            - name: tools
+              mountPath: /tools
       containers:
         - name: lidarr
           image: lscr.io/linuxserver/lidarr:nightly
@@ -68,6 +77,8 @@ spec:
               mountPath: /data
             - name: music
               mountPath: /music
+            - name: tools
+              mountPath: /tools
       volumes:
         - name: lidarr-config
           persistentVolumeClaim:
@@ -79,3 +90,5 @@ spec:
           hostPath:
             path: /var/lib/k8s-local-storage/navidrome/music
             type: DirectoryOrCreate
+        - name: tools
+          emptyDir: {}
