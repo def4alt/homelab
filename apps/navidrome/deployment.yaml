@@ -15,9 +15,23 @@ spec:
       labels:
         app: navidrome
     spec:
+      initContainers:
+        - name: download-plugin
+          image: curlimages/curl:8.12.1
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /plugins
+              curl -fsSLo /plugins/listenbrainz-daily-playlist.ndp \
+                https://github.com/kgarner7/navidrome-listenbrainz-daily-playlist/releases/download/v6.0.0/listenbrainz-daily-playlist.ndp
+              echo "Plugin downloaded"
+          volumeMounts:
+            - name: plugins
+              mountPath: /plugins
       containers:
         - name: navidrome
-          image: deluan/navidrome:0.55.2
+          image: deluan/navidrome:0.63.2
           env:
             - name: ND_MUSICFOLDER
               value: /music
@@ -31,6 +45,10 @@ spec:
               value: "true"
             - name: ND_LISTENBRAINZ_BASEURL
               value: https://api.listenbrainz.org
+            - name: ND_PLUGINS_ENABLED
+              value: "true"
+            - name: ND_PLUGINSFOLDER
+              value: /plugins
             - name: ND_LOGLEVEL
               value: info
             - name: TZ
@@ -60,6 +78,8 @@ spec:
               mountPath: /music
             - name: data
               mountPath: /data
+            - name: plugins
+              mountPath: /plugins
       volumes:
         - name: music
           persistentVolumeClaim:
@@ -67,3 +87,5 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: navidrome-data
+        - name: plugins
+          emptyDir: {}

@@ -17,7 +17,3 @@ spec:
     - name: traefik
   timeout: 10m
   wait: true
-  decryption:
-    provider: sops
-    secretRef:
-      name: sops-age

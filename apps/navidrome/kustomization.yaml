@@ -7,6 +7,3 @@ resources:
   - service.yaml
   - ingress.yaml
   - deployment.yaml
-  - sync-configmap.yaml
-  - sync-cronjob.yaml
-  - secrets/navidrome-sync.sops.yaml
