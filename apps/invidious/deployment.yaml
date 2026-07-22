@@ -120,10 +120,10 @@ spec:
           resources:
             requests:
               cpu: 200m
-              memory: 384Mi
+              memory: 512Mi
             limits:
-              cpu: 1
-              memory: 768Mi
+              cpu: 2
+              memory: 2Gi
         - name: companion
           image: quay.io/invidious/invidious-companion:latest
           env:
@@ -137,11 +137,11 @@ spec:
                 - ALL
           resources:
             requests:
-              cpu: 50m
-              memory: 64Mi
+              cpu: 100m
+              memory: 256Mi
             limits:
-              cpu: 200m
-              memory: 128Mi
+              cpu: 1
+              memory: 1Gi
           volumeMounts:
             - name: companion-cache
               mountPath: /var/tmp/youtubei.js
