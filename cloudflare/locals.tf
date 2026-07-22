@@ -12,6 +12,7 @@ locals {
     "links.${var.base_domain}",
     "sea.${var.base_domain}",
     "yt.${var.base_domain}",
+    "pinchflat.${var.base_domain}",
     "music.${var.base_domain}",
     var.base_domain,
   ])

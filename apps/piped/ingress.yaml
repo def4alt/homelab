@@ -1,25 +1,24 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pinchflat
-  namespace: transmission
+  name: piped
+  namespace: piped
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-      - host: pinchflat.def4alt.com
+    - host: yt.def4alt.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: pinchflat
+                name: piped-frontend
                 port:
-                  number: 8945
+                  number: 80
   tls:
-    - secretName: pinchflat-tls
+    - secretName: piped-tls
       hosts:
-        - pinchflat.def4alt.com
+        - yt.def4alt.com

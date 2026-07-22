@@ -31,3 +31,4 @@ resources:
   - apps/navidrome.yaml
   - apps/slskd.yaml
   - apps/lidarr.yaml
+  - apps/piped.yaml

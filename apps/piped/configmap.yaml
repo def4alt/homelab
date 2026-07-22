@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: piped-backend-config
+  namespace: piped
+data:
+  config.properties: |
+    server.port=8080
+    spring.datasource.url=jdbc:postgresql://piped-db-rw.piped.svc.cluster.local:5432/piped
+    spring.datasource.username=piped
+    HTTP_WORKERS=4
+    FRONTEND_ORIGIN=https://yt.def4alt.com
+    API_RETENTION_PERIOD=30
+    FEED_RETENTION_PERIOD=7
+    COMPRESSION_ENABLED=false
