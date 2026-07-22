@@ -17,4 +17,4 @@ resources:
   - transmission.yaml
   - linkding.yaml
   - navidrome.yaml
-  - piped.yaml
+  - invidious.yaml

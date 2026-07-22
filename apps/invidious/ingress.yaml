@@ -1,8 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: piped
-  namespace: piped
+  name: invidious
+  namespace: invidious
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
@@ -16,10 +16,10 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: piped-frontend
+                name: invidious
                 port:
-                  number: 80
+                  number: 3000
   tls:
-    - secretName: piped-tls
+    - secretName: invidious-tls
       hosts:
         - yt.def4alt.com

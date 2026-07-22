@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: invidious-db
+  namespace: invidious
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: invidious
+      owner: invidious
+      secret:
+        name: invidious-db-auth
+  storage:
+    size: 10Gi

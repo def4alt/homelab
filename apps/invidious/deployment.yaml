@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: piped-backend
-  namespace: piped
+  name: invidious
+  namespace: invidious
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: piped-backend
+      app: invidious
   template:
     metadata:
       labels:
-        app: piped-backend
+        app: invidious
     spec:
       terminationGracePeriodSeconds: 30
       containers:
@@ -34,7 +34,9 @@ spec:
             - name: WIREGUARD_MTU
               value: "1440"
             - name: FIREWALL_INPUT_PORTS
-              value: "8080"
+              value: "3000"
+            - name: FIREWALL_OUTBOUND_SUBNETS
+              value: "10.42.0.0/16,10.43.0.0/16"
             - name: HEALTH_TARGET_ADDRESSES
               value: "1.1.1.1:443,1.0.0.1:443"
             - name: HEALTH_ICMP_TARGET_IPS
@@ -42,27 +44,27 @@ spec:
             - name: WIREGUARD_PRIVATE_KEY
               valueFrom:
                 secretKeyRef:
-                  name: piped-wireguard
+                  name: invidious-wireguard
                   key: wireguard-private-key
             - name: WIREGUARD_ADDRESSES
               valueFrom:
                 secretKeyRef:
-                  name: piped-wireguard
+                  name: invidious-wireguard
                   key: wireguard-addresses
             - name: WIREGUARD_PUBLIC_KEY
               valueFrom:
                 secretKeyRef:
-                  name: piped-wireguard
+                  name: invidious-wireguard
                   key: wireguard-public-key
             - name: WIREGUARD_ENDPOINT_IP
               valueFrom:
                 secretKeyRef:
-                  name: piped-wireguard
+                  name: invidious-wireguard
                   key: wireguard-endpoint-ip
             - name: WIREGUARD_ENDPOINT_PORT
               valueFrom:
                 secretKeyRef:
-                  name: piped-wireguard
+                  name: invidious-wireguard
                   key: wireguard-endpoint-port
           resources:
             requests:
@@ -71,41 +73,52 @@ spec:
             limits:
               cpu: 500m
               memory: 256Mi
-        - name: piped-backend
-          image: 1337kavin/piped-backend:latest
+        - name: invidious
+          image: quay.io/invidious/invidious:latest
           env:
-            - name: SPRING_DATASOURCE_PASSWORD
+            - name: INVIDIOUS_CONFIG_DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: piped-db-auth
+                  name: invidious-db-auth
+                  key: username
+            - name: INVIDIOUS_CONFIG_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: invidious-db-auth
                   key: password
+            - name: INVIDIOUS_CONFIG_DB_HOST
+              value: invidious-db-rw.invidious.svc.cluster.local
+            - name: INVIDIOUS_CONFIG_DB_PORT
+              value: "5432"
+            - name: INVIDIOUS_CONFIG_DB_NAME
+              value: invidious
+            - name: INVIDIOUS_CONFIG_DOMAIN
+              value: yt.def4alt.com
+            - name: INVIDIOUS_CONFIG_EXTERNAL_PORT
+              value: "443"
+            - name: INVIDIOUS_CONFIG_HTTPS_ONLY
+              value: "true"
+            - name: INVIDIOUS_CONFIG_HMAC_KEY
+              value: fb0f299cc6142ac9e6e647e928a810c2a04da73d
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 3000
           readinessProbe:
             httpGet:
-              path: /healthcheck
-              port: 8080
-            initialDelaySeconds: 30
+              path: /api/v1/stats
+              port: 3000
+            initialDelaySeconds: 10
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /healthcheck
-              port: 8080
-            initialDelaySeconds: 60
-            periodSeconds: 30
+              path: /api/v1/stats
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 20
           resources:
             requests:
               cpu: 200m
-              memory: 512Mi
+              memory: 384Mi
             limits:
               cpu: 1
-              memory: 1Gi
-          volumeMounts:
-            - name: config
-              mountPath: /app/config.properties
-              subPath: config.properties
-      volumes:
-        - name: config
-          configMap:
-            name: piped-backend-config
+              memory: 768Mi
