@@ -19,6 +19,62 @@ spec:
       automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
       containers:
+        - name: gluetun
+          image: qmcgaw/gluetun@sha256:b0ee2135e6ba52ad3f102aae9663707cd1c9531485117067a380d3b2b6dd991d
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+          env:
+            - name: TZ
+              value: Europe/Berlin
+            - name: VPN_SERVICE_PROVIDER
+              value: custom
+            - name: VPN_TYPE
+              value: wireguard
+            - name: WIREGUARD_MTU
+              value: "1440"
+            - name: FIREWALL_INPUT_PORTS
+              value: "3000"
+            - name: FIREWALL_OUTBOUND_SUBNETS
+              value: "10.42.0.0/16,10.43.0.0/16"
+            - name: HEALTH_TARGET_ADDRESSES
+              value: "1.1.1.1:443,1.0.0.1:443"
+            - name: HEALTH_ICMP_TARGET_IPS
+              value: "1.1.1.1,1.0.0.1"
+            - name: WIREGUARD_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: invidious-wireguard
+                  key: wireguard-private-key
+            - name: WIREGUARD_ADDRESSES
+              valueFrom:
+                secretKeyRef:
+                  name: invidious-wireguard
+                  key: wireguard-addresses
+            - name: WIREGUARD_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: invidious-wireguard
+                  key: wireguard-public-key
+            - name: WIREGUARD_ENDPOINT_IP
+              valueFrom:
+                secretKeyRef:
+                  name: invidious-wireguard
+                  key: wireguard-endpoint-ip
+            - name: WIREGUARD_ENDPOINT_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: invidious-wireguard
+                  key: wireguard-endpoint-port
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
         - name: invidious
           image: quay.io/invidious/invidious:latest
           env:
