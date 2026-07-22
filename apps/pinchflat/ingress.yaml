@@ -9,7 +9,7 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-      - host: pinchflat.def4alt.com
+      - host: yt.def4alt.com
       http:
         paths:
           - path: /
@@ -22,4 +22,4 @@ spec:
   tls:
     - secretName: pinchflat-tls
       hosts:
-        - pinchflat.def4alt.com
+        - yt.def4alt.com
