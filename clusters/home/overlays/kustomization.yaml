@@ -31,4 +31,3 @@ resources:
   - apps/navidrome.yaml
   - apps/slskd.yaml
   - apps/lidarr.yaml
-  - apps/invidious.yaml
