@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pinchflat
+  name: metube
   namespace: transmission
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
@@ -9,17 +9,17 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   rules:
-      - host: yt.def4alt.com
+    - host: yt.def4alt.com
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: pinchflat
+                name: metube
                 port:
-                  number: 8945
+                  number: 8081
   tls:
-    - secretName: pinchflat-tls
+    - secretName: metube-tls
       hosts:
         - yt.def4alt.com
