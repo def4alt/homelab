@@ -15,6 +15,8 @@ spec:
       labels:
         app: invidious
     spec:
+      enableServiceLinks: false
+      automountServiceAccountToken: false
       terminationGracePeriodSeconds: 30
       containers:
         - name: gluetun
@@ -76,30 +78,30 @@ spec:
         - name: invidious
           image: quay.io/invidious/invidious:latest
           env:
-            - name: INVIDIOUS_CONFIG_DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: invidious-db-auth
-                  key: username
-            - name: INVIDIOUS_CONFIG_DB_PASSWORD
+            - name: INVIDIOUS_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: invidious-db-auth
                   key: password
-            - name: INVIDIOUS_CONFIG_DB_HOST
-              value: invidious-db-rw.invidious.svc.cluster.local
-            - name: INVIDIOUS_CONFIG_DB_PORT
-              value: "5432"
-            - name: INVIDIOUS_CONFIG_DB_NAME
-              value: invidious
-            - name: INVIDIOUS_CONFIG_DOMAIN
-              value: yt.def4alt.com
-            - name: INVIDIOUS_CONFIG_EXTERNAL_PORT
-              value: "443"
-            - name: INVIDIOUS_CONFIG_HTTPS_ONLY
-              value: "true"
-            - name: INVIDIOUS_CONFIG_HMAC_KEY
-              value: fb0f299cc6142ac9e6e647e928a810c2a04da73d
+            - name: INVIDIOUS_CONFIG
+              value: |
+                port: 3000
+                db:
+                  user: invidious
+                  password: $(INVIDIOUS_DB_PASSWORD)
+                  host: invidious-db-rw.invidious.svc.cluster.local
+                  port: 5432
+                  dbname: invidious
+                check_tables: true
+                invidious_companion:
+                - private_url: http://localhost:8282/companion
+                invidious_companion_key: bayWx608JkTUh70x
+                domain: yt.def4alt.com
+                external_port: 443
+                https_only: true
+                hmac_key: 5eb635629d95d15ba907d74a6a87961d115ca59e
+                use_pubsub_feeds: true
+                use_innertube_for_captions: true
           ports:
             - name: http
               containerPort: 3000
@@ -122,3 +124,27 @@ spec:
             limits:
               cpu: 1
               memory: 768Mi
+        - name: companion
+          image: quay.io/invidious/invidious-companion:latest
+          env:
+            - name: SERVER_SECRET_KEY
+              value: bayWx608JkTUh70x
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          volumeMounts:
+            - name: companion-cache
+              mountPath: /var/tmp/youtubei.js
+      volumes:
+        - name: companion-cache
+          emptyDir: {}
