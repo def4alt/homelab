@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: piped-frontend
-          image: ghcr.io/teampiped/piped-frontend:latest
+          image: 1337kavin/piped-frontend:latest
           env:
             - name: BACKEND_HOSTNAME
               value: piped-backend.piped.svc.cluster.local:8080

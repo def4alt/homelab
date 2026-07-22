@@ -72,7 +72,7 @@ spec:
               cpu: 500m
               memory: 256Mi
         - name: piped-backend
-          image: ghcr.io/teampiped/piped-backend:latest
+          image: 1337kavin/piped-backend:latest
           env:
             - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
