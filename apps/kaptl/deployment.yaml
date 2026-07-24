@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaptl
+  namespace: kaptl
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kaptl
+  template:
+    metadata:
+      labels:
+        app: kaptl
+    spec:
+      containers:
+        - name: bot
+          image: ghcr.io/def4alt/kaptl:latest
+          imagePullPolicy: Always
+          env:
+            - name: TELEGRAM_BOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: kaptl-bot-secrets
+                  key: telegram-bot-token
+            - name: ALLOWED_TELEGRAM_ID
+              valueFrom:
+                secretKeyRef:
+                  name: kaptl-bot-secrets
+                  key: allowed-telegram-id
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: kaptl-db-auth
+                  key: password
+            - name: DATABASE_URL
+              value: "postgres://kaptl:$(DB_PASSWORD)@kaptl-db-rw.kaptl.svc.cluster.local:5432/kaptl?sslmode=disable"
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
+          livenessProbe:
+            exec:
+              command:
+                - pgrep
+                - kaptl
+            initialDelaySeconds: 10
+            periodSeconds: 30

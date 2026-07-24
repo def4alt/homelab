@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kaptl-db
+  namespace: kaptl
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: kaptl
+      owner: kaptl
+      secret:
+        name: kaptl-db-auth
+  storage:
+    size: 5Gi
+  monitoring:
+    enablePodMonitor: true
