@@ -15,6 +15,21 @@ spec:
       labels:
         app: couchdb
     spec:
+      initContainers:
+        - name: seed-config
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              cp /config/local.ini /opt/couchdb/etc/local.d/cors.ini
+              echo "Seeded local.d/cors.ini"
+              ls -la /opt/couchdb/etc/local.d/
+          volumeMounts:
+            - name: config-src
+              mountPath: /config
+            - name: config-dir
+              mountPath: /opt/couchdb/etc/local.d
       containers:
         - name: couchdb
           image: couchdb:3.4
@@ -32,8 +47,6 @@ spec:
                 secretKeyRef:
                   name: couchdb-admin
                   key: password
-            - name: COUCHDB_SINGLE_NODE
-              value: "true"
             - name: ERL_FLAGS
               value: "-setcookie couchdb"
           readinessProbe:
@@ -58,7 +71,14 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /opt/couchdb/data
+            - name: config-dir
+              mountPath: /opt/couchdb/etc/local.d
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: couchdb-data
+        - name: config-src
+          configMap:
+            name: couchdb-config
+        - name: config-dir
+          emptyDir: {}

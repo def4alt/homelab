@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: couchdb-config
+  namespace: livesync
+data:
+  local.ini: |
+    [chttpd]
+    enable_cors = true
+    require_valid_user = true
+
+    [httpd]
+    enable_cors = true
+
+    [cors]
+    credentials = true
+    origins = app://obsidian.md, capacitor://localhost, http://localhost, https://localhost
+    headers = Accept, Authorization, Content-Type, Origin
+    methods = GET, PUT, POST, HEAD, DELETE, OPTIONS
+
+    [couchdb]
+    single_node = true
