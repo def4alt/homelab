@@ -13,7 +13,6 @@ locals {
     "sea.${var.base_domain}",
     "yt.${var.base_domain}",
     "music.${var.base_domain}",
-    "couchdb.${var.base_domain}",
     var.base_domain,
   ])
 
@@ -28,6 +27,7 @@ locals {
     "radarr.${var.base_domain}",
     "slskd.${var.base_domain}",
     "lidarr.${var.base_domain}",
+    "couchdb.${var.base_domain}",
   ])
 
   all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames, toset([local.minecraft_hostname, local.shell_hostname]))
@@ -39,6 +39,7 @@ locals {
     "sonarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "slskd.${var.base_domain}"      = "perun.tail6f3b0.ts.net"
     "lidarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
+    "couchdb.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
   }
 
   unproxied_hostnames = local.tailnet_hostnames
