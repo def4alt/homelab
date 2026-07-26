@@ -32,3 +32,4 @@ resources:
   - apps/slskd.yaml
   - apps/lidarr.yaml
   - apps/kaptl.yaml
+  - apps/livesync.yaml

@@ -18,3 +18,4 @@ resources:
   - linkding.yaml
   - navidrome.yaml
   - kaptl.yaml
+  - livesync.yaml

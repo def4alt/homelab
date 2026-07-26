@@ -13,6 +13,7 @@ locals {
     "sea.${var.base_domain}",
     "yt.${var.base_domain}",
     "music.${var.base_domain}",
+    "couchdb.${var.base_domain}",
     var.base_domain,
   ])
 
