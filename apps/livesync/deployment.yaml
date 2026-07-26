@@ -32,15 +32,19 @@ spec:
                 secretKeyRef:
                   name: couchdb-admin
                   key: password
+            - name: COUCHDB_SINGLE_NODE
+              value: "true"
             - name: ERL_FLAGS
-              value: "+S 2 -setcookie couchdb"
+              value: "-setcookie couchdb"
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /
               port: 5984
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /
               port: 5984
             initialDelaySeconds: 30
             periodSeconds: 20
