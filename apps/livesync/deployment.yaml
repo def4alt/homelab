@@ -32,15 +32,8 @@ spec:
                 secretKeyRef:
                   name: couchdb-admin
                   key: password
-            - name: COUCHDB_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: couchdb-admin
-                  key: password
-            - name: NODENAME
-              value: couchdb@127.0.0.1
             - name: ERL_FLAGS
-              value: "+S 2"
+              value: "+S 2 -setcookie couchdb"
           readinessProbe:
             tcpSocket:
               port: 5984
