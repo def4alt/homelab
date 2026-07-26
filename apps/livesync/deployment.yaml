@@ -50,14 +50,12 @@ spec:
             - name: ERL_FLAGS
               value: "-setcookie couchdb"
           readinessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 5984
             initialDelaySeconds: 15
             periodSeconds: 10
           livenessProbe:
-            httpGet:
-              path: /
+            tcpSocket:
               port: 5984
             initialDelaySeconds: 30
             periodSeconds: 20
