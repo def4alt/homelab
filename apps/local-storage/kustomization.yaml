@@ -15,7 +15,6 @@ resources:
   - sonarr-config.yaml
   - radarr-config.yaml
   - transmission.yaml
-  - pinchflat.yaml
   - application-data.yaml
   - homelab-tools.yaml
   - navidrome-music.yaml
