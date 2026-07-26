@@ -58,7 +58,12 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /opt/couchdb/data
+            - name: config
+              mountPath: /opt/couchdb/etc/local.d
       volumes:
         - name: data
           persistentVolumeClaim:
             claimName: couchdb-data
+        - name: config
+          configMap:
+            name: couchdb-config
