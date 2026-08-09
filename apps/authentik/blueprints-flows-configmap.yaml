@@ -4,16 +4,15 @@ metadata:
   name: authentik-blueprints-flows
   namespace: authentik
 data:
-  authentication-flows.yaml: |
+  policies.yaml: |
     version: 1
     metadata:
-      name: Authentication flows
+      name: Custom access policies
       labels:
         managed-by: gitops
     entries:
-      # ── Policies ──
       - model: authentik_policies_expression.expressionpolicy
-        id: policy-only-me
+        id: policy-restrict-akadmin
         identifiers:
           name: Restrict to akadmin
         attrs:
@@ -47,39 +46,7 @@ data:
           expression: |
             return request.context.get("auth_method") != "auth_webauthn_pwl"
 
-      # ── Authentication flow ──
-      - model: authentik_flows.flow
-        id: flow-default-authentication
-        identifiers:
-          slug: default-authentication-flow
-        attrs:
-          designation: authentication
-          name: Welcome to authentik!
-          title: Welcome to authentik!
-
-      # ── Stages ──
-      - model: authentik_stages_identification.identificationstage
-        id: stage-identification
-        identifiers:
-          name: default-authentication-identification
-        attrs:
-          name: default-authentication-identification
-
-      - model: authentik_stages_password.passwordstage
-        id: stage-password
-        identifiers:
-          name: default-authentication-password
-        attrs:
-          name: default-authentication-password
-          configure_flow: !Find [authentik_flows.flow, [slug, default-password-change]]
-
-      - model: authentik_stages_authenticator_validate.authenticatorvalidatestage
-        id: stage-mfa-validation
-        identifiers:
-          name: default-authentication-mfa-validation
-        attrs:
-          name: default-authentication-mfa-validation
-
+      # Keep passkey validation stage
       - model: authentik_stages_authenticator_validate.authenticatorvalidatestage
         id: stage-passkey-validation
         identifiers:
@@ -91,75 +58,11 @@ data:
             - webauthn
           webauthn_user_verification: preferred
 
-      - model: authentik_stages_user_login.userloginstage
-        id: stage-login
-        identifiers:
-          name: default-authentication-login
-        attrs:
-          name: default-authentication-login
-          session_duration: seconds=0
-
-      # ── Flow stage bindings ──
-      - model: authentik_flows.flowstagebinding
-        id: binding-identification
-        identifiers:
-          target: !KeyOf flow-default-authentication
-          order: 10
-        attrs:
-          target: !KeyOf flow-default-authentication
-          stage: !KeyOf stage-identification
-          order: 10
-
-      - model: authentik_flows.flowstagebinding
-        id: binding-password
-        identifiers:
-          target: !KeyOf flow-default-authentication
-          order: 20
-        attrs:
-          target: !KeyOf flow-default-authentication
-          stage: !KeyOf stage-password
-          order: 20
-
-      - model: authentik_flows.flowstagebinding
-        id: binding-mfa
-        identifiers:
-          target: !KeyOf flow-default-authentication
-          order: 30
-        attrs:
-          target: !KeyOf flow-default-authentication
-          stage: !KeyOf stage-mfa-validation
-          order: 30
-          evaluate_on_plan: false
-          re_evaluate_policies: true
-
-      - model: authentik_flows.flowstagebinding
-        id: binding-login
-        identifiers:
-          target: !KeyOf flow-default-authentication
-          order: 100
-        attrs:
-          target: !KeyOf flow-default-authentication
-          stage: !KeyOf stage-login
-          order: 100
-
-      # ── Passkey integration into identification stage ──
+      # Wire passkey into identification stage
       - model: authentik_stages_identification.identificationstage
-        id: stage-identification
+        id: stage-identification-passkey
         identifiers:
           name: default-authentication-identification
         attrs:
+          name: default-authentication-identification
           webauthn_stage: !KeyOf stage-passkey-validation
-
-      # ── Policy binding: skip MFA after passkey ──
-      - model: authentik_policies.policybinding
-        id: binding-skip-mfa-after-passkey
-        identifiers:
-          target: !KeyOf binding-mfa
-          order: 0
-        attrs:
-          target: !KeyOf binding-mfa
-          policy: !KeyOf policy-skip-mfa-after-passkey
-          order: 0
-          negate: false
-          enabled: true
-          failure_result: false
