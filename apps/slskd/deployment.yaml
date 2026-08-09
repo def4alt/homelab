@@ -87,7 +87,7 @@ spec:
               cpu: 500m
               memory: 256Mi
         - name: slskd
-          image: slskd/slskd:latest
+          image: slskd/slskd:0.26.0
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000

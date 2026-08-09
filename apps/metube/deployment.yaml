@@ -20,7 +20,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: metube
-          image: ghcr.io/alexta69/metube:latest
+          image: ghcr.io/alexta69/metube:2026.08.04
           env:
             - name: PUID
               value: "1000"

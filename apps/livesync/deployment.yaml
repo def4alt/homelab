@@ -17,7 +17,7 @@ spec:
     spec:
       initContainers:
         - name: seed-config
-          image: busybox
+          image: busybox:1.38.0
           command:
             - sh
             - -c
@@ -32,7 +32,7 @@ spec:
               mountPath: /opt/couchdb/etc/local.d
       containers:
         - name: couchdb
-          image: couchdb:3.4
+          image: couchdb:3.5.2.1
           ports:
             - name: http
               containerPort: 5984

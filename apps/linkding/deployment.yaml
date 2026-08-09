@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: linkding
-          image: ghcr.io/sissbruecker/linkding:1.45.0
+          image: ghcr.io/sissbruecker/linkding:1.46.0
           ports:
             - name: http
               containerPort: 9090
