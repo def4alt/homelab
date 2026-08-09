@@ -8,7 +8,8 @@ spec:
     address: http://ak-outpost-traefik-forward-auth-outpost.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
     addAuthCookiesToResponse:
-      - authentik_proxy_COOKIE_PLACEHOLDER
+      - authentik_proxy_e4b0873b
+      - authentik_proxy_77c4bbb4
     authResponseHeaders:
       - X-authentik-username
       - X-authentik-groups
