@@ -17,7 +17,8 @@ spec:
   values:
     blueprints:
       configMaps:
-        - authentik-blueprints
+        - authentik-blueprints-flows
+        - authentik-blueprints-providers
     authentik:
       enabled: false
     postgresql:

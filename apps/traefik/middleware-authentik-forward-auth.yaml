@@ -5,10 +5,10 @@ metadata:
   namespace: infra
 spec:
   forwardAuth:
-    address: https://auth.def4alt.com/outpost.goauthentik.io/auth/traefik
+    address: http://ak-outpost-traefik-forward-auth-outpost.authentik.svc.cluster.local:9000/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
     addAuthCookiesToResponse:
-      - authentik_proxy_e4b0873b
+      - authentik_proxy_COOKIE_PLACEHOLDER
     authResponseHeaders:
       - X-authentik-username
       - X-authentik-groups

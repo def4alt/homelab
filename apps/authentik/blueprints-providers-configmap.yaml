@@ -1,0 +1,217 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprints-providers
+  namespace: authentik
+data:
+  providers.yaml: |
+    version: 1
+    metadata:
+      name: Proxy providers and applications
+      labels:
+        managed-by: gitops
+    entries:
+      # ── Kubernetes service connection ──
+      - model: authentik_outposts.kubernetesserviceconnection
+        id: service-connection-local
+        identifiers:
+          name: Local Kubernetes Cluster
+        attrs:
+          name: Local Kubernetes Cluster
+          local: true
+          verify_ssl: true
+          kubeconfig: {}
+
+      # ── Single forward-auth provider for all apps ──
+      - model: authentik_providers_proxy.proxyprovider
+        id: provider-traefik-forward-auth
+        identifiers:
+          name: Traefik Forward Auth
+        attrs:
+          name: Traefik Forward Auth
+          mode: forward_domain
+          external_host: https://auth.def4alt.com
+          skip_path_regex: ""
+          intercept_header_auth: false
+          basic_auth_enabled: false
+          cookie_domain: ".def4alt.com"
+          authentication_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+          authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+          invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+      # ── Applications (one per protected service) ──
+      - model: authentik_core.application
+        id: app-pihole
+        identifiers:
+          slug: pihole
+        attrs:
+          name: Pi-hole
+          slug: pihole
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      - model: authentik_core.application
+        id: app-immich
+        identifiers:
+          slug: immich
+        attrs:
+          name: Immich
+          slug: immich
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      - model: authentik_core.application
+        id: app-paperless
+        identifiers:
+          slug: paperless
+        attrs:
+          name: Paperless
+          slug: paperless
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      - model: authentik_core.application
+        id: app-glance
+        identifiers:
+          slug: glance
+        attrs:
+          name: Glance
+          slug: glance
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      - model: authentik_core.application
+        id: app-linkding
+        identifiers:
+          slug: linkding
+        attrs:
+          name: Linkding
+          slug: linkding
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      - model: authentik_core.application
+        id: app-metube
+        identifiers:
+          slug: metube
+        attrs:
+          name: MeTube
+          slug: metube
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      - model: authentik_core.application
+        id: app-transmission
+        identifiers:
+          slug: transmission
+        attrs:
+          name: Transmission
+          slug: transmission
+          provider: !KeyOf provider-traefik-forward-auth
+          open_in_new_tab: false
+
+      # ── Policy bindings ──
+      # Admin-only apps (pi-hole)
+      - model: authentik_policies.policybinding
+        id: binding-pihole-admin
+        identifiers:
+          target: !KeyOf app-pihole
+          order: 0
+        attrs:
+          target: !KeyOf app-pihole
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Restrict to akadmin"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      # Authenticated-user apps (everything else)
+      - model: authentik_policies.policybinding
+        id: binding-immich-auth
+        identifiers:
+          target: !KeyOf app-immich
+          order: 0
+        attrs:
+          target: !KeyOf app-immich
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Any authenticated user"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      - model: authentik_policies.policybinding
+        id: binding-paperless-auth
+        identifiers:
+          target: !KeyOf app-paperless
+          order: 0
+        attrs:
+          target: !KeyOf app-paperless
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Any authenticated user"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      - model: authentik_policies.policybinding
+        id: binding-glance-auth
+        identifiers:
+          target: !KeyOf app-glance
+          order: 0
+        attrs:
+          target: !KeyOf app-glance
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Any authenticated user"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      - model: authentik_policies.policybinding
+        id: binding-linkding-auth
+        identifiers:
+          target: !KeyOf app-linkding
+          order: 0
+        attrs:
+          target: !KeyOf app-linkding
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Any authenticated user"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      - model: authentik_policies.policybinding
+        id: binding-metube-auth
+        identifiers:
+          target: !KeyOf app-metube
+          order: 0
+        attrs:
+          target: !KeyOf app-metube
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Any authenticated user"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      - model: authentik_policies.policybinding
+        id: binding-transmission-auth
+        identifiers:
+          target: !KeyOf app-transmission
+          order: 0
+        attrs:
+          target: !KeyOf app-transmission
+          policy: !Find [authentik_policies_expression.expressionpolicy, [name, "Any authenticated user"]]
+          order: 0
+          negate: false
+          failure_result: false
+
+      # ── Single outpost serving all providers ──
+      - model: authentik_outposts.outpost
+        id: outpost-traefik-forward-auth
+        identifiers:
+          name: Traefik Forward Auth Outpost
+        attrs:
+          name: Traefik Forward Auth Outpost
+          type: proxy
+          service_connection: !KeyOf service-connection-local
+          providers:
+            - !KeyOf provider-traefik-forward-auth
+          config:
+            authentik_host: https://auth.def4alt.com
+            authentik_host_insecure: false
+            authentik_host_browser: https://auth.def4alt.com
+            kubernetes_replicas: 1
+            kubernetes_namespace: authentik
+            kubernetes_service_type: ClusterIP
