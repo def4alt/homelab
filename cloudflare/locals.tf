@@ -12,7 +12,6 @@ locals {
     "links.${var.base_domain}",
     "sea.${var.base_domain}",
     "yt.${var.base_domain}",
-    "music.${var.base_domain}",
     var.base_domain,
   ])
 
@@ -25,8 +24,6 @@ locals {
     "prowlarr.${var.base_domain}",
     "sonarr.${var.base_domain}",
     "radarr.${var.base_domain}",
-    "slskd.${var.base_domain}",
-    "lidarr.${var.base_domain}",
     "couchdb.${var.base_domain}",
   ])
 
@@ -37,8 +34,6 @@ locals {
     "prowlarr.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
     "radarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "sonarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
-    "slskd.${var.base_domain}"      = "perun.tail6f3b0.ts.net"
-    "lidarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "couchdb.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
   }
 

@@ -17,7 +17,3 @@ resources:
   - transmission.yaml
   - application-data.yaml
   - homelab-tools.yaml
-  - navidrome-music.yaml
-  - navidrome-data.yaml
-  - slskd-config.yaml
-  - lidarr-config.yaml
