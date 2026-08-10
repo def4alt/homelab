@@ -2,18 +2,18 @@
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-  echo "usage: $0 <apps|minecraft>" >&2
-  exit 1
+	echo "usage: $0 <apps|minecraft>" >&2
+	exit 1
 fi
 
 mode="$1"
 case "$mode" in
-  apps|minecraft) ;;
-  *)
-    echo "invalid mode: $mode" >&2
-    echo "expected one of: apps, minecraft" >&2
-    exit 1
-    ;;
+apps | minecraft) ;;
+*)
+	echo "invalid mode: $mode" >&2
+	echo "expected one of: apps, minecraft" >&2
+	exit 1
+	;;
 esac
 
 repo_root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -41,4 +41,4 @@ else:
 PY
 
 echo "Switched active home mode to: $mode"
-echo "Next: git add clusters/home/kustomization.yaml && git commit -m 'feat(home): switch to $mode mode'"
+echo "Next: git add clusters/home/kustomization.yaml && git commit -m 'feat(home): switch to $mode mode' && git push"
