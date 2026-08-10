@@ -30,4 +30,3 @@ resources:
   - apps/linkding.yaml
   - apps/kaptl.yaml
   - apps/livesync.yaml
-  - apps/valhelsia.yaml

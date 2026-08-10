@@ -4,7 +4,6 @@ resources:
   - storageclass.yaml
   - pi-hole.yaml
   - minecraft.yaml
-  - valhelsia-datadir.yaml
   - monitoring-grafana.yaml
   - home-assistant-config.yaml
   - juicefs-db.yaml
