@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: valhelsia-datadir
+spec:
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual-local
+  claimRef:
+    namespace: valhelsia
+    name: valhelsia-datadir
+  hostPath:
+    path: /var/lib/k8s-local-storage/valhelsia/valhelsia-datadir
+    type: DirectoryOrCreate

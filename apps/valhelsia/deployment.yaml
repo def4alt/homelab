@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valhelsia
+  namespace: valhelsia
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: valhelsia
+  template:
+    metadata:
+      labels:
+        app: valhelsia
+    spec:
+      terminationGracePeriodSeconds: 60
+      nodeSelector:
+        kubernetes.io/hostname: perun
+      priorityClassName: valhelsia-high
+      containers:
+        - name: valhelsia
+          image: eclipse-temurin:17-jre-jammy
+          command:
+            - /bin/sh
+            - /data/ServerStart.sh
+          workingDir: /data
+          ports:
+            - name: mc
+              containerPort: 25565
+          env:
+            - name: TZ
+              value: Europe/Berlin
+          startupProbe:
+            tcpSocket:
+              port: 25565
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            tcpSocket:
+              port: 25565
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 500m
+              memory: 4Gi
+            limits:
+              cpu: 4
+              memory: 6Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: valhelsia-datadir
