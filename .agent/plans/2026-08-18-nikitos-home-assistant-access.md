@@ -14,7 +14,7 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
 - [x] (2026-08-18 11:27Z) Added idempotent account reconciliation to both application deployments.
 - [x] (2026-08-18 11:29Z) Rendered and validated the Kustomize resources, Helm charts, encrypted-file status, and decrypted Secret schemas locally.
 - [x] (2026-08-18 11:34Z) Committed and pushed revision `334ccc8`, reconciled Flux and both Helm releases, and proved both account credentials after successful rollouts.
-- [ ] (2026-08-18 11:45Z) Follow-up: remove the broken shared Authentik middleware from Home Assistant, reconcile Flux, and validate browser/API connectivity through native Home Assistant authentication.
+- [x] (2026-08-18 11:45Z) Follow-up: removed the broken shared Authentik middleware, reconciled Flux, and validated public assets, native provider discovery, and an external `nikitos` login flow.
 
 ## Surprises & Discoveries
 
@@ -43,7 +43,7 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
 
 ## Outcomes & Retrospective
 
-Nikitos access is managed end to end through GitOps. Flux applied revision `334ccc8`; Authentik and Home Assistant rolled out successfully. The same encrypted credential validates in both systems, Authentik contains exactly one active non-admin `nikitos` user, and the Home Assistant init container idempotently changed the existing account password before the main application started. No plaintext credential is stored in Git.
+Nikitos access is managed end to end through GitOps. Authentik and Home Assistant rolled out successfully. The same encrypted credential validates in both systems, Authentik contains exactly one active non-admin `nikitos` user, and the Home Assistant init container idempotently reconciles the account before the main application starts. Follow-up revision `c86b0f5` removed incompatible Authentik forward-auth from the Home Assistant ingress. Public Home Assistant provider discovery now returns only `Home Assistant Local`, and an external `nikitos` login flow returns `create_entry`, proving successful native authentication. No plaintext credential is stored in Git.
 
 ## Context and Orientation
 
@@ -101,6 +101,8 @@ Post-Flux validation produced:
     {'count': 1, 'username': 'nikitos', 'active': True, 'staff': False, 'superuser': False, 'password_valid': True}
     Auth valid
     Password changed
+    Home Assistant provider: Home Assistant Local
+    External nikitos login flow result: type=create_entry
 
 ## Interfaces and Dependencies
 
@@ -113,3 +115,5 @@ Change note (2026-08-18 11:29Z): Recorded completed implementation and local val
 Change note (2026-08-18 11:34Z): Recorded the pushed revision, successful Flux and Helm reconciliations, and post-rollout credential evidence; marked the initial implementation complete.
 
 Change note (2026-08-18 11:45Z): Reopened the plan after diagnosing incorrect Authentik callbacks and companion-app incompatibility; selected native Home Assistant authentication for its ingress.
+
+Change note (2026-08-18 11:46Z): Recorded successful Flux reconciliation at `c86b0f5`, native provider discovery, and external credential validation; completed the follow-up.
