@@ -13,7 +13,7 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
 - [x] (2026-08-18 11:27Z) Added SOPS-encrypted Authentik and Home Assistant account manifests.
 - [x] (2026-08-18 11:27Z) Added idempotent account reconciliation to both application deployments.
 - [x] (2026-08-18 11:29Z) Rendered and validated the Kustomize resources, Helm charts, encrypted-file status, and decrypted Secret schemas locally.
-- [ ] Commit, push, reconcile Flux, and prove both accounts work after rollout.
+- [x] (2026-08-18 11:34Z) Committed and pushed revision `334ccc8`, reconciled Flux and both Helm releases, and proved both account credentials after successful rollouts.
 
 ## Surprises & Discoveries
 
@@ -37,7 +37,7 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
 
 ## Outcomes & Retrospective
 
-The GitOps resources now render and validate locally. The live account works, but reconciliation and post-rollout recovery behavior have not yet been proven.
+Nikitos access is managed end to end through GitOps. Flux applied revision `334ccc8`; Authentik and Home Assistant rolled out successfully. The same encrypted credential validates in both systems, Authentik contains exactly one active non-admin `nikitos` user, and the Home Assistant init container idempotently changed the existing account password before the main application started. No plaintext credential is stored in Git.
 
 ## Context and Orientation
 
@@ -86,6 +86,16 @@ Initial live validation produced:
     Home Assistant user created: nikitos
     Auth valid
 
+Post-Flux validation produced:
+
+    Applied revision: main@sha1:334ccc8b
+    deployment "authentik-server" successfully rolled out
+    deployment "authentik-worker" successfully rolled out
+    deployment "home-assistant" successfully rolled out
+    {'count': 1, 'username': 'nikitos', 'active': True, 'staff': False, 'superuser': False, 'password_valid': True}
+    Auth valid
+    Password changed
+
 ## Interfaces and Dependencies
 
 Authentik consumes a blueprint Secret listed under `spec.values.blueprints.secrets`. The blueprint uses model `authentik_core.user`, identifier `username: nikitos`, and ordinary non-superuser attributes. Home Assistant uses `python -m homeassistant --script auth -c /config` from image `ghcr.io/home-assistant/home-assistant:2026.8.1`; the init container receives `NIKITOS_USERNAME` and `NIKITOS_PASSWORD` from a namespace-local Secret and mounts volume `home-assistant-pvc` at `/config`.
@@ -93,3 +103,5 @@ Authentik consumes a blueprint Secret listed under `spec.values.blueprints.secre
 Change note: Initial plan created after live access was established and the user explicitly requested GitOps management.
 
 Change note (2026-08-18 11:29Z): Recorded completed implementation and local validation, including the existing Kustomize load-restriction requirement.
+
+Change note (2026-08-18 11:34Z): Recorded the pushed revision, successful Flux and Helm reconciliations, and post-rollout credential evidence; marked the plan complete.
