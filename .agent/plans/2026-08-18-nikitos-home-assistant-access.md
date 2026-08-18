@@ -14,6 +14,7 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
 - [x] (2026-08-18 11:27Z) Added idempotent account reconciliation to both application deployments.
 - [x] (2026-08-18 11:29Z) Rendered and validated the Kustomize resources, Helm charts, encrypted-file status, and decrypted Secret schemas locally.
 - [x] (2026-08-18 11:34Z) Committed and pushed revision `334ccc8`, reconciled Flux and both Helm releases, and proved both account credentials after successful rollouts.
+- [ ] (2026-08-18 11:45Z) Follow-up: remove the broken shared Authentik middleware from Home Assistant, reconcile Flux, and validate browser/API connectivity through native Home Assistant authentication.
 
 ## Surprises & Discoveries
 
@@ -25,6 +26,8 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
   Evidence: Authentik chart version `2026.5.6` exposes `blueprints.secrets`.
 - Observation: This repository's Home Assistant Kustomization references a shared Secret above its directory, so the default Kustomize load restriction rejects the build.
   Evidence: `kubectl kustomize apps/home-assistant --load-restrictor=LoadRestrictionsNone` succeeds and client-side Kubernetes schema validation then passes.
+- Observation: The shared Authentik outpost has no provider for `home.def4alt.com`, so it selects unrelated providers and returns callbacks for domains such as `yt.def4alt.com` and `dashboard.def4alt.com`.
+  Evidence: an unauthenticated request to Home Assistant returned a MeTube callback, browser automation returned a Glance callback, and outpost logs assigned the same Home Assistant host to several unrelated providers. Forward-auth redirects also prevent Home Assistant companion-app API and WebSocket authentication.
 
 ## Decision Log
 
@@ -33,6 +36,9 @@ Nikitos can sign in to `https://home.def4alt.com` using the same username and pa
   Date/Author: 2026-08-18 / Codex
 - Decision: Reconcile the configured password on each Authentik blueprint application and each Home Assistant pod start.
   Rationale: This makes restore behavior deterministic. Future password changes must update both encrypted manifests.
+  Date/Author: 2026-08-18 / Codex
+- Decision: Remove Authentik forward-auth from only the Home Assistant ingress and rely on Home Assistant's native authentication.
+  Rationale: Home Assistant already has account security, while an external redirect-based gate is incompatible with its companion app, API, and WebSocket connection. The shared outpost is also currently incapable of identifying the Home Assistant host.
   Date/Author: 2026-08-18 / Codex
 
 ## Outcomes & Retrospective
@@ -43,7 +49,7 @@ Nikitos access is managed end to end through GitOps. Flux applied revision `334c
 
 Flux applies `apps/authentik` and `apps/home-assistant` to their matching namespaces. `apps/authentik/helmrelease.yaml` mounts Git-managed Authentik blueprints. `apps/home-assistant/helmrelease.yaml` deploys Home Assistant and mounts the persistent `/config` directory where its authentication storage lives. Files below each application's `secrets/` directory match `.sops.yaml` and must contain encrypted `data` or `stringData` values before commit.
 
-Public Home Assistant requests first pass through the Authentik forward-auth middleware configured in `apps/home-assistant/helmrelease.yaml`; after that gate, Home Assistant presents its own login. Therefore `nikitos` needs an account in both systems.
+Home Assistant uses its native authentication at the public ingress. An earlier shared Authentik forward-auth middleware was removed because the outpost had no Home Assistant provider and redirect-based authentication breaks companion-app API and WebSocket connections. The Git-managed Authentik account remains available for other protected homelab applications.
 
 ## Plan of Work
 
@@ -104,4 +110,6 @@ Change note: Initial plan created after live access was established and the user
 
 Change note (2026-08-18 11:29Z): Recorded completed implementation and local validation, including the existing Kustomize load-restriction requirement.
 
-Change note (2026-08-18 11:34Z): Recorded the pushed revision, successful Flux and Helm reconciliations, and post-rollout credential evidence; marked the plan complete.
+Change note (2026-08-18 11:34Z): Recorded the pushed revision, successful Flux and Helm reconciliations, and post-rollout credential evidence; marked the initial implementation complete.
+
+Change note (2026-08-18 11:45Z): Reopened the plan after diagnosing incorrect Authentik callbacks and companion-app incompatibility; selected native Home Assistant authentication for its ingress.

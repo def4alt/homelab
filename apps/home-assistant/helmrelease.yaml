@@ -65,7 +65,6 @@ spec:
       className: traefik
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
-        traefik.ingress.kubernetes.io/router.middlewares: infra-authentik-forward-auth@kubernetescrd
         cert-manager.io/cluster-issuer: letsencrypt-prod
       hosts:
         - host: home.def4alt.com
