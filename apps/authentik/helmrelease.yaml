@@ -18,6 +18,8 @@ spec:
     blueprints:
       configMaps:
         - authentik-blueprints-flows
+      secrets:
+        - authentik-blueprint-nikitos
     authentik:
       enabled: false
     postgresql:

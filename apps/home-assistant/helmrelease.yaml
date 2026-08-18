@@ -38,6 +38,23 @@ spec:
     additionalMounts:
       - name: zigbee-stick
         mountPath: /dev/ttyUSB0
+    initContainers:
+      - name: reconcile-nikitos-account
+        image: ghcr.io/home-assistant/home-assistant:2026.8.1
+        command: ["/bin/sh", "-ec"]
+        args:
+          - |
+            if python -m homeassistant --script auth -c /config list | grep -Fxq "$NIKITOS_USERNAME"; then
+              python -m homeassistant --script auth -c /config change_password "$NIKITOS_USERNAME" "$NIKITOS_PASSWORD"
+              exit 0
+            fi
+            python -m homeassistant --script auth -c /config add "$NIKITOS_USERNAME" "$NIKITOS_PASSWORD"
+        envFrom:
+          - secretRef:
+              name: home-assistant-nikitos-account
+        volumeMounts:
+          - name: home-assistant-pvc
+            mountPath: /config
     persistence:
       enabled: true
       accessMode: ReadWriteOnce

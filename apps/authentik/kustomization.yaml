@@ -7,4 +7,5 @@ resources:
   - blueprints-flows-configmap.yaml
   - certificates.yaml
   - secrets/authentik-config.sops.yaml
+  - secrets/nikitos-blueprint.sops.yaml
   - secrets/postgres-auth.sops.yaml

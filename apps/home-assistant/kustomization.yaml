@@ -10,4 +10,5 @@ resources:
   - scheduled-backup.yaml
   - secrets/postgres-auth.sops.yaml
   - secrets/home-assistant-secrets.sops.yaml
+  - secrets/nikitos-account.sops.yaml
   - ../secrets/cnpg-barman-s3.sops.yaml
