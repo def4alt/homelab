@@ -12,11 +12,6 @@ locals {
     "links.${var.base_domain}",
     "sea.${var.base_domain}",
     "yt.${var.base_domain}",
-    # Present in Cloudflare but previously untracked here; adding them keeps the
-    # config authoritative so an apply does not delete live records.
-    "lidarr.${var.base_domain}",
-    "music.${var.base_domain}",
-    "slskd.${var.base_domain}",
     var.base_domain,
   ])
 
