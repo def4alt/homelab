@@ -6,3 +6,5 @@ resources:
   - deployment.yaml
   - ingress.yaml
   - network-policies.yaml
+  - restic-backup.yaml
+  - secrets/documents-restic.sops.yaml
