@@ -17,3 +17,4 @@ resources:
   - transmission.yaml
   - application-data.yaml
   - homelab-tools.yaml
+  - syncthing.yaml

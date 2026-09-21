@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: syncthing
+  template:
+    metadata:
+      labels:
+        app: syncthing
+    spec:
+      securityContext:
+        # The upstream image runs as root and drops to PUID/PGID; fsGroup makes
+        # the config volume writable for that user.
+        fsGroup: 1000
+      containers:
+        - name: syncthing
+          image: syncthing/syncthing:2.1.5@sha256:84dcf202b0890f795c4c3899d35a5ac7369bb8b72b5c270078c50247da4ddeef
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: Europe/Berlin
+            - name: STGUIADDRESS
+              value: "0.0.0.0:8384"
+          ports:
+            - name: web
+              containerPort: 8384
+            - name: sync-tcp
+              containerPort: 22000
+              protocol: TCP
+            - name: sync-udp
+              containerPort: 22000
+              protocol: UDP
+            - name: discovery
+              containerPort: 21027
+              protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /rest/noauth/health
+              port: 8384
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: syncthing-config
+              mountPath: /var/syncthing
+            - name: documents
+              mountPath: /documents
+      volumes:
+        - name: syncthing-config
+          persistentVolumeClaim:
+            claimName: syncthing-config
+        - name: documents
+          hostPath:
+            # Canonical document tree; see apps/local-storage/syncthing.yaml.
+            path: /srv/documents
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  type: ClusterIP
+  selector:
+    app: syncthing
+  ports:
+    - name: web
+      port: 8384
+      targetPort: 8384
+---
+# Sync and discovery need stable node ports: k3s Service IPs are not routable
+# from the tailnet, so peers (mac, zorya) connect to perun's Tailscale address.
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing-sync
+  namespace: syncthing
+spec:
+  type: NodePort
+  selector:
+    app: syncthing
+  ports:
+    - name: sync-tcp
+      port: 22000
+      targetPort: 22000
+      nodePort: 32200
+      protocol: TCP
+    - name: sync-udp
+      port: 22000
+      targetPort: 22000
+      nodePort: 32200
+      protocol: UDP
+    - name: discovery
+      port: 21027
+      targetPort: 21027
+      nodePort: 32201
+      protocol: UDP

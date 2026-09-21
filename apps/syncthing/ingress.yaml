@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: syncthing
+  namespace: syncthing
+  annotations:
+    # Tailnet-only hostname: DNS points at perun's Tailscale address, not the
+    # Cloudflare tunnel. Syncthing's own GUI auth is the access control here.
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  rules:
+    - host: syncthing.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: syncthing
+                port:
+                  number: 8384
+  tls:
+    - secretName: syncthing-tls
+      hosts:
+        - syncthing.def4alt.com

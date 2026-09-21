@@ -25,6 +25,7 @@ locals {
     "sonarr.${var.base_domain}",
     "radarr.${var.base_domain}",
     "couchdb.${var.base_domain}",
+    "syncthing.${var.base_domain}",
   ])
 
   all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames, toset([local.minecraft_hostname, local.shell_hostname]))
@@ -35,6 +36,7 @@ locals {
     "radarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "sonarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
     "couchdb.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
+    "syncthing.${var.base_domain}" = "perun.tail6f3b0.ts.net"
   }
 
   unproxied_hostnames = local.tailnet_hostnames

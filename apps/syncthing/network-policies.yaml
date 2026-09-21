@@ -1,0 +1,50 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: syncthing
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-traefik
+  namespace: syncthing
+spec:
+  podSelector:
+    matchLabels:
+      app: syncthing
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: infra
+      ports:
+        - protocol: TCP
+          port: 8384
+---
+# Peers sync over the tailnet: allow sync + discovery from the node network.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-sync-peers
+  namespace: syncthing
+spec:
+  podSelector:
+    matchLabels:
+      app: syncthing
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 22000
+        - protocol: UDP
+          port: 22000
+        - protocol: UDP
+          port: 21027
