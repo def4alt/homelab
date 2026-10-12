@@ -34,7 +34,8 @@ spec:
           memory: 384Mi
         limits:
           cpu: 1000m
-          memory: 1Gi
+          # 1Gi OOMKills the server on startup since 2026.5.6 (gunicorn workers fork after migrations)
+          memory: 2Gi
       ingress:
         enabled: true
         annotations:
