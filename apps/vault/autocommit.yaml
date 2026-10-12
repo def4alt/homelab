@@ -19,9 +19,12 @@ spec:
           securityContext:
             runAsUser: 1000
             runAsGroup: 1000
+            fsGroup: 1000
           containers:
             - name: git
-              image: alpine/git:2.54.0@sha256:ce84fd6a057b4dc5cf5009da2dd832f1c6d096c1984bf50496cf3c256402264d
+              # Same image as the MCP server: it has git, ssh and a passwd entry for uid 1000,
+              # which OpenSSH requires.
+              image: ghcr.io/def4alt/vault-mcp:0.1.0@sha256:da02af9cc6acb1bafd26e9510cc573f746821dc45af78a17eea8a9e687fea26c
               command:
                 - /bin/sh
                 - -c
@@ -59,4 +62,4 @@ spec:
             - name: ssh
               secret:
                 secretName: vault-git
-                defaultMode: 0400
+                defaultMode: 0440
