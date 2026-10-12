@@ -19,6 +19,16 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
+      initContainers:
+        # hostPath volumes ignore fsGroup; hand the OAuth state directory to the app user.
+        - name: data-owner
+          image: busybox:1.38.0
+          command: ["chown", "1000:1000", "/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: data
+              mountPath: /data
       containers:
         - name: vault-mcp
           image: ghcr.io/def4alt/vault-mcp:0.1.0@sha256:da02af9cc6acb1bafd26e9510cc573f746821dc45af78a17eea8a9e687fea26c
