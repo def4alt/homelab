@@ -6,6 +6,7 @@ resources:
   - silverbullet.yaml
   - mcp.yaml
   - autocommit.yaml
+  - lint.yaml
   - ingress.yaml
   - network-policies.yaml
   - secrets/vault.sops.yaml

@@ -28,10 +28,12 @@ Retire the Obsidian LiveSync/CouchDB setup it replaces.
 
 - [x] 2026-10-12 Vault repo created, Notion + legacy vault + Letterboxd imported, verified, lint clean.
 - [x] 2026-10-12 `/srv/vault` seeded on perun.
-- [ ] Secrets (`apps/vault/secrets/vault.sops.yaml`): SilverBullet login, MCP bearer token and JWT key,
-      deploy key + GitHub known_hosts.
-- [ ] Reconcile, Syncthing folder for the Mac, tailnet DNS via OpenTofu, MCP smoke test over Tailscale.
-- [ ] Phase 4: GitHub OAuth app, `mcp.def4alt.com` tunnel route, connect Claude.ai / ChatGPT / Hermes.
+- [x] 2026-10-12 Secrets (SOPS): SilverBullet login, MCP bearer + JWT key, deploy key, GitHub OAuth client.
+- [x] 2026-10-12 Reconciled; Syncthing `vault` folder shared with the Mac (`~/Vault`); tailnet DNS for `notes`
+      and `vault` via OpenTofu; MCP smoke test over Tailscale (write + revert); restic snapshot verified.
+- [x] 2026-10-12 Phase 4: GitHub OAuth app "def4alt vault MCP", `mcp.def4alt.com` tunnel route; Claude.ai,
+      ChatGPT and Hermes connected. Bearer token verified refused on the public host.
+- [x] 2026-10-12 Handover: vault README, weekly report-only lint CronJob (`apps/vault/lint.yaml`).
 
 ## Decisions
 
@@ -39,3 +41,12 @@ Retire the Obsidian LiveSync/CouchDB setup it replaces.
   sources, no credentials), commit per write, small surface; vault-cortex was pre-1.0 and churning.
 - SilverBullet stays tailnet-only; no Authentik/Cloudflare Access needed.
 - Restic reuses the documents repository so no new B2 credentials are needed.
+
+## Lessons
+
+- hostPath volumes ignore `fsGroup`: the MCP OAuth-state volume needs a root init container to chown it.
+- OpenSSH refuses to run for a uid without a passwd entry, so the autocommit job uses the vault-mcp image.
+- With the GitHub OAuth provider enabled, FastMCP's MultiAuth requires the `user` scope on every token;
+  the static bearer verifier must grant it (fixed in vault-mcp 0.1.1).
+- perun only pushes the vault; never push to `def4alt/vault` from elsewhere.
+- On the Mac the vault must stay out of `~/Documents` (iCloud Drive), or Syncthing can't read it.

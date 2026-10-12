@@ -1,0 +1,50 @@
+# Weekly vault lint: writes notes/lint-YYYY-MM-DD.md and a log line. Report only;
+# the autocommit job pushes the commit.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-lint
+  namespace: vault
+spec:
+  schedule: "0 7 * * 1"
+  timeZone: Europe/Berlin
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+          containers:
+            - name: lint
+              image: ghcr.io/def4alt/vault-mcp:0.1.1@sha256:5377d8c2281f2e492eddad893cd9af8f8f11306ca437a566ed8da958ae91f4aa
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  cd /vault
+                  today=$(date +%F)
+                  vault-lint /vault --write > /dev/null
+                  echo "- $today lint [[notes/lint-$today]]: weekly report (vault-lint)" >> log.md
+                  git add "notes/lint-$today.md" log.md
+                  git -c user.name="vault lint" -c user.email=vault-lint@def4alt.com commit -q -m "lint: weekly report $today (vault-lint)"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+              volumeMounts:
+                - name: vault
+                  mountPath: /vault
+          volumes:
+            - name: vault
+              hostPath:
+                path: /srv/vault
+                type: Directory
