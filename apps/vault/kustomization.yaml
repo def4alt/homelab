@@ -9,3 +9,4 @@ resources:
   - ingress.yaml
   - network-policies.yaml
   - secrets/vault.sops.yaml
+  - secrets/github-oauth.sops.yaml

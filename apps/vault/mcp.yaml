@@ -32,6 +32,8 @@ spec:
           envFrom:
             - secretRef:
                 name: vault-mcp
+            - secretRef:
+                name: vault-mcp-github
           ports:
             - name: http
               containerPort: 8000

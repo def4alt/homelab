@@ -35,3 +35,31 @@ spec:
       hosts:
         - notes.def4alt.com
         - vault.def4alt.com
+---
+# Public MCP endpoint for Claude.ai and ChatGPT, reached through the Cloudflare tunnel.
+# Only GitHub OAuth (def4alt) is accepted here; the Hermes bearer token is refused on this host.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vault-mcp-public
+  namespace: vault
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: mcp.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vault-mcp
+                port:
+                  number: 8000
+  tls:
+    - secretName: vault-mcp-public-tls
+      hosts:
+        - mcp.def4alt.com
