@@ -31,7 +31,7 @@ spec:
               mountPath: /data
       containers:
         - name: vault-mcp
-          image: ghcr.io/def4alt/vault-mcp:0.1.0@sha256:da02af9cc6acb1bafd26e9510cc573f746821dc45af78a17eea8a9e687fea26c
+          image: ghcr.io/def4alt/vault-mcp:0.1.1@sha256:5377d8c2281f2e492eddad893cd9af8f8f11306ca437a566ed8da958ae91f4aa
           env:
             - name: BASE_URL
               value: https://mcp.def4alt.com
