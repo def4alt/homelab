@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-mcp
+  namespace: vault
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vault-mcp
+  template:
+    metadata:
+      labels:
+        app: vault-mcp
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: vault-mcp
+          image: ghcr.io/def4alt/vault-mcp:0.1.0@sha256:da02af9cc6acb1bafd26e9510cc573f746821dc45af78a17eea8a9e687fea26c
+          env:
+            - name: BASE_URL
+              value: https://mcp.def4alt.com
+            - name: TAILNET_HOSTS
+              value: vault.def4alt.com
+            - name: ALLOWED_GITHUB_LOGINS
+              value: def4alt
+          envFrom:
+            - secretRef:
+                name: vault-mcp
+          ports:
+            - name: http
+              containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 25m
+              memory: 96Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          volumeMounts:
+            - name: vault
+              mountPath: /vault
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: vault
+          hostPath:
+            path: /srv/vault
+            type: Directory
+        - name: data
+          persistentVolumeClaim:
+            claimName: vault-mcp-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault-mcp
+  namespace: vault
+spec:
+  selector:
+    app: vault-mcp
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000

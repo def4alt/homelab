@@ -29,5 +29,5 @@ resources:
   - apps/transmission.yaml
   - apps/linkding.yaml
   - apps/kaptl.yaml
-  - apps/livesync.yaml
   - apps/syncthing.yaml
+  - apps/vault.yaml

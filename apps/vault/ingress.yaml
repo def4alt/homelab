@@ -1,0 +1,37 @@
+# Tailnet-only hostnames: DNS points at perun's Tailscale address (see cloudflare/locals.tf).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vault
+  namespace: vault
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: notes.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: silverbullet
+                port:
+                  number: 3000
+    - host: vault.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vault-mcp
+                port:
+                  number: 8000
+  tls:
+    - secretName: vault-tls
+      hosts:
+        - notes.def4alt.com
+        - vault.def4alt.com

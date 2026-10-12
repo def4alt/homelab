@@ -1,0 +1,14 @@
+# OAuth client registrations and token mappings for the MCP server (FASTMCP_HOME).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vault-mcp-data
+  namespace: vault
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual-local
+  volumeName: vault-mcp-data

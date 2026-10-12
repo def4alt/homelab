@@ -61,6 +61,8 @@ spec:
               mountPath: /var/syncthing
             - name: documents
               mountPath: /documents
+            - name: vault
+              mountPath: /vault
       volumes:
         - name: syncthing-config
           persistentVolumeClaim:
@@ -69,6 +71,11 @@ spec:
           hostPath:
             # Canonical document tree; see apps/local-storage/syncthing.yaml.
             path: /srv/documents
+            type: Directory
+        - name: vault
+          hostPath:
+            # Knowledge vault (git repo, see apps/vault); synced to the Mac as its own folder.
+            path: /srv/vault
             type: Directory
 ---
 apiVersion: v1

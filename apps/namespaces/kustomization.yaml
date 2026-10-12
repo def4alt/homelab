@@ -17,5 +17,5 @@ resources:
   - transmission.yaml
   - linkding.yaml
   - kaptl.yaml
-  - livesync.yaml
   - syncthing.yaml
+  - vault.yaml

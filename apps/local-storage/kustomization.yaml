@@ -18,3 +18,4 @@ resources:
   - application-data.yaml
   - homelab-tools.yaml
   - syncthing.yaml
+  - vault.yaml
