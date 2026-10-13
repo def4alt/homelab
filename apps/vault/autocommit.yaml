@@ -24,7 +24,7 @@ spec:
             - name: git
               # Same image as the MCP server: it has git, ssh and a passwd entry for uid 1000,
               # which OpenSSH requires.
-              image: ghcr.io/def4alt/vault-mcp:0.3.0@sha256:19bd353ccc1f3046c824d0689e6edf9cda4194d2b4e435903f7ecaf45e052faa
+              image: ghcr.io/def4alt/vault-mcp:0.3.1@sha256:5cb3d86700e598aa6db1d458ecfc72abf00129825c54c7d2854db2321d2986e4
               command:
                 - /bin/sh
                 - -c

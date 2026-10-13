@@ -37,7 +37,7 @@ spec:
               mountPath: /data
       containers:
         - name: vault-mcp
-          image: ghcr.io/def4alt/vault-mcp:0.3.0@sha256:19bd353ccc1f3046c824d0689e6edf9cda4194d2b4e435903f7ecaf45e052faa
+          image: ghcr.io/def4alt/vault-mcp:0.3.1@sha256:5cb3d86700e598aa6db1d458ecfc72abf00129825c54c7d2854db2321d2986e4
           env:
             - name: BASE_URL
               value: https://mcp.def4alt.com
@@ -47,6 +47,9 @@ spec:
               value: def4alt
             - name: FILES_BASE_URL
               value: https://files.def4alt.com
+            # Same nginx on the tailnet, no Cloudflare body cap: what Hermes gets for links and uploads.
+            - name: FILES_TAILNET_BASE_URL
+              value: https://vault-files.def4alt.com
             - name: NOTES_BASE_URL
               value: https://notes.def4alt.com
             - name: METRICS_PORT

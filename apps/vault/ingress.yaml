@@ -30,11 +30,23 @@ spec:
                 name: vault-mcp
                 port:
                   number: 8000
+    # Signed file links and uploads for tailnet agents (4 GB bodies instead of Cloudflare's 100 MB).
+    - host: vault-files.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vault-files
+                port:
+                  number: 8080
   tls:
     - secretName: vault-tls
       hosts:
         - notes.def4alt.com
         - vault.def4alt.com
+        - vault-files.def4alt.com
 ---
 # Public MCP endpoint for Claude.ai and ChatGPT, reached through the Cloudflare tunnel.
 # Only GitHub OAuth (def4alt) is accepted here; the Hermes bearer token is refused on this host.

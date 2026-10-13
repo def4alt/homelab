@@ -7,76 +7,88 @@ metadata:
   namespace: vault
 data:
   default.conf: |
+    # files.def4alt.com through the Cloudflare tunnel: Cloudflare caps request bodies at 100 MB.
+    server {
+        listen 8080 default_server;
+        server_tokens off;
+        client_max_body_size 95m;
+        include /etc/nginx/vault/common.conf;
+    }
+
+    # vault-files.def4alt.com on the tailnet (agents with a shell, e.g. Hermes): no Cloudflare in the path.
     server {
         listen 8080;
+        server_name vault-files.def4alt.com;
         server_tokens off;
-        include /etc/nginx/secret/link.conf;  # set $link_secret "...";
-        # Same filesystem as the inbox, so a finished upload is an atomic rename.
-        client_body_temp_path /inbox/.tmp;
-
-        location = /healthz { access_log off; return 200 "ok\n"; }
-
-        # Hidden files and folders (.inbox, .stversions, ...) are never served.
-        location ~ /\. { return 404; }
-
-        location /d/ {
-            secure_link $arg_s,$arg_e;
-            secure_link_md5 "$secure_link_expires$uri $link_secret";
-            if ($secure_link = "") { return 403; }
-            if ($secure_link = "0") { return 410; }
-            limit_except GET { deny all; }
-            alias /documents/;
-            add_header Cache-Control "private, no-store" always;
-            add_header X-Content-Type-Options nosniff always;
-        }
-
-        # Vault blobs, served under their original file name (n, part of the signature).
-        location ~ "^/b/(?<blob>[0-9a-f]{16,64}(\.[a-z0-9]{1,10})?)$" {
-            secure_link $arg_s,$arg_e;
-            secure_link_md5 "$secure_link_expires$uri$arg_n $link_secret";
-            if ($secure_link = "") { return 403; }
-            if ($secure_link = "0") { return 410; }
-            limit_except GET { deny all; }
-            alias /blobs/$blob;
-            add_header Content-Disposition "inline; filename*=UTF-8''$arg_n" always;
-            add_header Cache-Control "private, no-store" always;
-            add_header X-Content-Type-Options nosniff always;
-        }
-
-        location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/$" {
-            secure_link $arg_s,$arg_e;
-            secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
-            if ($secure_link = "") { return 403; }
-            if ($secure_link = "0") { return 410; }
-            root /etc/nginx/html;
-            try_files /upload.html =404;
-        }
-
-        location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/(?<file_name>[^/.][^/]*)$" {
-            # The upload widget runs in the chat client's sandboxed iframe, so its PUT is cross-origin.
-            # The signed URL is the only credential (no cookies), so any origin may use it.
-            add_header Access-Control-Allow-Origin "*" always;
-            if ($request_method = OPTIONS) {
-                add_header Access-Control-Allow-Origin "*";
-                add_header Access-Control-Allow-Methods "PUT, OPTIONS";
-                add_header Access-Control-Allow-Headers "Content-Type";
-                add_header Access-Control-Max-Age 3600;
-                return 204;
-            }
-            secure_link $arg_s,$arg_e;
-            secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
-            if ($secure_link = "") { return 403; }
-            if ($secure_link = "0") { return 410; }
-            limit_except PUT { deny all; }
-            client_max_body_size 95m;  # Cloudflare's free plan caps request bodies at 100 MB
-            alias /inbox/$upload_id/$file_name;
-            dav_methods PUT;
-            dav_access user:rw group:rw all:r;
-            create_full_put_path off;  # only inbox dirs created by vault-mcp accept files
-        }
-
-        location / { return 404; }
+        client_max_body_size 4g;
+        include /etc/nginx/vault/common.conf;
     }
+  common.conf: |
+    include /etc/nginx/secret/link.conf;  # set $link_secret "...";
+    # Same filesystem as the inbox, so a finished upload is an atomic rename.
+    client_body_temp_path /inbox/.tmp;
+
+    location = /healthz { access_log off; return 200 "ok\n"; }
+
+    # Hidden files and folders (.inbox, .stversions, ...) are never served.
+    location ~ /\. { return 404; }
+
+    location /d/ {
+        secure_link $arg_s,$arg_e;
+        secure_link_md5 "$secure_link_expires$uri $link_secret";
+        if ($secure_link = "") { return 403; }
+        if ($secure_link = "0") { return 410; }
+        limit_except GET { deny all; }
+        alias /documents/;
+        add_header Cache-Control "private, no-store" always;
+        add_header X-Content-Type-Options nosniff always;
+    }
+
+    # Vault blobs, served under their original file name (n, part of the signature).
+    location ~ "^/b/(?<blob>[0-9a-f]{16,64}(\.[a-z0-9]{1,10})?)$" {
+        secure_link $arg_s,$arg_e;
+        secure_link_md5 "$secure_link_expires$uri$arg_n $link_secret";
+        if ($secure_link = "") { return 403; }
+        if ($secure_link = "0") { return 410; }
+        limit_except GET { deny all; }
+        alias /blobs/$blob;
+        add_header Content-Disposition "inline; filename*=UTF-8''$arg_n" always;
+        add_header Cache-Control "private, no-store" always;
+        add_header X-Content-Type-Options nosniff always;
+    }
+
+    location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/$" {
+        secure_link $arg_s,$arg_e;
+        secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
+        if ($secure_link = "") { return 403; }
+        if ($secure_link = "0") { return 410; }
+        root /etc/nginx/html;
+        try_files /upload.html =404;
+    }
+
+    location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/(?<file_name>[^/.][^/]*)$" {
+        # The upload widget runs in the chat client's sandboxed iframe, so its PUT is cross-origin.
+        # The signed URL is the only credential (no cookies), so any origin may use it.
+        add_header Access-Control-Allow-Origin "*" always;
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin "*";
+            add_header Access-Control-Allow-Methods "PUT, OPTIONS";
+            add_header Access-Control-Allow-Headers "Content-Type";
+            add_header Access-Control-Max-Age 3600;
+            return 204;
+        }
+        secure_link $arg_s,$arg_e;
+        secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
+        if ($secure_link = "") { return 403; }
+        if ($secure_link = "0") { return 410; }
+        limit_except PUT { deny all; }
+        alias /inbox/$upload_id/$file_name;
+        dav_methods PUT;
+        dav_access user:rw group:rw all:r;
+        create_full_put_path off;  # only inbox dirs created by vault-mcp accept files
+    }
+
+    location / { return 404; }
   upload.html: |
     <!doctype html>
     <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -168,6 +180,9 @@ spec:
             - name: config
               mountPath: /etc/nginx/conf.d/default.conf
               subPath: default.conf
+            - name: config
+              mountPath: /etc/nginx/vault/common.conf
+              subPath: common.conf
             - name: config
               mountPath: /etc/nginx/html/upload.html
               subPath: upload.html
