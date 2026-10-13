@@ -30,7 +30,7 @@ data:
             add_header X-Content-Type-Options nosniff always;
         }
 
-        location ~ ^/u/(?<upload_id>[a-z0-9-]{8,64})/$ {
+        location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/$" {
             secure_link $arg_s,$arg_e;
             secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
             if ($secure_link = "") { return 403; }
@@ -39,7 +39,7 @@ data:
             try_files /upload.html =404;
         }
 
-        location ~ ^/u/(?<upload_id>[a-z0-9-]{8,64})/(?<file_name>[^/.][^/]*)$ {
+        location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/(?<file_name>[^/.][^/]*)$" {
             secure_link $arg_s,$arg_e;
             secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
             if ($secure_link = "") { return 403; }
