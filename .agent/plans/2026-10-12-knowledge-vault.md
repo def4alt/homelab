@@ -67,3 +67,26 @@ Retire the Obsidian LiveSync/CouchDB setup it replaces.
 - Network: worker and nginx have no egress; vault-mcp may only reach public addresses (+ DNS).
 - Monitoring: PodMonitor + PrometheusRule (`apps/vault/monitoring.yaml`). Monthly restore drill
   (`apps/syncthing/vault-restore-drill.yaml`).
+
+## v0.3 (2026-10-13): flat files, SQLite index, consolidated tools, MCP Apps
+
+- Files are flat: `blobs/<sha256[:16]>.<ext>` in the vault (immutable, gitignored, synced to the Mac,
+  backed up by restic) plus one `files/<slug>.md` note each, in the same graph as notes. Uploads,
+  URL fetches, ChatGPT attachments and the `Agent/inbox` Syncthing drop folder all go through one filing path.
+  The v0.2 `Agent/shared/` files and their source notes were migrated.
+- Search runs on a derived SQLite index (FTS5 unicode61, BM25, facets, links) in
+  `/var/lib/k8s-local-storage/vault/cache/index.sqlite`, WAL mode, updated by the worker and after each
+  MCP write; `vault-index --rebuild` recreates it. Text extracts are cached by content hash.
+- MCP: 15 tools (ChatGPT-shaped `search`/`fetch`, scopes, filters, cursors, response_format, titles and
+  annotations), upload and review widgets as MCP Apps with text fallbacks.
+- nginx: `/b/` serves blobs under their original name (name is part of the signature); `/u/` answers CORS
+  so the in-chat widget can upload.
+
+### Lessons (v0.2/v0.3)
+
+- nginx location regexes containing `{n,m}` must be quoted.
+- A crash-looping rollout leaves `ProgressDeadlineExceeded`; Flux reports the Kustomization failed until a
+  new rollout (`kubectl rollout restart`) clears it, even after the pod recovers.
+- SQLite WAL readers need write access to the `-shm` file, so every process using the index mounts the
+  cache read-write.
+- The upload widget runs in a sandboxed iframe on the chat client's origin: uploads are cross-origin.

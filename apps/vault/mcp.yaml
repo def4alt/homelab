@@ -37,7 +37,7 @@ spec:
               mountPath: /data
       containers:
         - name: vault-mcp
-          image: ghcr.io/def4alt/vault-mcp:0.2.0@sha256:d5505be04154367357f1bc4ba3aa64ae5a6796f58805601d8c3a0374e15b66ab
+          image: ghcr.io/def4alt/vault-mcp:0.3.0@sha256:19bd353ccc1f3046c824d0689e6edf9cda4194d2b4e435903f7ecaf45e052faa
           env:
             - name: BASE_URL
               value: https://mcp.def4alt.com
@@ -47,6 +47,8 @@ spec:
               value: def4alt
             - name: FILES_BASE_URL
               value: https://files.def4alt.com
+            - name: NOTES_BASE_URL
+              value: https://notes.def4alt.com
             - name: METRICS_PORT
               value: "9000"
             - name: LINK_SECRET
@@ -95,9 +97,8 @@ spec:
               readOnly: true
             - name: inbox
               mountPath: /inbox
-            - name: cache
+            - name: cache  # SQLite index (WAL needs write access even for reads) + text extracts
               mountPath: /cache
-              readOnly: true
             - name: data
               mountPath: /data
             - name: tmp

@@ -1,5 +1,5 @@
-# files.def4alt.com: nginx serves documents and accepts uploads, but only through links
-# signed by vault-mcp (secure_link, shared secret). Everything else is 403/404.
+# files.def4alt.com: nginx serves documents and vault blobs and accepts uploads, but only through
+# links signed by vault-mcp (secure_link, shared secret). Everything else is 403/404.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -30,6 +30,19 @@ data:
             add_header X-Content-Type-Options nosniff always;
         }
 
+        # Vault blobs, served under their original file name (n, part of the signature).
+        location ~ "^/b/(?<blob>[0-9a-f]{16,64}(\.[a-z0-9]{1,10})?)$" {
+            secure_link $arg_s,$arg_e;
+            secure_link_md5 "$secure_link_expires$uri$arg_n $link_secret";
+            if ($secure_link = "") { return 403; }
+            if ($secure_link = "0") { return 410; }
+            limit_except GET { deny all; }
+            alias /blobs/$blob;
+            add_header Content-Disposition "inline; filename*=UTF-8''$arg_n" always;
+            add_header Cache-Control "private, no-store" always;
+            add_header X-Content-Type-Options nosniff always;
+        }
+
         location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/$" {
             secure_link $arg_s,$arg_e;
             secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
@@ -40,6 +53,16 @@ data:
         }
 
         location ~ "^/u/(?<upload_id>[a-z0-9-]{8,64})/(?<file_name>[^/.][^/]*)$" {
+            # The upload widget runs in the chat client's sandboxed iframe, so its PUT is cross-origin.
+            # The signed URL is the only credential (no cookies), so any origin may use it.
+            add_header Access-Control-Allow-Origin "*" always;
+            if ($request_method = OPTIONS) {
+                add_header Access-Control-Allow-Origin "*";
+                add_header Access-Control-Allow-Methods "PUT, OPTIONS";
+                add_header Access-Control-Allow-Headers "Content-Type";
+                add_header Access-Control-Max-Age 3600;
+                return 204;
+            }
             secure_link $arg_s,$arg_e;
             secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
             if ($secure_link = "") { return 403; }
@@ -156,6 +179,9 @@ spec:
               readOnly: true
             - name: inbox
               mountPath: /inbox
+            - name: blobs
+              mountPath: /blobs
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
@@ -176,6 +202,10 @@ spec:
           hostPath:
             path: /srv/documents/.inbox
             type: DirectoryOrCreate
+        - name: blobs
+          hostPath:
+            path: /srv/vault/blobs
+            type: Directory
         - name: tmp
           emptyDir:
             sizeLimit: 64Mi

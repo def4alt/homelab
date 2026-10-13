@@ -48,14 +48,14 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "An upload has waited in the vault inbox for over 15 minutes"
-        - alert: VaultSharedSpaceFull
-          expr: vault_shared_bytes > 27 * 1024^3
+            summary: "A file has waited in the vault inbox or drop folder for over 15 minutes"
+        - alert: VaultStorageFull
+          expr: vault_stored_bytes > 27 * 1024^3
           for: 30m
           labels:
             severity: warning
           annotations:
-            summary: "The shared space is above 90% of its 30 GB quota"
+            summary: "Stored files are above 90% of their 30 GB quota"
         - alert: VaultToolErrors
           expr: sum(increase(vault_mcp_tool_calls_total{outcome="error"}[30m])) > 5
           labels:

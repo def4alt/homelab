@@ -1,4 +1,5 @@
-# Ingest worker: inbox -> Agent/shared -> source notes, and documents -> text cache.
+# Worker: files uploads, fetches and the Agent/inbox drop folder into blobs/ + files/ notes,
+# and keeps the SQLite search index current.
 # The only workload that writes into the documents tree; it has no network access.
 apiVersion: apps/v1
 kind: Deployment
@@ -33,7 +34,7 @@ spec:
             - |
               set -e
               install -d -o 1000 -g 1000 -m 2775 /documents/.inbox /documents/.inbox/.done /documents/.inbox/.tmp
-              install -d -o 1000 -g 1000 -m 2775 /documents/Agent/shared
+              install -d -o 1000 -g 1000 -m 2775 /documents/Agent/inbox
               chown 1000:1000 /cache
           securityContext:
             runAsNonRoot: false
@@ -48,7 +49,7 @@ spec:
               mountPath: /cache
       containers:
         - name: worker
-          image: ghcr.io/def4alt/vault-mcp:0.2.0@sha256:d5505be04154367357f1bc4ba3aa64ae5a6796f58805601d8c3a0374e15b66ab
+          image: ghcr.io/def4alt/vault-mcp:0.3.0@sha256:19bd353ccc1f3046c824d0689e6edf9cda4194d2b4e435903f7ecaf45e052faa
           command: ["vault-worker"]
           env:
             - name: INBOX_ROOT
