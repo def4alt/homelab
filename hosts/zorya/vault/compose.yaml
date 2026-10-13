@@ -12,7 +12,7 @@ x-hardened: &hardened
 
 x-vault: &vault
   <<: *hardened
-  image: ghcr.io/def4alt/vault-mcp:0.4.0@sha256:830fa9a94c2e833c2cab8c9b1c74057c39dc478599da18eef231da2055af2aa9
+  image: ghcr.io/def4alt/vault-mcp:0.4.1@sha256:96660e6063debb6818cb7578f765953a6f0b93c539da6bc9112455e0eada1e7a
   user: "1000:1000"
   env_file: [{path: "${SECRETS_DIR:-/home/def4alt/.local/state/vault}/secrets.env", required: true}]
   tmpfs: [/tmp]
