@@ -32,7 +32,14 @@ services:
     <<: *hardened
     image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
     cap_add: [NET_BIND_SERVICE]
-    ports: ["80:80", "443:443", "443:443/udp"]
+    # The public addresses only: tailscaled already serves 443 on the tailnet address (Hermes WebUI).
+    ports:
+      - 46.62.137.102:80:80
+      - 46.62.137.102:443:443
+      - 46.62.137.102:443:443/udp
+      - "[2a01:4f9:c014:8c3::1]:80:80"
+      - "[2a01:4f9:c014:8c3::1]:443:443"
+      - "[2a01:4f9:c014:8c3::1]:443:443/udp"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - /srv/vault/blobs:/srv/blobs:ro
