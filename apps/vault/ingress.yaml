@@ -63,3 +63,30 @@ spec:
     - secretName: vault-mcp-public-tls
       hosts:
         - mcp.def4alt.com
+---
+# Public file links (Cloudflare tunnel). nginx only answers signed /d/ and /u/ URLs.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vault-files
+  namespace: vault
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: files.def4alt.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vault-files
+                port:
+                  number: 8080
+  tls:
+    - secretName: vault-files-tls
+      hosts:
+        - files.def4alt.com

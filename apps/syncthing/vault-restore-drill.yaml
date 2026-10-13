@@ -1,0 +1,101 @@
+# Monthly restore drill: a backup only counts once it has been restored.
+# Restores the latest vault snapshot from B2 into scratch space, checks a sample of
+# the repository's data, and proves the restored git HEAD exists in the live vault.
+# A failure shows up as KubeJobFailed in Alertmanager.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: vault-restore-drill
+  namespace: syncthing
+spec:
+  schedule: "0 5 1 * *"
+  timeZone: Europe/Berlin
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            seccompProfile:
+              type: RuntimeDefault
+          initContainers:
+            - name: restore
+              image: restic/restic:0.19.1@sha256:08916bcda4a4435f9d9828ebb4e91bb7ada3d2c8a53699788930e0ae1bd4fa67
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  restic check --read-data-subset=5%
+                  restic restore latest --tag vault --target /restore
+              env:
+                - name: HOME
+                  value: /restore
+                - name: RESTIC_CACHE_DIR
+                  value: /restore/.cache
+                - name: RESTIC_REPOSITORY
+                  value: s3:https://s3.eu-central-003.backblazeb2.com/def4alt-homelab-documents
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: documents-restic-secret
+                      key: RESTIC_PASSWORD
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: documents-restic-secret
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: documents-restic-secret
+                      key: AWS_SECRET_ACCESS_KEY
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+              volumeMounts:
+                - name: restore
+                  mountPath: /restore
+          containers:
+            - name: verify
+              image: ghcr.io/def4alt/vault-mcp:0.2.0@sha256:d5505be04154367357f1bc4ba3aa64ae5a6796f58805601d8c3a0374e15b66ab
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -eu
+                  r=/restore/vault
+                  test -f "$r/AGENTS.md"
+                  notes=$(find "$r/notes" -name '*.md' | wc -l)
+                  test "$notes" -ge 100
+                  head=$(git -c safe.directory='*' -C "$r" rev-parse HEAD)
+                  git -c safe.directory='*' -C /live cat-file -e "$head^{commit}"
+                  echo "restore drill ok: $notes notes, HEAD $head is in the live history"
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+              volumeMounts:
+                - name: restore
+                  mountPath: /restore
+                  readOnly: true
+                - name: live
+                  mountPath: /live
+                  readOnly: true
+          volumes:
+            - name: restore
+              emptyDir:
+                sizeLimit: 4Gi
+            - name: live
+              hostPath:
+                path: /srv/vault
+                type: Directory

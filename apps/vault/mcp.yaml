@@ -16,22 +16,28 @@ spec:
         app: vault-mcp
     spec:
       securityContext:
+        runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
-        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         # hostPath volumes ignore fsGroup; hand the OAuth state directory to the app user.
         - name: data-owner
           image: busybox:1.38.0
           command: ["chown", "1000:1000", "/data"]
           securityContext:
+            runAsNonRoot: false
             runAsUser: 0
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN]
           volumeMounts:
             - name: data
               mountPath: /data
       containers:
         - name: vault-mcp
-          image: ghcr.io/def4alt/vault-mcp:0.1.2@sha256:d2594af92ed0149043021172ce3d2fec11bb4a9567d093dff249ea0bd8b54ce7
+          image: ghcr.io/def4alt/vault-mcp:0.2.0@sha256:d5505be04154367357f1bc4ba3aa64ae5a6796f58805601d8c3a0374e15b66ab
           env:
             - name: BASE_URL
               value: https://mcp.def4alt.com
@@ -39,6 +45,15 @@ spec:
               value: vault.def4alt.com
             - name: ALLOWED_GITHUB_LOGINS
               value: def4alt
+            - name: FILES_BASE_URL
+              value: https://files.def4alt.com
+            - name: METRICS_PORT
+              value: "9000"
+            - name: LINK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: vault-files
+                  key: LINK_SECRET
           envFrom:
             - secretRef:
                 name: vault-mcp
@@ -47,37 +62,70 @@ spec:
           ports:
             - name: http
               containerPort: 8000
+            - name: metrics
+              containerPort: 9000
           readinessProbe:
             httpGet:
               path: /healthz
-              port: 8000
+              port: http
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /healthz
-              port: 8000
+              port: http
             initialDelaySeconds: 20
             periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           resources:
             requests:
               cpu: 25m
-              memory: 96Mi
+              memory: 128Mi
             limits:
-              cpu: 500m
-              memory: 384Mi
+              cpu: "1"
+              memory: 512Mi
           volumeMounts:
             - name: vault
               mountPath: /vault
+            - name: documents
+              mountPath: /documents
+              readOnly: true
+            - name: inbox
+              mountPath: /inbox
+            - name: cache
+              mountPath: /cache
+              readOnly: true
             - name: data
               mountPath: /data
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: vault
           hostPath:
             path: /srv/vault
             type: Directory
+        - name: documents
+          hostPath:
+            path: /srv/documents
+            type: Directory
+        - name: inbox
+          hostPath:
+            # Created and handed to uid 1000 by the worker's init container.
+            path: /srv/documents/.inbox
+            type: DirectoryOrCreate
+        - name: cache
+          hostPath:
+            path: /var/lib/k8s-local-storage/vault/cache
+            type: DirectoryOrCreate
         - name: data
           persistentVolumeClaim:
             claimName: vault-mcp-data
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -90,4 +138,4 @@ spec:
   ports:
     - name: http
       port: 8000
-      targetPort: 8000
+      targetPort: http

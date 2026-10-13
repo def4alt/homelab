@@ -22,7 +22,7 @@ spec:
             runAsGroup: 1000
           containers:
             - name: lint
-              image: ghcr.io/def4alt/vault-mcp:0.1.2@sha256:d2594af92ed0149043021172ce3d2fec11bb4a9567d093dff249ea0bd8b54ce7
+              image: ghcr.io/def4alt/vault-mcp:0.2.0@sha256:d5505be04154367357f1bc4ba3aa64ae5a6796f58805601d8c3a0374e15b66ab
               command:
                 - /bin/sh
                 - -c
@@ -30,10 +30,12 @@ spec:
                   set -eu
                   cd /vault
                   today=$(date +%F)
-                  vault-lint /vault --write > /dev/null
-                  echo "- $today lint [[notes/lint-$today]]: weekly report (vault-lint)" >> log.md
-                  git add "notes/lint-$today.md" log.md
-                  git -c user.name="vault lint" -c user.email=vault-lint@def4alt.com commit -q -m "lint: weekly report $today (vault-lint)"
+                  flock .git/vault.lock sh -c "
+                    vault-lint /vault --write > /dev/null
+                    echo '- $today lint [[notes/lint-$today]]: weekly report (vault-lint)' >> log.md
+                    git add notes/lint-$today.md log.md
+                    git -c user.name='vault lint' -c user.email=vault-lint@def4alt.com commit -q -m 'lint: weekly report $today (vault-lint)'
+                  "
               resources:
                 requests:
                   cpu: 10m

@@ -24,20 +24,19 @@ spec:
             - name: git
               # Same image as the MCP server: it has git, ssh and a passwd entry for uid 1000,
               # which OpenSSH requires.
-              image: ghcr.io/def4alt/vault-mcp:0.1.2@sha256:d2594af92ed0149043021172ce3d2fec11bb4a9567d093dff249ea0bd8b54ce7
+              image: ghcr.io/def4alt/vault-mcp:0.2.0@sha256:d5505be04154367357f1bc4ba3aa64ae5a6796f58805601d8c3a0374e15b66ab
               command:
                 - /bin/sh
                 - -c
                 - |
                   set -eu
-                  export HOME=/tmp
-                  git config --global --add safe.directory /vault
-                  git config --global user.name "vault autocommit"
-                  git config --global user.email vault-autocommit@def4alt.com
                   cd /vault
-                  # Syncthing writes conflict copies; never commit them.
-                  git add -A -- . ':!*.sync-conflict-*'
-                  git diff --cached --quiet || git commit -q -m "autocommit: edits from Obsidian/SilverBullet"
+                  # Same lock as vault-mcp and the worker, so commits never race.
+                  flock .git/vault.lock sh -c '
+                    git add -A -- . ":!*.sync-conflict-*"  # never commit Syncthing conflict copies
+                    git diff --cached --quiet || git -c user.name="vault autocommit" \
+                      -c user.email=vault-autocommit@def4alt.com commit -q -m "autocommit: edits from Obsidian/SilverBullet"
+                  '
                   git push -q origin main
               env:
                 - name: GIT_SSH_COMMAND

@@ -8,4 +8,5 @@ resources:
   - network-policies.yaml
   - restic-backup.yaml
   - vault-restic-backup.yaml
+  - vault-restore-drill.yaml
   - secrets/documents-restic.sops.yaml

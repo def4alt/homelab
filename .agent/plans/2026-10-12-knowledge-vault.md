@@ -50,3 +50,20 @@ Retire the Obsidian LiveSync/CouchDB setup it replaces.
   the static bearer verifier must grant it (fixed in vault-mcp 0.1.1).
 - perun only pushes the vault; never push to `def4alt/vault` from elsewhere.
 - On the Mac the vault must stay out of `~/Documents` (iCloud Drive), or Syncthing can't read it.
+
+## v0.2 (2026-10-13): agents as collaborators, documents and shared files
+
+- vault-mcp 0.2.0: layered package (domain: vault/lint/rules; infra: repo/documents/sharing; interfaces:
+  app/ MCP server with mounted tool groups, worker). Tool annotations, typed output, prompts
+  (ingest/ask/review/tidy/share), resources, Prometheus metrics on :9000, provider name in commits.
+- Trust model: agents may write anywhere in the vault, confirm facts I confirm, batch (`apply_changes`),
+  move with relinking, inspect `history` and `revert`. Hard limits: no secrets, sources immutable,
+  schema-valid frontmatter, no `.git`.
+- Documents: the whole `/srv/documents` tree is mounted read-only into vault-mcp; text extracted by the
+  worker into `/var/lib/k8s-local-storage/vault/cache` (derived, rebuildable).
+- Sharing: `files.def4alt.com` (nginx-unprivileged, `secure_link` + WebDAV PUT) serves signed links only.
+  Uploads land in `/srv/documents/.inbox/<id>/`; `vault-worker` files them into `Agent/shared/<YYYY-MM>/`,
+  de-duplicates by sha256 and writes a source note. All git writers share `flock .git/vault.lock`.
+- Network: worker and nginx have no egress; vault-mcp may only reach public addresses (+ DNS).
+- Monitoring: PodMonitor + PrometheusRule (`apps/vault/monitoring.yaml`). Monthly restore drill
+  (`apps/syncthing/vault-restore-drill.yaml`).

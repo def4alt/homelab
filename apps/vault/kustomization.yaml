@@ -5,9 +5,13 @@ resources:
   - pvc.yaml
   - silverbullet.yaml
   - mcp.yaml
+  - worker.yaml
+  - files.yaml
   - autocommit.yaml
   - lint.yaml
   - ingress.yaml
   - network-policies.yaml
+  - monitoring.yaml
   - secrets/vault.sops.yaml
+  - secrets/files.sops.yaml
   - secrets/github-oauth.sops.yaml

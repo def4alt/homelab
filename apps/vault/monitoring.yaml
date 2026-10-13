@@ -1,0 +1,64 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: vault
+  namespace: vault
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [vault-mcp, vault-worker]
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: vault
+  namespace: vault
+spec:
+  groups:
+    - name: vault
+      rules:
+        - alert: VaultTargetDown
+          expr: up{namespace="vault"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.pod }} is not answering metrics scrapes"
+        - alert: VaultWorkerStalled
+          expr: time() - vault_worker_last_run_timestamp_seconds > 300
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "The vault ingest worker has not finished a cycle for 5 minutes"
+        - alert: VaultWorkerErrors
+          expr: increase(vault_worker_errors_total[30m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: "The vault ingest worker is failing; check `kubectl -n vault logs deploy/vault-worker`"
+        - alert: VaultInboxStuck
+          expr: vault_inbox_oldest_seconds > 900
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "An upload has waited in the vault inbox for over 15 minutes"
+        - alert: VaultSharedSpaceFull
+          expr: vault_shared_bytes > 27 * 1024^3
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "The shared space is above 90% of its 30 GB quota"
+        - alert: VaultToolErrors
+          expr: sum(increase(vault_mcp_tool_calls_total{outcome="error"}[30m])) > 5
+          labels:
+            severity: warning
+          annotations:
+            summary: "Vault MCP tools failed {{ $value }} times in 30 minutes"

@@ -1,3 +1,4 @@
+# Ingress: only Traefik (and Prometheus, also in `infra`) reach the pods.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -11,14 +12,14 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: allow-traefik
+  name: allow-from-infra
   namespace: vault
 spec:
   podSelector:
     matchExpressions:
       - key: app
         operator: In
-        values: [silverbullet, vault-mcp]
+        values: [silverbullet, vault-mcp, vault-files, vault-worker]
   policyTypes:
     - Ingress
   ingress:
@@ -28,6 +29,62 @@ spec:
               kubernetes.io/metadata.name: infra
       ports:
         - protocol: TCP
-          port: 3000
+          port: 3000  # silverbullet
         - protocol: TCP
-          port: 8000
+          port: 8000  # vault-mcp
+        - protocol: TCP
+          port: 8080  # vault-files
+        - protocol: TCP
+          port: 9000  # metrics
+---
+# Egress: the worker and nginx never talk to the network.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: no-egress
+  namespace: vault
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [vault-worker, vault-files]
+  policyTypes:
+    - Egress
+---
+# The MCP server talks to GitHub (OAuth) and fetches public URLs for agents, but can never
+# reach the cluster, the LAN or the tailnet, whatever a URL resolves to.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mcp-public-egress-only
+  namespace: vault
+spec:
+  podSelector:
+    matchLabels:
+      app: vault-mcp
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 100.64.0.0/10
+              - 169.254.0.0/16
+              - 127.0.0.0/8
