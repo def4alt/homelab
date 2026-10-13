@@ -1,18 +1,8 @@
 # vault.def4alt.com: MCP + OAuth, signed downloads, signed uploads. DNS-only (not proxied by
 # Cloudflare), so there is no 100 MB body cap. Certificates via HTTP-01/TLS-ALPN.
 
-{
-	# Caddy runs unprivileged; Docker maps 80 -> 8080 and 443 -> 8443. With non-standard internal
-	# ports, the HTTP->HTTPS redirect is explicit and HTTP/3 is off (it would advertise :8443).
-	http_port 8080
-	https_port 8443
-	auto_https disable_redirects
-	servers {
-		protocols h1 h2
-	}
-}
 
-http://vault.def4alt.com {
+vault.def4alt.com {
 	redir https://vault.def4alt.com{uri} permanent
 }
 
