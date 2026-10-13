@@ -1,0 +1,7 @@
+[Unit]
+Description=Report a failed vault job (%i)
+
+[Service]
+Type=oneshot
+# Shows up in `journalctl --user -p err` and in Hermes's view of the system journal.
+ExecStart=/usr/bin/logger -p user.err "vault: %i failed, see journalctl --user -u %i"

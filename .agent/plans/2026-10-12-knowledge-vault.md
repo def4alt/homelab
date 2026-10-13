@@ -90,3 +90,35 @@ Retire the Obsidian LiveSync/CouchDB setup it replaces.
 - SQLite WAL readers need write access to the `-shm` file, so every process using the index mounts the
   cache read-write.
 - The upload widget runs in a sandboxed iframe on the chat client's origin: uploads are cross-origin.
+- `limit_except` switches disallowed methods to its own config before the rewrite phase, so an
+  `if ($request_method = OPTIONS)` in the same location never runs for OPTIONS (preflights got 403).
+
+## v0.3.1 (2026-10-13): agents with a shell move bytes themselves
+
+`upload_link` (signed PUT + ready `curl`) and `curl -o` on links; a tailnet file host with a 4 GB limit.
+Verified with a 40 MB PPTX through both hosts (dedupe, SHA-256 round trip).
+
+## v0.4 (2026-10-13): the vault moves to zorya; six tools over a queryable vault
+
+Decided with Andrii: store the vault on zorya with a light Docker Compose stack (not k3s), no backwards
+compatibility (nobody depends on it yet), accept that Hermes runs on the same host in the `docker` group
+(root-equivalent) and rely on tamper-resistant backups. Web research (2026-10-13) backed the shape: few
+general tools + read-only SQL (Anthropic tool guidance, Cloudflare Code Mode, Supabase/Datasette SQL tools),
+signed URLs for bytes (MCP has no file transfer yet), Caddy over Traefik without a Docker socket, a plain
+systemd timer for pull-based deploys (Watchtower archived; doco-cd single-maintainer), Syncthing without `.git`.
+
+- `hosts/zorya/vault/`: compose (Caddy 2.11.7, vault-mcp, worker, SilverBullet, Syncthing, restic job),
+  Caddyfile, `deploy.sh` (systemd user timer: ff-only pull, SOPS decrypt with zorya's age key, compose up),
+  runbook. One hostname `vault.def4alt.com`, DNS-only A/AAAA to zorya; Hetzner Cloud Firewall 80/443 only.
+- vault-mcp 0.4.0: `search`/`fetch` (ChatGPT shapes), `sql` (mode=ro + authorizer + time limit + paging;
+  FTS5 needs the `data_version` pragma), `write` (batches, moves, `base_rev`, `idempotency_key` as a commit
+  trailer), `delete` (only destructive tool), `upload` (URL / ChatGPT file param / signed PUT + curl).
+  Index schema v2 is the public data model (notes, documents, links, tags, files, fts, commits, problems).
+  Caddy serves `/f` and `/d` from disk after `forward_auth` to `/_verify`; uploads stream to the server and
+  answer with the file note. The worker took over autocommit, push and lint. Widgets, prompts, nginx gone.
+- perun: `apps/vault` removed; Syncthing keeps a receive-only replica; perun prunes the shared restic
+  repository (zorya's B2 key cannot delete) and runs the restore drill against zorya's snapshots.
+
+Cutover order (the k8s Secrets disappear with the namespace): age key on zorya -> secrets into
+`hosts/zorya/vault/secrets/*.sops` -> data copied perun -> zorya under the vault lock -> deploy -> DNS ->
+reconnect clients -> push the perun removal.

@@ -1,0 +1,8 @@
+[Unit]
+Description=Back up the vault and documents to B2 (restic)
+OnFailure=vault-alert@%n.service
+
+[Service]
+Type=oneshot
+Environment=SECRETS_DIR=%h/.local/state/vault
+ExecStart=/usr/bin/docker compose -f %h/homelab/hosts/zorya/vault/compose.yaml run --rm backup

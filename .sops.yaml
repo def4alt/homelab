@@ -1,4 +1,7 @@
 creation_rules:
+  # zorya's Docker Compose secrets (hosts/zorya/*/secrets/*.sops): binary files, zorya's key only.
+  - path_regex: .*hosts/zorya/.*\.sops$
+    age: age1mc28wc5rkedzzzye6ksjuwvucsjtpe3ww7th8v847e02h02zcc7srzftzq
   - path_regex: .*/secrets/.*\.ya?ml$
     encrypted_regex: "^(data|stringData)$"
     age: age1v06e3fzx5mqz3k8y6c0uneyfghzj7qkphxu2vfgm9ajwlwd605usdr69zr
