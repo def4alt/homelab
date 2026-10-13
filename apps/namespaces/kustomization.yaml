@@ -18,4 +18,3 @@ resources:
   - linkding.yaml
   - kaptl.yaml
   - syncthing.yaml
-  - vault.yaml

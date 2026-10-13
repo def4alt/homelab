@@ -30,4 +30,3 @@ resources:
   - apps/linkding.yaml
   - apps/kaptl.yaml
   - apps/syncthing.yaml
-  - apps/vault.yaml

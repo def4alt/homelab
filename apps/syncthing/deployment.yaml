@@ -74,7 +74,7 @@ spec:
             type: Directory
         - name: vault
           hostPath:
-            # Knowledge vault (git repo, see apps/vault); synced to the Mac as its own folder.
+            # Receive-only replica of the knowledge vault, which lives on zorya (hosts/zorya/vault).
             path: /srv/vault
             type: Directory
 ---

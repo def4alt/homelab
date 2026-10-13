@@ -31,7 +31,9 @@ spec:
                     --exclude '**/.stversions' \
                     --exclude '**/.DS_Store' \
                     --exclude '**/.stfolder'
-                  restic forget --tag vault --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
+                  # zorya backs up the live vault with a key that cannot delete; pruning happens here.
+                  restic forget --tag vault --tag zorya --group-by host,tags \
+                    --keep-daily 7 --keep-weekly 4 --keep-monthly 12 --prune
               env:
                 - name: RESTIC_REPOSITORY
                   value: s3:https://s3.eu-central-003.backblazeb2.com/def4alt-homelab-documents
