@@ -33,3 +33,27 @@ resource "cloudflare_record" "minecraft_a" {
   ttl             = 1
   proxied         = false
 }
+
+resource "cloudflare_record" "vault_a" {
+  count = var.manage_dns ? 1 : 0
+
+  zone_id         = var.zone_id
+  name            = trimsuffix(local.vault_hostname, ".${var.base_domain}")
+  type            = "A"
+  content         = local.zorya_ipv4
+  allow_overwrite = true
+  ttl             = 1
+  proxied         = false
+}
+
+resource "cloudflare_record" "vault_aaaa" {
+  count = var.manage_dns ? 1 : 0
+
+  zone_id         = var.zone_id
+  name            = trimsuffix(local.vault_hostname, ".${var.base_domain}")
+  type            = "AAAA"
+  content         = local.zorya_ipv6
+  allow_overwrite = true
+  ttl             = 1
+  proxied         = false
+}
