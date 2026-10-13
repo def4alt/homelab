@@ -29,18 +29,20 @@ locals {
     "syncthing.${var.base_domain}",
     "notes.${var.base_domain}",
     "vault.${var.base_domain}",
+    "vault-files.${var.base_domain}",
   ])
 
   all_hostnames = setunion(local.public_hostnames, local.tailnet_hostnames, toset([local.minecraft_hostname, local.shell_hostname]))
 
   cname_overrides = {
-    "api-photos.${var.base_domain}" = "perun.tail6f3b0.ts.net"
-    "prowlarr.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
-    "radarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
-    "sonarr.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
-    "syncthing.${var.base_domain}" = "perun.tail6f3b0.ts.net"
-    "notes.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
-    "vault.${var.base_domain}"     = "perun.tail6f3b0.ts.net"
+    "api-photos.${var.base_domain}"  = "perun.tail6f3b0.ts.net"
+    "prowlarr.${var.base_domain}"    = "perun.tail6f3b0.ts.net"
+    "radarr.${var.base_domain}"      = "perun.tail6f3b0.ts.net"
+    "sonarr.${var.base_domain}"      = "perun.tail6f3b0.ts.net"
+    "syncthing.${var.base_domain}"   = "perun.tail6f3b0.ts.net"
+    "notes.${var.base_domain}"       = "perun.tail6f3b0.ts.net"
+    "vault.${var.base_domain}"       = "perun.tail6f3b0.ts.net"
+    "vault-files.${var.base_domain}" = "perun.tail6f3b0.ts.net"
   }
 
   unproxied_hostnames = local.tailnet_hostnames
