@@ -1,11 +1,6 @@
 # vault.def4alt.com: MCP + OAuth, signed downloads, signed uploads. DNS-only (not proxied by
 # Cloudflare), so there is no 100 MB body cap. Certificates via HTTP-01/TLS-ALPN.
 
-
-vault.def4alt.com {
-	redir https://vault.def4alt.com{uri} permanent
-}
-
 vault.def4alt.com {
 	# Downloads: the vault server checks the signature, Caddy serves the bytes (Range, sendfile).
 	@blob path_regexp blob ^/f/([0-9a-f]{16,64}(?:\.[a-z0-9]{1,10})?)/[^/]+$
