@@ -81,7 +81,7 @@ data:
         secure_link_md5 "$secure_link_expires/u/$upload_id $link_secret";
         if ($secure_link = "") { return 403; }
         if ($secure_link = "0") { return 410; }
-        limit_except PUT { deny all; }
+        limit_except PUT OPTIONS { deny all; }  # other methods skip this location's rewrite rules entirely
         alias /inbox/$upload_id/$file_name;
         dav_methods PUT;
         dav_access user:rw group:rw all:r;
