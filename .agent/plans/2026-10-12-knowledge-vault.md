@@ -122,3 +122,25 @@ systemd timer for pull-based deploys (Watchtower archived; doco-cd single-mainta
 Cutover order (the k8s Secrets disappear with the namespace): age key on zorya -> secrets into
 `hosts/zorya/vault/secrets/*.sops` -> data copied perun -> zorya under the vault lock -> deploy -> DNS ->
 reconnect clients -> push the perun removal.
+
+### Cutover (2026-10-13/14) and lessons
+
+Done: data copied with history (fsck clean), stack up behind Caddy with a Let's Encrypt certificate,
+DNS switched, GitHub OAuth callback moved, Syncthing re-homed (Mac and zorya send-receive, perun
+receive-only), perun's `vault` namespace garbage-collected by Flux, Hermes on a rotated key. Tested live
+as Hermes (script) and through the Claude connector (all six tools, base_rev refusal, idempotent replay,
+move relinking, curl upload, signed download with Range); ChatGPT ingested a project on its own. 0.4.1
+fixed what the connector test found: multi-topic searches returned nothing (now falls back to any-term
+ranking), conflict copies could not be deleted, and the client cut the `sql` description at ~1000 chars.
+
+- tailscaled's `serve` binds 443 on the tailnet address: publish Docker ports on the public IPs only.
+- The Caddy image's binary has a file capability; with `no-new-privileges` exec fails ("operation not
+  permitted"). Run it as uid 1000 with `cap_add: NET_BIND_SERVICE` and no-new-privileges off.
+- A file edited on one Syncthing device before the first connection becomes a conflict copy on the next
+  sync; check `problems` (kind sync-conflict) after re-homing a folder.
+- Hermes rewrote its config with the vault token expanded in plaintext; keep `${VAULT_MCP_TOKEN}` there
+  and check after `hermes update`.
+- Keep MCP tool descriptions under ~1000 characters with the essentials first.
+
+Open: Hetzner Cloud Firewall (80/443 + 443/udp), the B2 key without delete rights (`restic.env`), Claude.ai
+reconnect, force-push protection on the mirror, the July incident's credential rotation.
