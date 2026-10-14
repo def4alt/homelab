@@ -67,7 +67,7 @@ spec:
                   mountPath: /restore
           containers:
             - name: verify
-              image: ghcr.io/def4alt/vault-mcp:0.4.1@sha256:96660e6063debb6818cb7578f765953a6f0b93c539da6bc9112455e0eada1e7a
+              image: ghcr.io/def4alt/vault-mcp:0.4.2@sha256:5c57ac0cba56d27c9c4c8a91a96a5b67ad1ba10e6e5bed09e7fa1d4ca1c41421
               command:
                 - /bin/sh
                 - -c
