@@ -144,3 +144,12 @@ ranking), conflict copies could not be deleted, and the client cut the `sql` des
 
 Open: Hetzner Cloud Firewall (80/443 + 443/udp), the B2 key without delete rights (`restic.env`), Claude.ai
 reconnect, force-push protection on the mirror, the July incident's credential rotation.
+
+### v0.4.2 (2026-10-14): no content screening
+
+Decided with Andrii: the server never inspects content. The secret scanner (IBAN, card-number, credential
+and key patterns) is gone because its Luhn card check flagged a phone number and blocked a CV, and sources
+are editable (they were write-once, which left a broken link nobody could fix). Enforced now: valid paths
+and schema-valid frontmatter only. AGENTS.md keeps source immutability and secrets as advice. Separately,
+the Claude.ai sandbox cannot upload files until its network egress allows `vault.def4alt.com` (no request
+from the failed attempt reached Caddy).
