@@ -1,0 +1,123 @@
+# The knowledge vault on zorya. Caddy is the only thing listening publicly (vault.def4alt.com);
+# the vault server and worker sit behind it; SilverBullet (tailnet, via `tailscale serve`) and
+# Syncthing (Mac + perun) are for people. Converged by deploy.sh; see README.md.
+name: vault
+
+x-hardened: &hardened
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: unless-stopped
+  logging: {driver: local}
+
+x-vault: &vault
+  <<: *hardened
+  image: ghcr.io/def4alt/vault-mcp:0.4.2@sha256:5c57ac0cba56d27c9c4c8a91a96a5b67ad1ba10e6e5bed09e7fa1d4ca1c41421
+  user: "1000:1000"
+  env_file: [{path: "${SECRETS_DIR:-/home/def4alt/.local/state/vault}/secrets.env", required: true}]
+  tmpfs: [/tmp]
+  volumes:
+    - /srv/vault:/vault
+    - /srv/documents:/documents
+    - /srv/vault-state/cache:/cache
+
+x-vault-env: &vault-env
+  PUBLIC_URL: https://vault.def4alt.com
+  NOTES_BASE_URL: https://zorya.tail6f3b0.ts.net:8444
+  ALLOWED_GITHUB_LOGINS: def4alt
+  METRICS_PORT: "9000"
+
+services:
+  caddy:
+    <<: *hardened
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    # Runs as uid 1000 (owns its storage). The image's binary carries cap_net_bind_service as a file
+    # capability, which the kernel refuses to exec under no-new-privileges: allow it for Caddy only,
+    # with every other capability still dropped.
+    user: "1000:1000"
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: [no-new-privileges:false]
+    # The public addresses only: tailscaled already serves 443 on the tailnet address (Hermes WebUI).
+    ports:
+      - 46.62.137.102:80:80
+      - 46.62.137.102:443:443
+      - 46.62.137.102:443:443/udp
+      - "[2a01:4f9:c014:8c3::1]:80:80"
+      - "[2a01:4f9:c014:8c3::1]:443:443"
+      - "[2a01:4f9:c014:8c3::1]:443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /srv/vault/blobs:/srv/blobs:ro
+      - /srv/documents:/srv/documents:ro
+      - /srv/vault-state/caddy/data:/data
+      - /srv/vault-state/caddy/config:/config
+    depends_on: [mcp]
+
+  mcp:
+    <<: *vault
+    command: [vault-mcp]
+    environment:
+      <<: *vault-env
+      FASTMCP_HOME: /data  # OAuth client registrations
+    volumes:
+      - /srv/vault:/vault
+      - /srv/documents:/documents
+      - /srv/vault-state/cache:/cache
+      - /srv/vault-state/mcp:/data
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 30s
+      start_period: 20s
+
+  worker:
+    <<: *vault
+    command: [vault-worker]
+    environment:
+      <<: *vault-env
+      GIT_SSH_COMMAND: ssh -i /secrets/deploy_key -o UserKnownHostsFile=/etc/vault/known_hosts -o IdentitiesOnly=yes
+    volumes:
+      - /srv/vault:/vault
+      - /srv/documents:/documents
+      - /srv/vault-state/cache:/cache
+      - ${SECRETS_DIR:-/home/def4alt/.local/state/vault}/deploy_key:/secrets/deploy_key:ro
+      - ./known_hosts:/etc/vault/known_hosts:ro
+
+  silverbullet:
+    <<: *hardened
+    image: ghcr.io/silverbulletmd/silverbullet:2.12.1-slim@sha256:7e24c16d31a3f4b4a4832ed64ec585e605a1e275b7c35917d385176f0b40415c
+    user: "1000:1000"
+    env_file: [{path: "${SECRETS_DIR:-/home/def4alt/.local/state/vault}/silverbullet.env", required: true}]
+    environment:
+      SB_INDEX_PAGE: index
+    tmpfs: [/tmp]
+    ports: ["127.0.0.1:3000:3000"]  # tailnet only: tailscale serve --https=8444 http://127.0.0.1:3000
+    volumes:
+      - /srv/vault:/space
+
+  syncthing:
+    <<: *hardened
+    image: syncthing/syncthing:2.1.5@sha256:84dcf202b0890f795c4c3899d35a5ac7369bb8b72b5c270078c50247da4ddeef
+    user: "1000:1000"
+    network_mode: host  # 22000/tcp+udp for peers, 21027/udp discovery; GUI on 127.0.0.1:8384
+    hostname: zorya
+    environment:
+      STGUIADDRESS: 127.0.0.1:8384
+      STNOUPGRADE: "1"
+    volumes:
+      - /home/def4alt/.config/syncthing:/var/syncthing/config  # zorya's existing device identity
+      - /srv/vault:/srv/vault
+      - /srv/documents:/srv/documents
+
+  # Run by vault-backup.timer: `docker compose run --rm backup`. The B2 key can write but not delete;
+  # perun prunes the repository with its own key.
+  backup:
+    image: restic/restic:0.19.1@sha256:08916bcda4a4435f9d9828ebb4e91bb7ada3d2c8a53699788930e0ae1bd4fa67
+    profiles: [jobs]
+    hostname: zorya
+    env_file: [{path: "${SECRETS_DIR:-/home/def4alt/.local/state/vault}/restic.env", required: false}]
+    volumes:
+      - /srv/vault:/data/vault:ro
+      - /srv/documents:/data/documents:ro
+      - /srv/vault-state/restic-cache:/root/.cache/restic
+    command: [backup, --tag, zorya, --exclude, /data/vault/.incoming, --exclude, "**/.stversions",
+              --exclude, "**/.stfolder", /data/vault, /data/documents]

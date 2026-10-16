@@ -1,0 +1,8 @@
+// Syncthing on zorya (copied to /srv/vault/.stignore): the working tree, never the repo internals.
+.git
+.incoming
+.DS_Store
+.obsidian/workspace*.json
+.obsidian/cache
+.trash
+.silverbullet*

@@ -1,0 +1,7 @@
+[Unit]
+Description=Converge the vault stack with the homelab repo
+OnFailure=vault-alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/homelab/hosts/zorya/vault/deploy.sh

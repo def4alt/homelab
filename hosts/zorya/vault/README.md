@@ -1,4 +1,4 @@
-# Knowledge vault on zorya
+# Knowledge vault on zorya (Contabo)
 
 Docker Compose stack for the vault (see `compose.yaml`): Caddy on 80/443 for `vault.def4alt.com`, the
 vault server (`mcp`) and `worker` behind it, SilverBullet on the tailnet, Syncthing for the Mac and the
